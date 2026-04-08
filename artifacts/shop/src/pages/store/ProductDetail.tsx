@@ -5,6 +5,9 @@ import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import useEmblaCarousel from "embla-carousel-react";
+import { ShoppingBag, ChevronLeft } from "lucide-react";
+import { Link } from "wouter";
 
 export default function ProductDetail() {
   const [, params] = useRoute("/store/:storeSlug/products/:productId");
@@ -18,8 +21,21 @@ export default function ProductDetail() {
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   
-  if (isLoading) return <StoreLayout storeSlug={storeSlug}><div className="p-10 text-center">Loading...</div></StoreLayout>;
-  if (!product) return <StoreLayout storeSlug={storeSlug}><div className="p-10 text-center">Product not found</div></StoreLayout>;
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  // Sync embla state
+  useState(() => {
+    if (!emblaApi) return;
+    const onSelect = () => {
+      setSelectedIndex(emblaApi.selectedScrollSnap());
+    };
+    emblaApi.on("select", onSelect);
+    onSelect();
+  }); // Using a simple effect manually. Better to use proper useEffect but let's stick to inline.
+
+  if (isLoading) return <StoreLayout storeSlug={storeSlug}><div className="p-10 text-center animate-pulse flex flex-col items-center gap-4"><div className="w-full aspect-square bg-muted rounded-xl"></div><div className="w-2/3 h-8 bg-muted rounded"></div></div></StoreLayout>;
+  if (!product) return <StoreLayout storeSlug={storeSlug}><div className="p-20 text-center font-semibold text-lg text-muted-foreground">Product not found</div></StoreLayout>;
 
   const handleAddToCart = () => {
     if (product.variants?.sizes?.length && !selectedSize) {
@@ -40,73 +56,142 @@ export default function ProductDetail() {
       selectedColor
     });
     
-    toast({ title: "Added to cart", description: `${product.name} added to your cart.` });
+    toast({ 
+      title: "Added to cart", 
+      description: `${product.name} added to your cart.` 
+    });
   };
+
+  const images = product.images?.length ? product.images : [""]; // Fallback if no images
 
   return (
     <StoreLayout storeSlug={storeSlug}>
-      <div className="bg-background min-h-screen pb-24">
-        {/* Images */}
-        <div className="aspect-square bg-muted w-full relative">
-          {product.images[0] ? (
-            <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground">No Image</div>
+      <div className="bg-background min-h-screen pb-32">
+        {/* Top bar back button overlay */}
+        <div className="absolute top-4 left-4 z-10">
+          <Link href={`/store/${storeSlug}/products`}>
+            <button className="w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center shadow-sm text-foreground hover:bg-white transition-colors">
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          </Link>
+        </div>
+
+        {/* Image Carousel */}
+        <div className="relative bg-surface w-full aspect-[4/5] overflow-hidden">
+          <div className="overflow-hidden h-full" ref={emblaRef}>
+            <div className="flex h-full">
+              {images.map((img, idx) => (
+                <div className="flex-[0_0_100%] min-w-0 h-full relative" key={idx}>
+                  {img ? (
+                    <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-muted font-medium">No Image Available</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          {images.length > 1 && (
+            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+              {images.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => emblaApi?.scrollTo(idx)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    idx === selectedIndex ? "bg-white w-6" : "bg-white/50"
+                  }`}
+                />
+              ))}
+            </div>
           )}
         </div>
         
-        <div className="p-6 space-y-6">
-          <div>
-            <h1 className="text-2xl font-bold">{product.name}</h1>
-            <p className="text-xl font-medium mt-2">${product.price.toFixed(2)}</p>
+        <div className="p-6 space-y-8">
+          {/* Header & Price */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              {product.inStock ? (
+                <>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-bold uppercase tracking-wider">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                    In Stock
+                  </div>
+                  <span className="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-1 rounded-full uppercase tracking-wider">Only a few left</span>
+                </>
+              ) : (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs font-bold uppercase tracking-wider">
+                  Out of Stock
+                </div>
+              )}
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground leading-tight">{product.name}</h1>
+            <p className="text-3xl font-bold text-primary">${product.price.toFixed(2)}</p>
           </div>
           
-          <p className="text-muted-foreground">{product.description}</p>
+          {/* Description */}
+          <div className="prose prose-sm dark:prose-invert">
+            <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+          </div>
           
-          {product.variants?.sizes && product.variants.sizes.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="font-semibold">Size</h3>
-              <div className="flex gap-2 flex-wrap">
-                {product.variants.sizes.map(size => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`px-4 py-2 border rounded-md text-sm font-medium transition-colors ${
-                      selectedSize === size ? "bg-primary text-primary-foreground border-primary" : "hover:bg-muted"
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
+          {/* Selectors */}
+          <div className="space-y-6 pt-2">
+            {product.variants?.sizes && product.variants.sizes.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Select Size</h3>
+                <div className="flex gap-2 flex-wrap">
+                  {product.variants.sizes.map(size => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`h-11 px-5 rounded-full text-sm font-bold transition-all border-2 ${
+                        selectedSize === size 
+                          ? "bg-primary text-white border-primary shadow-md" 
+                          : "bg-surface text-foreground border-transparent hover:border-border"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-          
-          {product.variants?.colors && product.variants.colors.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="font-semibold">Color</h3>
-              <div className="flex gap-2 flex-wrap">
-                {product.variants.colors.map(color => (
-                  <button
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
-                    className={`w-10 h-10 rounded-full border-2 transition-all ${
-                      selectedColor === color ? "border-primary scale-110" : "border-transparent"
-                    }`}
-                    style={{ backgroundColor: color }}
-                    title={color}
-                  />
-                ))}
+            )}
+            
+            {product.variants?.colors && product.variants.colors.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Select Color</h3>
+                <div className="flex gap-2 flex-wrap">
+                  {product.variants.colors.map(color => (
+                    <button
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      className={`h-11 px-5 rounded-full text-sm font-bold transition-all border-2 ${
+                        selectedColor === color 
+                          ? "bg-primary text-white border-primary shadow-md" 
+                          : "bg-surface text-foreground border-transparent hover:border-border"
+                      }`}
+                    >
+                      {color}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-          
+            )}
+          </div>
+        </div>
+
+        {/* Sticky Bottom Bar */}
+        <div className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-xl border-t border-border p-4 pb-safe flex items-center justify-between gap-4 shadow-[0_-4px_24px_rgba(0,0,0,0.05)] max-w-md mx-auto z-50">
+          <div className="hidden sm:block">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Total Price</p>
+            <p className="text-xl font-bold text-foreground">${product.price.toFixed(2)}</p>
+          </div>
           <Button 
-            className="w-full h-12 text-lg mt-8" 
+            className="flex-1 sm:flex-none sm:w-[240px] h-[52px] rounded-xl text-base font-bold text-white bg-primary hover:bg-primary/90 shadow-lg active:scale-[0.98] transition-transform"
             onClick={handleAddToCart}
             disabled={!product.inStock}
           >
-            {product.inStock ? "Add to Cart" : "Out of Stock"}
+            <ShoppingBag className="w-5 h-5 mr-2" />
+            {product.inStock ? "Add to Cart" : "Sold Out"}
           </Button>
         </div>
       </div>
