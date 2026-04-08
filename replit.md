@@ -2,7 +2,7 @@
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+Multi-vendor e-commerce platform for small sellers using WhatsApp as a backend communication tool. Customers shop through beautiful mini-stores; sellers manage everything through a dashboard. WhatsApp is hidden from customers and used only for order notifications.
 
 ## Stack
 
@@ -15,6 +15,40 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
+- **Frontend**: React + Vite, Tailwind CSS, shadcn/ui, Framer Motion, Wouter
+
+## Architecture
+
+- `artifacts/api-server` — Express 5 REST API
+- `artifacts/shop` — React + Vite storefront + seller dashboard
+- `lib/db` — Drizzle ORM schema (stores, categories, products, orders)
+- `lib/api-spec` — OpenAPI spec (source of truth)
+- `lib/api-client-react` — Generated React Query hooks
+- `lib/api-zod` — Generated Zod validation schemas
+
+## Key Routes
+
+### Customer Store
+- `/` — Landing page
+- `/store/:storeSlug` — Store home with featured products and categories
+- `/store/:storeSlug/products` — Product listing with search/filters
+- `/store/:storeSlug/products/:productId` — Product detail
+- `/store/:storeSlug/cart` — Shopping cart (client-side, localStorage)
+- `/store/:storeSlug/checkout` — Checkout form → places order
+
+### Seller Dashboard
+- `/dashboard` — Overview stats + recent orders
+- `/dashboard/products` — Product CRUD
+- `/dashboard/categories` — Category management
+- `/dashboard/orders` — Orders list (new/contacted/completed)
+- `/dashboard/orders/:id` — Order detail with WhatsApp button
+- `/dashboard/settings` — Store branding (name, color, images, WhatsApp number)
+- `/dashboard/setup` — First-time store setup
+
+## Demo Data
+- Store slug: `demo-store` (Zara Style Boutique)
+- 6 products seeded across 4 categories
+- 3 sample orders (new, contacted, completed)
 
 ## Key Commands
 

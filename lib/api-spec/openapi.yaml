@@ -1,22 +1,29 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Multi-vendor e-commerce API for WhatsApp sellers
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: stores
+    description: Store management
+  - name: products
+    description: Product management
+  - name: categories
+    description: Category management
+  - name: orders
+    description: Order management
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +31,401 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /stores/{storeSlug}:
+    get:
+      operationId: getStore
+      tags: [stores]
+      summary: Get a store by slug
+      parameters:
+        - name: storeSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Store data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Store"
+        "404":
+          description: Store not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /stores/{storeSlug}/products:
+    get:
+      operationId: listStoreProducts
+      tags: [products]
+      summary: List products in a store
+      parameters:
+        - name: storeSlug
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+        - name: color
+          in: query
+          schema:
+            type: string
+        - name: size
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /stores/{storeSlug}/products/{productId}:
+    get:
+      operationId: getStoreProduct
+      tags: [products]
+      summary: Get a single product
+      parameters:
+        - name: storeSlug
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /stores/{storeSlug}/categories:
+    get:
+      operationId: listStoreCategories
+      tags: [categories]
+      summary: List categories in a store
+      parameters:
+        - name: storeSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+  /stores/{storeSlug}/orders:
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Place an order
+      parameters:
+        - name: storeSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderBody"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /dashboard/store:
+    get:
+      operationId: getDashboardStore
+      tags: [stores]
+      summary: Get current seller's store
+      responses:
+        "200":
+          description: Store data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Store"
+        "404":
+          description: No store found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateDashboardStore
+      tags: [stores]
+      summary: Update current seller's store settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStoreBody"
+      responses:
+        "200":
+          description: Updated store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Store"
+
+  /dashboard/store/init:
+    post:
+      operationId: initDashboardStore
+      tags: [stores]
+      summary: Initialize a store (first-time setup)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InitStoreBody"
+      responses:
+        "201":
+          description: Store created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Store"
+
+  /dashboard/products:
+    get:
+      operationId: listDashboardProducts
+      tags: [products]
+      summary: List seller's products
+      responses:
+        "200":
+          description: Products list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: createDashboardProduct
+      tags: [products]
+      summary: Create a new product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductBody"
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /dashboard/products/{productId}:
+    put:
+      operationId: updateDashboardProduct
+      tags: [products]
+      summary: Update a product
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductBody"
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    delete:
+      operationId: deleteDashboardProduct
+      tags: [products]
+      summary: Delete a product
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Product deleted
+
+  /dashboard/categories:
+    get:
+      operationId: listDashboardCategories
+      tags: [categories]
+      summary: List seller's categories
+      responses:
+        "200":
+          description: Categories list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+    post:
+      operationId: createDashboardCategory
+      tags: [categories]
+      summary: Create a new category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCategoryBody"
+      responses:
+        "201":
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+
+  /dashboard/categories/{categoryId}:
+    delete:
+      operationId: deleteDashboardCategory
+      tags: [categories]
+      summary: Delete a category
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Category deleted
+
+  /dashboard/orders:
+    get:
+      operationId: listDashboardOrders
+      tags: [orders]
+      summary: List all orders for the seller
+      responses:
+        "200":
+          description: Orders list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+
+  /dashboard/orders/{orderId}:
+    get:
+      operationId: getDashboardOrder
+      tags: [orders]
+      summary: Get a single order
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+    put:
+      operationId: updateDashboardOrderStatus
+      tags: [orders]
+      summary: Update order status
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderStatusBody"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [orders]
+      summary: Get dashboard summary stats
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +436,305 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    Store:
+      type: object
+      properties:
+        id:
+          type: integer
+        slug:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        coverImage:
+          type: string
+          nullable: true
+        logoImage:
+          type: string
+          nullable: true
+        primaryColor:
+          type: string
+        whatsappNumber:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - slug
+        - name
+        - primaryColor
+        - whatsappNumber
+        - createdAt
+
+    InitStoreBody:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        whatsappNumber:
+          type: string
+        description:
+          type: string
+          nullable: true
+        primaryColor:
+          type: string
+      required:
+        - name
+        - slug
+        - whatsappNumber
+        - primaryColor
+
+    UpdateStoreBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        coverImage:
+          type: string
+          nullable: true
+        logoImage:
+          type: string
+          nullable: true
+        primaryColor:
+          type: string
+        whatsappNumber:
+          type: string
+      required:
+        - name
+        - primaryColor
+        - whatsappNumber
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        storeId:
+          type: integer
+      required:
+        - id
+        - name
+        - storeId
+
+    CreateCategoryBody:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
+
+    ProductVariant:
+      type: object
+      properties:
+        sizes:
+          type: array
+          items:
+            type: string
+        colors:
+          type: array
+          items:
+            type: string
+      required:
+        - sizes
+        - colors
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        storeId:
+          type: integer
+        categoryId:
+          type: integer
+          nullable: true
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        price:
+          type: number
+        images:
+          type: array
+          items:
+            type: string
+        variants:
+          $ref: "#/components/schemas/ProductVariant"
+        inStock:
+          type: boolean
+        featured:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - storeId
+        - name
+        - price
+        - images
+        - variants
+        - inStock
+        - featured
+        - createdAt
+
+    CreateProductBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        price:
+          type: number
+        categoryId:
+          type: integer
+          nullable: true
+        images:
+          type: array
+          items:
+            type: string
+        variants:
+          $ref: "#/components/schemas/ProductVariant"
+        inStock:
+          type: boolean
+        featured:
+          type: boolean
+      required:
+        - name
+        - price
+        - images
+        - variants
+        - inStock
+        - featured
+
+    OrderItem:
+      type: object
+      properties:
+        productId:
+          type: integer
+        productName:
+          type: string
+        price:
+          type: number
+        quantity:
+          type: integer
+        selectedSize:
+          type: string
+          nullable: true
+        selectedColor:
+          type: string
+          nullable: true
+      required:
+        - productId
+        - productName
+        - price
+        - quantity
+
+    CreateOrderBody:
+      type: object
+      properties:
+        customerName:
+          type: string
+        customerPhone:
+          type: string
+        customerAddress:
+          type: string
+        notes:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+      required:
+        - customerName
+        - customerPhone
+        - customerAddress
+        - items
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        storeId:
+          type: integer
+        customerName:
+          type: string
+        customerPhone:
+          type: string
+        customerAddress:
+          type: string
+        notes:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        total:
+          type: number
+        status:
+          type: string
+          enum: [new, contacted, completed]
+        whatsappMessage:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - storeId
+        - customerName
+        - customerPhone
+        - customerAddress
+        - items
+        - total
+        - status
+        - whatsappMessage
+        - createdAt
+
+    UpdateOrderStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [new, contacted, completed]
+      required:
+        - status
+
+    DashboardStats:
+      type: object
+      properties:
+        totalOrders:
+          type: integer
+        newOrders:
+          type: integer
+        totalProducts:
+          type: integer
+        totalRevenue:
+          type: number
+      required:
+        - totalOrders
+        - newOrders
+        - totalProducts
+        - totalRevenue
