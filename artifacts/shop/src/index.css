@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
@@ -113,7 +114,7 @@
   --chart-4: 38 92% 50%;
   --chart-5: 262 83% 58%;
 
-  --app-font-sans: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  --app-font-sans: 'Poppins', 'Inter', sans-serif;
   --app-font-serif: 'Playfair Display', Georgia, serif;
   --app-font-mono: 'Space Mono', Menlo, monospace;
   --radius: 0.75rem; 

@@ -1,12 +1,15 @@
 import { Link, useLocation } from "wouter";
 import { useCart } from "@/hooks/use-cart";
+import { useLanguage } from "@/context/language-context";
 import { ShoppingBag, Home, Search } from "lucide-react";
 import { useGetStore } from "@workspace/api-client-react";
+import { MiniCart } from "@/components/store/MiniCart";
 
 export function StoreLayout({ children, storeSlug }: { children: React.ReactNode; storeSlug: string }) {
   const { totalItems } = useCart();
   const { data: store, isLoading } = useGetStore(storeSlug, { query: { enabled: !!storeSlug } });
   const [location] = useLocation();
+  const { language, setLanguage, t, isRTL } = useLanguage();
 
   if (isLoading) {
     return (
@@ -24,7 +27,8 @@ export function StoreLayout({ children, storeSlug }: { children: React.ReactNode
   }
 
   return (
-    <div 
+    <div
+      dir={isRTL ? "rtl" : "ltr"}
       className="min-h-[100dvh] w-full max-w-md mx-auto bg-background flex flex-col relative shadow-2xl overflow-hidden border-x border-border/20"
       style={store.primaryColor ? { '--store-primary': store.primaryColor } as React.CSSProperties : {}}
     >
@@ -37,7 +41,13 @@ export function StoreLayout({ children, storeSlug }: { children: React.ReactNode
             {store.name}
           </span>
         </Link>
-        <div className="flex items-center gap-5 text-foreground">
+        <div className="flex items-center gap-4 text-foreground">
+          <button
+            onClick={() => setLanguage(language === "en" ? "ar" : "en")}
+            className="text-xs font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-full border border-border/60 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+          >
+            {language === "en" ? "عربي" : "EN"}
+          </button>
           <Link href={`/store/${storeSlug}/products`}>
             <Search className="w-5 h-5 hover:text-primary transition-colors cursor-pointer" />
           </Link>
@@ -51,7 +61,7 @@ export function StoreLayout({ children, storeSlug }: { children: React.ReactNode
           </Link>
         </div>
       </header>
-      
+
       <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background">
         {children}
       </main>
@@ -62,14 +72,14 @@ export function StoreLayout({ children, storeSlug }: { children: React.ReactNode
             <Home className={`w-6 h-6 transition-all ${location === `/store/${storeSlug}` ? "scale-110" : ""}`} />
             {location === `/store/${storeSlug}` && <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />}
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider">Home</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider">{t.home}</span>
         </Link>
         <Link href={`/store/${storeSlug}/products`} className={`flex flex-col items-center gap-1.5 transition-colors p-2 ${location.includes('/products') ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
           <div className="relative">
             <Search className={`w-6 h-6 transition-all ${location.includes('/products') ? "scale-110" : ""}`} />
             {location.includes('/products') && <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />}
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider">Shop</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider">{t.shop}</span>
         </Link>
         <Link href={`/store/${storeSlug}/cart`} className={`flex flex-col items-center gap-1.5 transition-colors relative p-2 ${location.includes('/cart') || location.includes('/checkout') ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
           <div className="relative">
@@ -81,9 +91,11 @@ export function StoreLayout({ children, storeSlug }: { children: React.ReactNode
             )}
             {(location.includes('/cart') || location.includes('/checkout')) && <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />}
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider">Cart</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider">{t.cart}</span>
         </Link>
       </nav>
+
+      <MiniCart storeSlug={storeSlug} />
     </div>
   );
 }

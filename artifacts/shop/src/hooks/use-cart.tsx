@@ -9,6 +9,9 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
+  miniCartOpen: boolean;
+  openMiniCart: () => void;
+  closeMiniCart: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -22,6 +25,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return [];
     }
   });
+
+  const [miniCartOpen, setMiniCartOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(items));
@@ -42,6 +47,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...current, newItem];
     });
+    setMiniCartOpen(true);
   };
 
   const removeItem = (productId: number, selectedSize?: string | null, selectedColor?: string | null) => {
@@ -64,12 +70,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const clearCart = () => setItems([]);
+  const openMiniCart = () => setMiniCartOpen(true);
+  const closeMiniCart = () => setMiniCartOpen(false);
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice }}>
+    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice, miniCartOpen, openMiniCart, closeMiniCart }}>
       {children}
     </CartContext.Provider>
   );

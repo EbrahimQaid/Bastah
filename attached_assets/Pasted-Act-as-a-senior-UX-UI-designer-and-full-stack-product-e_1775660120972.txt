@@ -1,0 +1,62 @@
+Act as a senior UX/UI designer and full-stack product expert.
+
+Your task: design a luxurious, mobile-first multi-vendor e-commerce platform tailored for small sellers who sell primarily via WhatsApp.
+
+The platform must have:
+
+1. **Customer Experience (UX/UI)**:
+- Mobile-first, clean, elegant, and premium look
+- High-quality product grid and product cards
+- Smooth micro-interactions for Add to Cart, Hover, Clicks, and Page Transitions
+- Sticky cart with mini-cart popup after adding an item
+- Seamless flow: Add to Cart → Mini Cart → Checkout → Order Confirmation
+- Checkout:
+  - Fields: Name, Phone, Address, Notes
+  - Minimal steps, distraction-free
+  - "Place Order" button
+  - WhatsApp integration invisible to customer
+- Multi-language support: Arabic (RTL) and English (LTR) with toggle
+- Theme customization: primary color, secondary color, background color; all UI elements adapt automatically
+- Smart filters and search:
+  - Price range, Category, Size, Color
+  - Live search with suggestions
+- Product page:
+  - Multiple images (carousel + zoom)
+  - Variant selection (Size, Color)
+  - Stock indicator ("Only few left")
+  - Ratings and reviews
+
+2. **Seller Dashboard**:
+- Extremely simple, mobile-friendly, fast
+- Add/edit/delete products quickly (<30 sec)
+- Upload multiple images (Drag & Drop)
+- Add product variants (size, color)
+- Add external link per product
+- Category management (add, edit, reorder)
+- Orders:
+  - List orders with status (New, Contacted, Completed)
+  - Open order in WhatsApp button (backend)
+- Store customization:
+  - Store name, banner image, theme colors
+- Preview product immediately after adding
+
+3. **Design System / UI Details**:
+- Minimal, premium, and uncluttered
+- Primary color: #C1121F
+- Background: #FFFFFF
+- Surface: #F3F4F6
+- Text primary: #1F2937
+- Text secondary: #6B7280
+- Rounded corners, soft shadows
+- Elegant typography (Poppins/Inter)
+- Smooth transitions, micro-interactions
+- Plenty of whitespace
+- Fast loading, optimized for low internet speed
+
+4. **Goal**:
+- Deliver a luxurious, professional, and highly intuitive shopping experience
+- Make customers feel trust and sophistication
+- Make small sellers enjoy fast, simple, and rewarding dashboard
+- All WhatsApp interactions hidden from the customer, seamless behind the scenes
+
+Output: a full visual and UX design, component layout, interaction behavior, and page flow for both Customer and Seller Dashboard.

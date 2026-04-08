@@ -2,12 +2,34 @@ import { useRoute } from "wouter";
 import { StoreLayout } from "@/components/layout/StoreLayout";
 import { useGetStoreProduct } from "@workspace/api-client-react";
 import { useCart } from "@/hooks/use-cart";
+import { useLanguage } from "@/context/language-context";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import useEmblaCarousel from "embla-carousel-react";
-import { ShoppingBag, ChevronLeft } from "lucide-react";
+import { ShoppingBag, ChevronLeft, Star } from "lucide-react";
 import { Link } from "wouter";
+
+function StarRating({ rating = 4.2, count = 38 }: { rating?: number; count?: number }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-0.5">
+        {[1, 2, 3, 4, 5].map(star => {
+          const filled = star <= Math.floor(rating);
+          const half = !filled && star === Math.ceil(rating) && rating % 1 >= 0.5;
+          return (
+            <Star
+              key={star}
+              className={`w-3.5 h-3.5 ${filled || half ? "text-amber-400 fill-amber-400" : "text-gray-200 fill-gray-200"}`}
+            />
+          );
+        })}
+      </div>
+      <span className="text-xs font-semibold text-foreground">{rating.toFixed(1)}</span>
+      <span className="text-xs text-muted-foreground">({count})</span>
+    </div>
+  );
+}
 
 export default function ProductDetail() {
   const [, params] = useRoute("/store/:storeSlug/products/:productId");
@@ -16,6 +38,7 @@ export default function ProductDetail() {
   
   const { data: product, isLoading } = useGetStoreProduct(storeSlug, productId);
   const { addItem } = useCart();
+  const { t } = useLanguage();
   const { toast } = useToast();
   
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -125,6 +148,7 @@ export default function ProductDetail() {
               )}
             </div>
             <h1 className="text-2xl md:text-3xl font-bold text-foreground leading-tight">{product.name}</h1>
+            <StarRating />
             <p className="text-3xl font-bold text-primary">${product.price.toFixed(2)}</p>
           </div>
           
@@ -137,7 +161,7 @@ export default function ProductDetail() {
           <div className="space-y-6 pt-2">
             {product.variants?.sizes && product.variants.sizes.length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Select Size</h3>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">{t.selectSize}</h3>
                 <div className="flex gap-2 flex-wrap">
                   {product.variants.sizes.map(size => (
                     <button
@@ -158,7 +182,7 @@ export default function ProductDetail() {
             
             {product.variants?.colors && product.variants.colors.length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Select Color</h3>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">{t.selectColor}</h3>
                 <div className="flex gap-2 flex-wrap">
                   {product.variants.colors.map(color => (
                     <button
@@ -182,7 +206,7 @@ export default function ProductDetail() {
         {/* Sticky Bottom Bar */}
         <div className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-xl border-t border-border p-4 pb-safe flex items-center justify-between gap-4 shadow-[0_-4px_24px_rgba(0,0,0,0.05)] max-w-md mx-auto z-50">
           <div className="hidden sm:block">
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Total Price</p>
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{t.totalPrice}</p>
             <p className="text-xl font-bold text-foreground">${product.price.toFixed(2)}</p>
           </div>
           <Button 
@@ -191,7 +215,7 @@ export default function ProductDetail() {
             disabled={!product.inStock}
           >
             <ShoppingBag className="w-5 h-5 mr-2" />
-            {product.inStock ? "Add to Cart" : "Sold Out"}
+            {product.inStock ? t.addToCart : t.soldOut}
           </Button>
         </div>
       </div>
