@@ -60,6 +60,10 @@ router.put("/dashboard/store", async (req, res): Promise<void> => {
       coverImage: parsed.data.coverImage ?? null,
       logoImage: parsed.data.logoImage ?? null,
       primaryColor: parsed.data.primaryColor,
+      secondaryColor: parsed.data.secondaryColor ?? null,
+      fontFamily: parsed.data.fontFamily ?? null,
+      currencies: parsed.data.currencies ?? null,
+      defaultCurrency: parsed.data.defaultCurrency ?? null,
       whatsappNumber: parsed.data.whatsappNumber,
     })
     .where(eq(storesTable.id, existing.id))

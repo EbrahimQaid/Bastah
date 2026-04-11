@@ -29,6 +29,10 @@ export const GetStoreResponse = zod.object({
   coverImage: zod.string().nullish(),
   logoImage: zod.string().nullish(),
   primaryColor: zod.string(),
+  secondaryColor: zod.string().nullish(),
+  fontFamily: zod.string().nullish(),
+  currencies: zod.string().nullish(),
+  defaultCurrency: zod.string().nullish(),
   whatsappNumber: zod.string(),
   createdAt: zod.string(),
 });
@@ -145,6 +149,10 @@ export const GetDashboardStoreResponse = zod.object({
   coverImage: zod.string().nullish(),
   logoImage: zod.string().nullish(),
   primaryColor: zod.string(),
+  secondaryColor: zod.string().nullish(),
+  fontFamily: zod.string().nullish(),
+  currencies: zod.string().nullish(),
+  defaultCurrency: zod.string().nullish(),
   whatsappNumber: zod.string(),
   createdAt: zod.string(),
 });
@@ -158,6 +166,10 @@ export const UpdateDashboardStoreBody = zod.object({
   coverImage: zod.string().nullish(),
   logoImage: zod.string().nullish(),
   primaryColor: zod.string(),
+  secondaryColor: zod.string().nullish(),
+  fontFamily: zod.string().nullish(),
+  currencies: zod.string().nullish(),
+  defaultCurrency: zod.string().nullish(),
   whatsappNumber: zod.string(),
 });
 
@@ -169,6 +181,10 @@ export const UpdateDashboardStoreResponse = zod.object({
   coverImage: zod.string().nullish(),
   logoImage: zod.string().nullish(),
   primaryColor: zod.string(),
+  secondaryColor: zod.string().nullish(),
+  fontFamily: zod.string().nullish(),
+  currencies: zod.string().nullish(),
+  defaultCurrency: zod.string().nullish(),
   whatsappNumber: zod.string(),
   createdAt: zod.string(),
 });

@@ -1,6 +1,7 @@
 import { useRoute, useLocation } from "wouter";
 import { StoreLayout } from "@/components/layout/StoreLayout";
 import { useCart } from "@/hooks/use-cart";
+import { useCurrency } from "@/context/currency-context";
 import { useCreateOrder } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ export default function Checkout() {
   const [, setLocation] = useLocation();
   
   const { items, totalPrice, clearCart } = useCart();
+  const { format } = useCurrency();
   const { toast } = useToast();
   const createOrder = useCreateOrder();
   
@@ -158,7 +160,7 @@ export default function Checkout() {
                     <span className="bg-surface px-2 py-0.5 rounded text-xs text-muted-foreground font-bold">{item.quantity}x</span>
                     <span className="line-clamp-1">{item.productName}</span>
                   </div>
-                  <span className="font-bold whitespace-nowrap">${(item.price * item.quantity).toFixed(2)}</span>
+                  <span className="font-bold whitespace-nowrap">{format(item.price * item.quantity)}</span>
                 </div>
               ))}
             </div>
@@ -166,7 +168,7 @@ export default function Checkout() {
             <div className="pt-4 border-t border-border/50 space-y-2">
               <div className="flex justify-between text-sm text-muted-foreground font-medium">
                 <span>Subtotal</span>
-                <span>${totalPrice.toFixed(2)}</span>
+                <span>{format(totalPrice)}</span>
               </div>
               <div className="flex justify-between text-sm text-muted-foreground font-medium">
                 <span>Shipping</span>
@@ -174,7 +176,7 @@ export default function Checkout() {
               </div>
               <div className="flex justify-between font-bold text-xl pt-3 mt-3 border-t border-border/50 text-foreground">
                 <span>Total</span>
-                <span className="text-primary">${totalPrice.toFixed(2)}</span>
+                <span className="text-primary">{format(totalPrice)}</span>
               </div>
             </div>
           </div>

@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ShoppingBag, ArrowRight } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { useLanguage } from "@/context/language-context";
+import { useCurrency } from "@/context/currency-context";
 import { Link } from "wouter";
 
 interface MiniCartProps {
@@ -11,6 +12,7 @@ interface MiniCartProps {
 export function MiniCart({ storeSlug }: MiniCartProps) {
   const { items, totalItems, totalPrice, miniCartOpen, closeMiniCart, removeItem } = useCart();
   const { t, isRTL } = useLanguage();
+  const { format } = useCurrency();
 
   return (
     <AnimatePresence>
@@ -65,7 +67,7 @@ export function MiniCart({ storeSlug }: MiniCartProps) {
                         </span>
                       )}
                     </div>
-                    <p className="text-primary font-bold text-sm mt-1">${(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="text-primary font-bold text-sm mt-1">{format(item.price * item.quantity)}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">{t.quantity}: {item.quantity}</p>
                   </div>
                   <button
@@ -89,7 +91,7 @@ export function MiniCart({ storeSlug }: MiniCartProps) {
               <div className="px-5 py-4 border-t border-border/50 space-y-3 bg-surface/50">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground font-medium">{t.total}</span>
-                  <span className="text-xl font-bold text-foreground">${totalPrice.toFixed(2)}</span>
+                  <span className="text-xl font-bold text-foreground">{format(totalPrice)}</span>
                 </div>
                 <Link href={`/store/${storeSlug}/cart`} onClick={closeMiniCart}>
                   <button className="w-full h-12 bg-primary text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors active:scale-[0.98] transition-transform">

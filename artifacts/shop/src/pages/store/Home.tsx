@@ -3,6 +3,7 @@ import { StoreLayout } from "@/components/layout/StoreLayout";
 import { useListStoreProducts, useListStoreCategories, useGetStore } from "@workspace/api-client-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import { useCurrency } from "@/context/currency-context";
 
 export default function Home() {
   const [, params] = useRoute("/store/:storeSlug");
@@ -12,6 +13,7 @@ export default function Home() {
   const { data: store } = useGetStore(storeSlug);
   const { data: products } = useListStoreProducts(storeSlug);
   const { data: categories } = useListStoreCategories(storeSlug);
+  const { format } = useCurrency();
 
   const container = {
     hidden: { opacity: 0 },
@@ -102,7 +104,7 @@ export default function Home() {
                     </div>
                     <CardContent className="p-4 flex-1 flex flex-col justify-between">
                       <h3 className="font-semibold text-[13px] leading-tight text-foreground line-clamp-2 mb-2">{product.name}</h3>
-                      <p className="text-[15px] text-primary font-bold">${product.price.toFixed(2)}</p>
+                      <p className="text-[15px] text-primary font-bold">{format(product.price)}</p>
                     </CardContent>
                   </Card>
                 </Link>
@@ -132,7 +134,7 @@ export default function Home() {
                   </div>
                   <CardContent className="p-4 flex-1 flex flex-col justify-between">
                     <h3 className="font-semibold text-[13px] leading-tight text-foreground line-clamp-2 mb-2">{product.name}</h3>
-                    <p className="text-[15px] text-primary font-bold">${product.price.toFixed(2)}</p>
+                    <p className="text-[15px] text-primary font-bold">{format(product.price)}</p>
                   </CardContent>
                 </Card>
               </Link>

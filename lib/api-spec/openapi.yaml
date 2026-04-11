@@ -464,6 +464,18 @@ components:
           nullable: true
         primaryColor:
           type: string
+        secondaryColor:
+          type: string
+          nullable: true
+        fontFamily:
+          type: string
+          nullable: true
+        currencies:
+          type: string
+          nullable: true
+        defaultCurrency:
+          type: string
+          nullable: true
         whatsappNumber:
           type: string
         createdAt:
@@ -512,6 +524,18 @@ components:
           nullable: true
         primaryColor:
           type: string
+        secondaryColor:
+          type: string
+          nullable: true
+        fontFamily:
+          type: string
+          nullable: true
+        currencies:
+          type: string
+          nullable: true
+        defaultCurrency:
+          type: string
+          nullable: true
         whatsappNumber:
           type: string
       required:

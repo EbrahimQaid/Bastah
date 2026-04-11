@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CartProvider } from "@/hooks/use-cart";
 import { LanguageProvider } from "@/context/language-context";
+import { CurrencyProvider } from "@/context/currency-context";
 import NotFound from "@/pages/not-found";
 
 // Store Pages
@@ -77,12 +78,14 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <LanguageProvider>
+          <CurrencyProvider>
           <CartProvider>
             <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
               <Router />
             </WouterRouter>
             <Toaster />
           </CartProvider>
+          </CurrencyProvider>
         </LanguageProvider>
       </TooltipProvider>
     </QueryClientProvider>

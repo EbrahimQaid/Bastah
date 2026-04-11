@@ -1,6 +1,7 @@
 import { useRoute, Link } from "wouter";
 import { StoreLayout } from "@/components/layout/StoreLayout";
 import { useCart } from "@/hooks/use-cart";
+import { useCurrency } from "@/context/currency-context";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
@@ -10,6 +11,7 @@ export default function Cart() {
   const storeSlug = params?.storeSlug || "demo-store";
   
   const { items, updateQuantity, removeItem, totalPrice } = useCart();
+  const { format } = useCurrency();
 
   return (
     <StoreLayout storeSlug={storeSlug}>
@@ -74,7 +76,7 @@ export default function Cart() {
                       </div>
                       
                       <div className="flex items-center justify-between mt-4">
-                        <p className="font-bold text-primary text-base">${(item.price).toFixed(2)}</p>
+                        <p className="font-bold text-primary text-base">{format(item.price)}</p>
                         
                         <div className="flex items-center gap-3 bg-surface rounded-full p-1 border border-border/50">
                           <button 
@@ -101,7 +103,7 @@ export default function Cart() {
                 <h3 className="font-bold text-lg mb-2">Order Summary</h3>
                 <div className="flex justify-between text-sm text-muted-foreground font-medium">
                   <span>Subtotal ({items.reduce((sum, item) => sum + item.quantity, 0)} items)</span>
-                  <span>${totalPrice.toFixed(2)}</span>
+                  <span>{format(totalPrice)}</span>
                 </div>
                 <div className="flex justify-between text-sm text-muted-foreground font-medium">
                   <span>Shipping</span>
@@ -110,7 +112,7 @@ export default function Cart() {
                 <div className="border-t border-border pt-4 mt-2">
                   <div className="flex justify-between items-end">
                     <span className="font-bold text-foreground">Estimated Total</span>
-                    <span className="font-bold text-2xl text-foreground">${totalPrice.toFixed(2)}</span>
+                    <span className="font-bold text-2xl text-foreground">{format(totalPrice)}</span>
                   </div>
                 </div>
               </div>

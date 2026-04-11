@@ -9,7 +9,11 @@ export const storesTable = pgTable("stores", {
   description: text("description"),
   coverImage: text("cover_image"),
   logoImage: text("logo_image"),
-  primaryColor: text("primary_color").notNull().default("#6366f1"),
+  primaryColor: text("primary_color").notNull().default("#C1121F"),
+  secondaryColor: text("secondary_color").default("#F3F4F6"),
+  fontFamily: text("font_family").default("Poppins"),
+  currencies: text("currencies").default('["USD","SAR","YER"]'),
+  defaultCurrency: text("default_currency").default("USD"),
   whatsappNumber: text("whatsapp_number").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

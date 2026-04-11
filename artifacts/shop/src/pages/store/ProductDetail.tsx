@@ -3,6 +3,7 @@ import { StoreLayout } from "@/components/layout/StoreLayout";
 import { useGetStoreProduct } from "@workspace/api-client-react";
 import { useCart } from "@/hooks/use-cart";
 import { useLanguage } from "@/context/language-context";
+import { useCurrency } from "@/context/currency-context";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -39,6 +40,7 @@ export default function ProductDetail() {
   const { data: product, isLoading } = useGetStoreProduct(storeSlug, productId);
   const { addItem } = useCart();
   const { t } = useLanguage();
+  const { format } = useCurrency();
   const { toast } = useToast();
   
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -149,7 +151,7 @@ export default function ProductDetail() {
             </div>
             <h1 className="text-2xl md:text-3xl font-bold text-foreground leading-tight">{product.name}</h1>
             <StarRating />
-            <p className="text-3xl font-bold text-primary">${product.price.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-primary">{format(product.price)}</p>
           </div>
           
           {/* Description */}
@@ -207,7 +209,7 @@ export default function ProductDetail() {
         <div className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-xl border-t border-border p-4 pb-safe flex items-center justify-between gap-4 shadow-[0_-4px_24px_rgba(0,0,0,0.05)] max-w-md mx-auto z-50">
           <div className="hidden sm:block">
             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{t.totalPrice}</p>
-            <p className="text-xl font-bold text-foreground">${product.price.toFixed(2)}</p>
+            <p className="text-xl font-bold text-foreground">{format(product.price)}</p>
           </div>
           <Button 
             className="flex-1 sm:flex-none sm:w-[240px] h-[52px] rounded-xl text-base font-bold text-white bg-primary hover:bg-primary/90 shadow-lg active:scale-[0.98] transition-transform"
