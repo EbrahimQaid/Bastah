@@ -25,6 +25,7 @@ export interface Store {
   fontFamily?: string | null;
   currencies?: string | null;
   defaultCurrency?: string | null;
+  themeConfig?: string | null;
   whatsappNumber: string;
   createdAt: string;
 }
@@ -47,6 +48,7 @@ export interface UpdateStoreBody {
   fontFamily?: string | null;
   currencies?: string | null;
   defaultCurrency?: string | null;
+  themeConfig?: string | null;
   whatsappNumber: string;
 }
 

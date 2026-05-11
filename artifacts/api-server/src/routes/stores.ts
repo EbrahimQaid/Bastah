@@ -64,6 +64,7 @@ router.put("/dashboard/store", async (req, res): Promise<void> => {
       fontFamily: parsed.data.fontFamily ?? null,
       currencies: parsed.data.currencies ?? null,
       defaultCurrency: parsed.data.defaultCurrency ?? null,
+      themeConfig: parsed.data.themeConfig ?? null,
       whatsappNumber: parsed.data.whatsappNumber,
     })
     .where(eq(storesTable.id, existing.id))

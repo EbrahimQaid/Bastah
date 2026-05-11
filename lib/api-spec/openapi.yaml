@@ -476,6 +476,9 @@ components:
         defaultCurrency:
           type: string
           nullable: true
+        themeConfig:
+          type: string
+          nullable: true
         whatsappNumber:
           type: string
         createdAt:
@@ -534,6 +537,9 @@ components:
           type: string
           nullable: true
         defaultCurrency:
+          type: string
+          nullable: true
+        themeConfig:
           type: string
           nullable: true
         whatsappNumber:

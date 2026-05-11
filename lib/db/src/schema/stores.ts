@@ -14,6 +14,7 @@ export const storesTable = pgTable("stores", {
   fontFamily: text("font_family").default("Poppins"),
   currencies: text("currencies").default('["USD","SAR","YER"]'),
   defaultCurrency: text("default_currency").default("USD"),
+  themeConfig: text("theme_config"),
   whatsappNumber: text("whatsapp_number").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

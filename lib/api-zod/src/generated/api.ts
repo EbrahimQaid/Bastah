@@ -33,6 +33,7 @@ export const GetStoreResponse = zod.object({
   fontFamily: zod.string().nullish(),
   currencies: zod.string().nullish(),
   defaultCurrency: zod.string().nullish(),
+  themeConfig: zod.string().nullish(),
   whatsappNumber: zod.string(),
   createdAt: zod.string(),
 });
@@ -153,6 +154,7 @@ export const GetDashboardStoreResponse = zod.object({
   fontFamily: zod.string().nullish(),
   currencies: zod.string().nullish(),
   defaultCurrency: zod.string().nullish(),
+  themeConfig: zod.string().nullish(),
   whatsappNumber: zod.string(),
   createdAt: zod.string(),
 });
@@ -170,6 +172,7 @@ export const UpdateDashboardStoreBody = zod.object({
   fontFamily: zod.string().nullish(),
   currencies: zod.string().nullish(),
   defaultCurrency: zod.string().nullish(),
+  themeConfig: zod.string().nullish(),
   whatsappNumber: zod.string(),
 });
 
@@ -185,6 +188,7 @@ export const UpdateDashboardStoreResponse = zod.object({
   fontFamily: zod.string().nullish(),
   currencies: zod.string().nullish(),
   defaultCurrency: zod.string().nullish(),
+  themeConfig: zod.string().nullish(),
   whatsappNumber: zod.string(),
   createdAt: zod.string(),
 });
