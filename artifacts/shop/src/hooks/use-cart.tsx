@@ -1,9 +1,13 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { OrderItem } from "@workspace/api-client-react";
 
+export interface CartItem extends OrderItem {
+  imageUrl?: string;
+}
+
 interface CartContextType {
-  items: OrderItem[];
-  addItem: (item: OrderItem) => void;
+  items: CartItem[];
+  addItem: (item: CartItem) => void;
   removeItem: (productId: number, selectedSize?: string | null, selectedColor?: string | null) => void;
   updateQuantity: (productId: number, quantity: number, selectedSize?: string | null, selectedColor?: string | null) => void;
   clearCart: () => void;
@@ -17,7 +21,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<OrderItem[]>(() => {
+  const [items, setItems] = useState<CartItem[]>(() => {
     try {
       const saved = localStorage.getItem("cart");
       return saved ? JSON.parse(saved) : [];
@@ -32,7 +36,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("cart", JSON.stringify(items));
   }, [items]);
 
-  const addItem = (newItem: OrderItem) => {
+  const addItem = (newItem: CartItem) => {
     setItems(current => {
       const existingIndex = current.findIndex(
         i => i.productId === newItem.productId &&
@@ -42,7 +46,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
       if (existingIndex > -1) {
         const updated = [...current];
-        updated[existingIndex].quantity += newItem.quantity;
+        updated[existingIndex] = { ...updated[existingIndex], quantity: updated[existingIndex].quantity + newItem.quantity };
         return updated;
       }
       return [...current, newItem];

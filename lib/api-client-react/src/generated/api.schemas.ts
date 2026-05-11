@@ -21,6 +21,10 @@ export interface Store {
   coverImage?: string | null;
   logoImage?: string | null;
   primaryColor: string;
+  secondaryColor?: string | null;
+  fontFamily?: string | null;
+  currencies?: string | null;
+  defaultCurrency?: string | null;
   whatsappNumber: string;
   createdAt: string;
 }
@@ -39,6 +43,10 @@ export interface UpdateStoreBody {
   coverImage?: string | null;
   logoImage?: string | null;
   primaryColor: string;
+  secondaryColor?: string | null;
+  fontFamily?: string | null;
+  currencies?: string | null;
+  defaultCurrency?: string | null;
   whatsappNumber: string;
 }
 

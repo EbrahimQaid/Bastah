@@ -78,7 +78,8 @@ export default function ProductDetail() {
       price: product.price,
       quantity: 1,
       selectedSize,
-      selectedColor
+      selectedColor,
+      imageUrl: product.images?.[0] ?? undefined,
     });
     
     toast({ 

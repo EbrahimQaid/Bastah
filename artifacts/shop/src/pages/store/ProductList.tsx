@@ -8,7 +8,7 @@ import { Search, X, SlidersHorizontal, PackageX, ChevronDown } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Skeleton } from "@/components/ui/skeleton";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { useLanguage } from "@/context/language-context";
 import { useCurrency } from "@/context/currency-context";
 
@@ -36,10 +36,8 @@ export default function ProductList() {
   const { data: categories } = useListStoreCategories(storeSlug);
 
   const { data: products, isLoading } = useListStoreProducts(storeSlug, {
-    params: {
-      search: debouncedSearch || undefined,
-      categoryId: selectedCategory ? Number(selectedCategory) : undefined,
-    }
+    search: debouncedSearch || undefined,
+    categoryId: selectedCategory ? Number(selectedCategory) : undefined,
   });
 
   const filteredProducts = products?.filter(p => {
@@ -66,14 +64,14 @@ export default function ProductList() {
     setFilterOpen(false);
   };
 
-  const container = {
+  const container: Variants = {
     hidden: { opacity: 0 },
     show: { opacity: 1, transition: { staggerChildren: 0.07 } }
   };
 
-  const item = {
+  const item: Variants = {
     hidden: { opacity: 0, y: 16 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 28 } }
+    show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 28 } }
   };
 
   return (

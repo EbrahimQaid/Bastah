@@ -3,13 +3,15 @@ import { useCart } from "@/hooks/use-cart";
 import { useLanguage } from "@/context/language-context";
 import { useCurrency, CURRENCIES, CurrencyCode } from "@/context/currency-context";
 import { ShoppingBag, Home, Search, ChevronDown } from "lucide-react";
-import { useGetStore } from "@workspace/api-client-react";
+import { useGetStore, getGetStoreQueryKey } from "@workspace/api-client-react";
 import { MiniCart } from "@/components/store/MiniCart";
 import { useEffect, useRef, useState } from "react";
 
 export function StoreLayout({ children, storeSlug }: { children: React.ReactNode; storeSlug: string }) {
   const { totalItems } = useCart();
-  const { data: store, isLoading } = useGetStore(storeSlug, { query: { enabled: !!storeSlug } });
+  const { data: store, isLoading } = useGetStore(storeSlug, {
+    query: { queryKey: getGetStoreQueryKey(storeSlug), enabled: !!storeSlug },
+  });
   const [location] = useLocation();
   const { language, setLanguage, t, isRTL } = useLanguage();
   const { activeCurrency, setActiveCurrency, availableCurrencies, setAvailableCurrencies } = useCurrency();

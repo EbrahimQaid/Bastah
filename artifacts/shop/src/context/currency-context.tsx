@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 
-export type CurrencyCode = "USD" | "SAR" | "YER";
+export type CurrencyCode = "USD" | "SAR" | "YER" | "AED" | "EUR" | "GBP";
 
 export interface CurrencyInfo {
   code: CurrencyCode;
@@ -11,9 +11,12 @@ export interface CurrencyInfo {
 }
 
 export const CURRENCIES: Record<CurrencyCode, CurrencyInfo> = {
-  USD: { code: "USD", symbol: "$", name: "US Dollar", nameAr: "دولار أمريكي", rate: 1 },
-  SAR: { code: "SAR", symbol: "ر.س", name: "Saudi Riyal", nameAr: "ريال سعودي", rate: 3.75 },
-  YER: { code: "YER", symbol: "﷼", name: "Yemeni Rial", nameAr: "ريال يمني", rate: 250 },
+  USD: { code: "USD", symbol: "$",    name: "US Dollar",      nameAr: "دولار أمريكي",      rate: 1 },
+  SAR: { code: "SAR", symbol: "ر.س", name: "Saudi Riyal",    nameAr: "ريال سعودي",         rate: 3.75 },
+  YER: { code: "YER", symbol: "﷼",  name: "Yemeni Rial",    nameAr: "ريال يمني",          rate: 250 },
+  AED: { code: "AED", symbol: "د.إ", name: "UAE Dirham",     nameAr: "درهم إماراتي",       rate: 3.67 },
+  EUR: { code: "EUR", symbol: "€",   name: "Euro",           nameAr: "يورو",               rate: 0.92 },
+  GBP: { code: "GBP", symbol: "£",   name: "British Pound",  nameAr: "جنيه إسترليني",     rate: 0.79 },
 };
 
 interface CurrencyContextType {
