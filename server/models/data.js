@@ -6,7 +6,7 @@ const BASE = 'http://localhost:5173';
 
 const IMG = {
   cover:   `${BASE}/WhatsApp Image 2026-05-05 at 8.24.16 AM.jpeg`,
-  logo:    `${BASE}/WhatsApp Image 2026-05-03 at 8.08.04 PM.jpeg`,
+  logo:    `${BASE}/logo.png`,
   book1:   `${BASE}/WhatsApp Image 2026-05-02 at 9.21.03 PM.jpeg`,
   book2:   `${BASE}/WhatsApp Image 2026-05-02 at 9.23.14 PM.jpeg`,
   book3:   `${BASE}/WhatsApp Image 2026-05-02 at 9.23.41 PM.jpeg`,
