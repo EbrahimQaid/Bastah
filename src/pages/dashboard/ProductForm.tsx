@@ -9,9 +9,10 @@ import {
   getListDashboardProductsQueryKey,
 } from "@/services/api";
 import { Switch } from "@/components/ui/switch";
+import { ImageUploader } from "@/components/ui/ImageUploader";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, ImagePlus, Tag, DollarSign, AlignLeft, Ruler, Palette, Star, Package } from "lucide-react";
+import { ArrowLeft, Tag, DollarSign, AlignLeft, Ruler, Palette, Star, Package, Images } from "lucide-react";
 
 function FormField({ label, icon: Icon, hint, children }: { label: string; icon: React.ElementType; hint?: string; children: React.ReactNode }) {
   return (
@@ -49,7 +50,7 @@ export default function ProductForm() {
     name: "",
     price: 0,
     description: "",
-    images: "",
+    images: [] as string[],
     sizes: "",
     colors: "",
     categoryId: "",
@@ -63,7 +64,7 @@ export default function ProductForm() {
         name: product.name,
         price: product.price,
         description: product.description || "",
-        images: product.images.join(", "),
+        images: product.images || [],
         sizes: product.variants?.sizes?.join(", ") || "",
         colors: product.variants?.colors?.join(", ") || "",
         categoryId: product.categoryId ? String(product.categoryId) : "",
@@ -79,7 +80,7 @@ export default function ProductForm() {
       name: form.name,
       price: Number(form.price),
       description: form.description,
-      images: form.images.split(",").map(s => s.trim()).filter(Boolean),
+      images: form.images,
       variants: {
         sizes: form.sizes.split(",").map(s => s.trim()).filter(Boolean),
         colors: form.colors.split(",").map(s => s.trim()).filter(Boolean),
@@ -179,26 +180,15 @@ export default function ProductForm() {
 
           {/* Images */}
           <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 space-y-4">
-            <h3 className="font-black text-gray-900 text-sm uppercase tracking-wide text-gray-400">Images</h3>
-            <FormField label="Image URLs" icon={ImagePlus} hint="Separate multiple URLs with commas">
-              <textarea
-                className={`${inputCls} h-20 resize-none`}
-                placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg"
-                value={form.images}
-                onChange={e => setForm({ ...form, images: e.target.value })}
-              />
-            </FormField>
-
-            {/* Preview */}
-            {form.images && (
-              <div className="flex gap-2 flex-wrap">
-                {form.images.split(",").map((url, i) => url.trim() && (
-                  <div key={i} className="w-16 h-16 rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
-                    <img src={url.trim()} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                  </div>
-                ))}
-              </div>
-            )}
+            <h3 className="flex items-center gap-2 font-black text-gray-900 text-sm uppercase tracking-wide text-gray-400">
+              <Images className="w-4 h-4" />
+              الصور
+            </h3>
+            <ImageUploader
+              images={form.images}
+              onChange={imgs => setForm({ ...form, images: imgs })}
+              maxImages={5}
+            />
           </div>
 
           {/* Variants */}
