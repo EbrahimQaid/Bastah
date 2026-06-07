@@ -2,7 +2,7 @@
  * Mock Database - Data Model
  */
 
-const BASE = 'http://localhost:5173';
+const BASE = '';
 
 const IMG = {
   cover:   `${BASE}/WhatsApp Image 2026-05-05 at 8.24.16 AM.jpeg`,
