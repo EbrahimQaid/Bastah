@@ -112,7 +112,7 @@ export default function ProductDetail() {
 
   return (
     <StoreLayout storeSlug={storeSlug}>
-      <div className="bg-white min-h-screen pb-32" dir={isRTL ? "rtl" : "ltr"}>
+      <div className="bg-white min-h-screen pb-[180px]" dir={isRTL ? "rtl" : "ltr"}>
 
         {/* Back Button */}
         <div className={`absolute top-4 ${isRTL ? "right-4" : "left-4"} z-10`}>
@@ -276,8 +276,13 @@ export default function ProductDetail() {
 
         {/* Sticky Add to Cart */}
         <div
-          className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur-xl border-t border-gray-100 p-4 pb-safe z-50 flex items-center gap-4"
-          style={{ boxShadow: "0 -4px 30px rgba(0,0,0,0.08)" }}
+          className="fixed left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur-xl border-t border-gray-100 p-4 flex items-center gap-4"
+          style={{
+            bottom: 90,
+            zIndex: 60,
+            borderRadius: "20px 20px 0 0",
+            boxShadow: "0 -4px 30px rgba(0,0,0,0.10)",
+          }}
         >
           <div>
             <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">{t.totalPrice}</p>
