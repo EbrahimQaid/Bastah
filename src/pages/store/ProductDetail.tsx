@@ -57,7 +57,7 @@ export default function ProductDetail() {
 
   if (isLoading) {
     return (
-      <StoreLayout storeSlug={storeSlug}>
+      <StoreLayout storeSlug={storeSlug} hideBottomNav>
         <div className="animate-pulse">
           <div className="w-full aspect-[4/5] bg-gray-100" />
           <div className="p-6 space-y-4">
@@ -72,7 +72,7 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <StoreLayout storeSlug={storeSlug}>
+      <StoreLayout storeSlug={storeSlug} hideBottomNav>
         <div className="p-20 text-center font-semibold text-lg text-gray-400 flex flex-col items-center gap-4">
           <Package className="w-12 h-12 text-gray-300" />
           المنتج غير موجود
@@ -111,8 +111,8 @@ export default function ProductDetail() {
   const BackIcon = isRTL ? ChevronRight : ChevronLeft;
 
   return (
-    <StoreLayout storeSlug={storeSlug}>
-      <div className="bg-white min-h-screen pb-[180px]" dir={isRTL ? "rtl" : "ltr"}>
+    <StoreLayout storeSlug={storeSlug} hideBottomNav>
+      <div className="bg-white min-h-screen pb-[100px]" dir={isRTL ? "rtl" : "ltr"}>
 
         {/* Back Button */}
         <div className={`absolute top-4 ${isRTL ? "right-4" : "left-4"} z-10`}>
@@ -274,47 +274,58 @@ export default function ProductDetail() {
           )}
         </div>
 
-        {/* Sticky Add to Cart */}
+        {/* Sticky Add to Cart — Clean Bottom Bar */}
         <div
-          className="fixed left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur-xl border-t border-gray-100 p-4 flex items-center gap-4"
+          className="fixed left-1/2 -translate-x-1/2 w-full max-w-md"
           style={{
-            bottom: 90,
+            bottom: 0,
             zIndex: 60,
-            borderRadius: "20px 20px 0 0",
-            boxShadow: "0 -4px 30px rgba(0,0,0,0.10)",
           }}
         >
-          <div>
-            <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">{t.totalPrice}</p>
-            <p className="text-xl font-black" style={{ color: primaryColor }}>{format(product.price)}</p>
-          </div>
-
-          <motion.button
-            whileTap={{ scale: 0.97 }}
-            onClick={handleAddToCart}
-            disabled={!product.inStock}
-            className="flex-1 h-[52px] rounded-2xl text-base font-black text-white flex items-center justify-center gap-2.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          {/* Fade gradient above the bar */}
+          <div
+            className="h-6 pointer-events-none"
+            style={{ background: "linear-gradient(to bottom, transparent, white)" }}
+          />
+          <div
+            className="bg-white px-5 pb-6 pt-3 flex items-center gap-4"
             style={{
-              background: added
-                ? "linear-gradient(135deg, #22c55e, #16a34a)"
-                : product.inStock
-                ? `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)`
-                : "#9ca3af",
-              boxShadow: product.inStock && !added ? `0 4px 20px ${primaryColor}40` : added ? "0 4px 20px rgba(34,197,94,0.4)" : "none",
+              borderTop: "1px solid rgba(0,0,0,0.06)",
+              boxShadow: "0 -8px 30px rgba(0,0,0,0.06)",
             }}
           >
-            {added ? (
-              <>
-                <Check className="w-5 h-5" />
-                تمت الإضافة
-              </>
-            ) : (
-              <>
-                <ShoppingBag className="w-5 h-5" />
-                {product.inStock ? t.addToCart : t.soldOut}
-              </>
-            )}
-          </motion.button>
+            <div className="shrink-0">
+              <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">{t.totalPrice}</p>
+              <p className="text-xl font-black" style={{ color: primaryColor }}>{format(product.price)}</p>
+            </div>
+
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={handleAddToCart}
+              disabled={!product.inStock}
+              className="flex-1 h-[52px] rounded-2xl text-base font-black text-white flex items-center justify-center gap-2.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                background: added
+                  ? "linear-gradient(135deg, #22c55e, #16a34a)"
+                  : product.inStock
+                  ? `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)`
+                  : "#9ca3af",
+                boxShadow: product.inStock && !added ? `0 4px 20px ${primaryColor}40` : added ? "0 4px 20px rgba(34,197,94,0.4)" : "none",
+              }}
+            >
+              {added ? (
+                <>
+                  <Check className="w-5 h-5" />
+                  تمت الإضافة
+                </>
+              ) : (
+                <>
+                  <ShoppingBag className="w-5 h-5" />
+                  {product.inStock ? t.addToCart : t.soldOut}
+                </>
+              )}
+            </motion.button>
+          </div>
         </div>
       </div>
     </StoreLayout>

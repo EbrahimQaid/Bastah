@@ -9,9 +9,9 @@ import { useEffect, useRef, useState } from "react";
 import { ThemeContext, parseThemeConfig } from "@/context/theme-context";
 import { StoreUIContext } from "@/context/store-ui-context";
 
-export function StoreLayout({ children, storeSlug }: { children: React.ReactNode; storeSlug: string }) {
+export function StoreLayout({ children, storeSlug, hideBottomNav = false }: { children: React.ReactNode; storeSlug: string; hideBottomNav?: boolean }) {
   const { totalItems } = useCart();
-  const { data: store, isLoading } = useGetStore(storeSlug, {
+  const { data: store, isLoading, error, isError } = useGetStore(storeSlug, {
     query: { queryKey: getGetStoreQueryKey(storeSlug), enabled: !!storeSlug },
   });
   const [location] = useLocation();
@@ -79,7 +79,29 @@ export function StoreLayout({ children, storeSlug }: { children: React.ReactNode
     );
   }
 
-  if (!store) {
+  if (isError) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-white max-w-md mx-auto border-x">
+        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
+          <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h2 className="text-lg font-bold text-gray-900 mb-1">حدث خطأ أثناء الاتصال بالخادم</h2>
+        <p className="text-xs text-gray-500 max-w-sm mb-4 leading-relaxed">
+          {(error as Error)?.message || "يرجى التحقق من اتصال قاعدة البيانات"}
+        </p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs shadow-md transition-all active:scale-95"
+        >
+          إعادة المحاولة
+        </button>
+      </div>
+    );
+  }
+
+  if (!store && !isLoading) {
     return <div className="min-h-screen flex items-center justify-center font-bold text-lg">Store not found</div>;
   }
 
@@ -239,7 +261,7 @@ export function StoreLayout({ children, storeSlug }: { children: React.ReactNode
           </main>
 
           {/* Bottom Navigation */}
-          <div
+          {!hideBottomNav && <div
             style={{
               position: "fixed",
               bottom: 0,
@@ -342,7 +364,7 @@ export function StoreLayout({ children, storeSlug }: { children: React.ReactNode
                 </Link>
               ))}
             </nav>
-          </div>
+          </div>}
 
           {/* Social Footer */}
           {(theme.instagram || theme.tiktok || theme.footerText) && (

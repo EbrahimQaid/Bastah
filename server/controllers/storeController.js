@@ -1,4 +1,4 @@
-import { supabase, isSupabaseReady } from '../lib/supabase.js';
+import { query, isDbReady } from '../lib/db.js';
 import { STORE, PRODUCTS, CATEGORIES, ORDERS, incrementOrderId } from '../models/data.js';
 
 /* ── Helper: Map db store to frontend format ── */
@@ -25,19 +25,18 @@ function mapStore(row) {
 /* ── Store ── */
 export const getStore = async (req, res) => {
   const { slug } = req.params;
-  if (!isSupabaseReady()) {
+  if (!isDbReady()) {
     if (slug !== STORE.slug) return res.status(404).json({ error: 'Store not found' });
     return res.json(STORE);
   }
 
-  const { data, error } = await supabase
-    .from('stores')
-    .select('*')
-    .eq('slug', slug)
-    .single();
-
-  if (error || !data) return res.status(404).json({ error: 'Store not found' });
-  res.json(mapStore(data));
+  try {
+    const { rows } = await query('SELECT * FROM stores WHERE slug = $1 LIMIT 1', [slug]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Store not found' });
+    res.json(mapStore(rows[0]));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 /* ── Products ── */
@@ -45,7 +44,7 @@ export const listProducts = async (req, res) => {
   const { slug } = req.params;
   const { categoryId, search, minPrice, maxPrice } = req.query;
 
-  if (!isSupabaseReady()) {
+  if (!isDbReady()) {
     let products = [...PRODUCTS];
     if (categoryId) products = products.filter(p => p.categoryId === Number(categoryId));
     if (search)     products = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
@@ -54,55 +53,74 @@ export const listProducts = async (req, res) => {
     return res.json(products);
   }
 
-  // Get store first to verify slug and get store_id
-  const { data: store } = await supabase.from('stores').select('id').eq('slug', slug).single();
-  if (!store) return res.status(404).json({ error: 'Store not found' });
+  try {
+    const { rows: storeRows } = await query('SELECT id FROM stores WHERE slug = $1 LIMIT 1', [slug]);
+    if (storeRows.length === 0) return res.status(404).json({ error: 'Store not found' });
+    const store = storeRows[0];
 
-  let query = supabase.from('products').select('*').eq('store_id', store.id).eq('is_active', true);
-  if (categoryId) query = query.eq('category_id', Number(categoryId));
-  if (minPrice)   query = query.gte('price', Number(minPrice));
-  if (maxPrice)   query = query.lte('price', Number(maxPrice));
-  if (search)     query = query.ilike('name', `%${search}%`);
+    let sql = 'SELECT * FROM products WHERE store_id = $1 AND is_active = true';
+    const params = [store.id];
 
-  const { data, error } = await query.order('created_at', { ascending: false });
-  if (error) return res.status(500).json({ error: error.message });
-  res.json(data.map(toProduct));
+    if (categoryId) {
+      params.push(Number(categoryId));
+      sql += ` AND category_id = $${params.length}`;
+    }
+    if (minPrice) {
+      params.push(Number(minPrice));
+      sql += ` AND price >= $${params.length}`;
+    }
+    if (maxPrice) {
+      params.push(Number(maxPrice));
+      sql += ` AND price <= $${params.length}`;
+    }
+    if (search) {
+      params.push(`%${search}%`);
+      sql += ` AND name ILIKE $${params.length}`;
+    }
+
+    sql += ' ORDER BY created_at DESC';
+
+    const { rows } = await query(sql, params);
+    res.json(rows.map(toProduct));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 export const getProduct = async (req, res) => {
   const { id } = req.params;
-  if (!isSupabaseReady()) {
+  if (!isDbReady()) {
     const product = PRODUCTS.find(p => p.id === Number(id));
     return product ? res.json(product) : res.status(404).json({ error: 'Product not found' });
   }
 
-  const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .eq('id', Number(id))
-    .single();
-
-  if (error || !data) return res.status(404).json({ error: 'Product not found' });
-  res.json(toProduct(data));
+  try {
+    const { rows } = await query('SELECT * FROM products WHERE id = $1 LIMIT 1', [Number(id)]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Product not found' });
+    res.json(toProduct(rows[0]));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 /* ── Categories ── */
 export const listCategories = async (req, res) => {
   const { slug } = req.params;
-  if (!isSupabaseReady()) return res.json(CATEGORIES);
+  if (!isDbReady()) return res.json(CATEGORIES);
 
-  const { data: store } = await supabase.from('stores').select('id').eq('slug', slug).single();
-  if (!store) return res.status(404).json({ error: 'Store not found' });
+  try {
+    const { rows: storeRows } = await query('SELECT id FROM stores WHERE slug = $1 LIMIT 1', [slug]);
+    if (storeRows.length === 0) return res.status(404).json({ error: 'Store not found' });
+    const store = storeRows[0];
 
-  const { data, error } = await supabase
-    .from('categories')
-    .select('*')
-    .eq('store_id', store.id)
-    .eq('is_active', true)
-    .order('sort_order', { ascending: true });
-
-  if (error) return res.status(500).json({ error: error.message });
-  res.json(data.map(c => ({ id: c.id, storeId: c.store_id, name: c.name })));
+    const { rows } = await query(
+      'SELECT * FROM categories WHERE store_id = $1 AND is_active = true ORDER BY sort_order ASC',
+      [store.id]
+    );
+    res.json(rows.map(c => ({ id: c.id, storeId: c.store_id, name: c.name })));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 /* ── Orders ── */
@@ -111,7 +129,7 @@ export const createOrder = async (req, res) => {
   const { customerName, customerPhone, customerAddress, notes, items } = req.body;
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-  if (!isSupabaseReady()) {
+  if (!isDbReady()) {
     const order = {
       id: incrementOrderId(),
       storeId: 1,
@@ -129,24 +147,32 @@ export const createOrder = async (req, res) => {
     return res.status(201).json(order);
   }
 
-  const { data: store } = await supabase.from('stores').select('id').eq('slug', slug).single();
-  if (!store) return res.status(404).json({ error: 'Store not found' });
+  try {
+    const { rows: storeRows } = await query('SELECT id FROM stores WHERE slug = $1 LIMIT 1', [slug]);
+    if (storeRows.length === 0) return res.status(404).json({ error: 'Store not found' });
+    const store = storeRows[0];
 
-  const row = {
-    store_id:         store.id,
-    customer_name:    customerName,
-    customer_phone:   customerPhone,
-    customer_address: customerAddress,
-    notes:            notes || '',
-    items:            items,
-    total:            total,
-    status:           'new',
-    whatsapp_message: `طلب جديد من ${customerName}`,
-  };
+    const { rows } = await query(
+      `INSERT INTO orders (store_id, customer_name, customer_phone, customer_address, notes, items, total, status, whatsapp_message)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING *`,
+      [
+        store.id,
+        customerName,
+        customerPhone,
+        customerAddress,
+        notes || '',
+        JSON.stringify(items),
+        total,
+        'new',
+        `طلب جديد من ${customerName}`
+      ]
+    );
 
-  const { data, error } = await supabase.from('orders').insert(row).select().single();
-  if (error) return res.status(500).json({ error: error.message });
-  res.status(201).json(toOrder(data));
+    res.status(201).json(toOrder(rows[0]));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 /* ── Helpers ── */

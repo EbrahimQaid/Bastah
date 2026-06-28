@@ -1,0 +1,101 @@
+import pg from 'pg';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const connectionString = process.env.DATABASE_URL;
+
+let pool = null;
+
+if (connectionString && connectionString !== 'your_neon_connection_string_here') {
+  pool = new pg.Pool({
+    connectionString,
+    ssl: {
+      rejectUnauthorized: false
+    }
+  });
+
+  // Run database schema check and initialization on startup
+  initializeDatabase().catch(err => {
+    console.error("❌ Database auto-initialization failed:", err.message);
+  });
+}
+
+async function initializeDatabase() {
+  console.log("🔍 Checking database schema status...");
+  try {
+    const client = await pool.connect();
+    try {
+      // Check if the stores table exists
+      const tableCheck = await client.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'stores'
+        );
+      `);
+      
+      const storesExists = tableCheck.rows[0].exists;
+      if (!storesExists) {
+        console.log("🔄 Database tables not found. Initializing schema...");
+        const sqlPath = path.join(process.cwd(), 'supabase-schema.sql');
+        if (fs.existsSync(sqlPath)) {
+          const sql = fs.readFileSync(sqlPath, 'utf8');
+          await client.query(sql);
+          console.log("✅ Database schema initialized and seeded successfully!");
+        } else {
+          // Fallback if cwd path is different on Vercel
+          const fallbackPath = path.join(__dirname, '../../supabase-schema.sql');
+          if (fs.existsSync(fallbackPath)) {
+            const sql = fs.readFileSync(fallbackPath, 'utf8');
+            await client.query(sql);
+            console.log("✅ Database schema initialized and seeded successfully (using fallback path)!");
+          } else {
+            console.error("⚠️ Could not find supabase-schema.sql at paths:", sqlPath, "or", fallbackPath);
+          }
+        }
+      } else {
+        // Table exists, check if it's empty
+        const storesCount = await client.query("SELECT COUNT(*) FROM stores;");
+        if (parseInt(storesCount.rows[0].count, 10) === 0) {
+          console.log("🔄 Stores table is empty. Re-seeding default store...");
+          const sqlPath = path.join(process.cwd(), 'supabase-schema.sql');
+          let sql = null;
+          if (fs.existsSync(sqlPath)) {
+            sql = fs.readFileSync(sqlPath, 'utf8');
+          } else {
+            const fallbackPath = path.join(__dirname, '../../supabase-schema.sql');
+            if (fs.existsSync(fallbackPath)) {
+              sql = fs.readFileSync(fallbackPath, 'utf8');
+            }
+          }
+
+          if (sql) {
+            await client.query(sql);
+            console.log("✅ Database re-seeded successfully!");
+          } else {
+            console.error("⚠️ Could not find schema SQL to re-seed.");
+          }
+        } else {
+          console.log("✅ Database is ready and seeded (stores table already has data).");
+        }
+      }
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    console.error("❌ Error during database check/init:", err.message);
+  }
+}
+
+export const query = (text, params) => {
+  if (!pool) {
+    throw new Error("Database connection is not initialized. Please set DATABASE_URL in .env");
+  }
+  return pool.query(text, params);
+};
+
+export const isDbReady = () => !!pool;
