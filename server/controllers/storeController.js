@@ -105,12 +105,15 @@ export const listCategories = async (req, res) => {
 export const createOrder = async (req, res) => {
   const { slug } = req.params;
   const { customerName, customerPhone, customerAddress, notes, items } = req.body;
-  const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
   try {
-    const { rows: storeRows } = await query('SELECT id FROM stores WHERE slug = $1 LIMIT 1', [slug]);
+    const { rows: storeRows } = await query('SELECT id, shipping_rate FROM stores WHERE slug = $1 LIMIT 1', [slug]);
     if (storeRows.length === 0) return res.status(404).json({ error: 'Store not found' });
     const store = storeRows[0];
+
+    const shippingRate = Number(store.shipping_rate || 0);
+    const subtotal = items.reduce((sum, i) => sum + Number(i.price) * Number(i.quantity), 0);
+    const total = subtotal + shippingRate;
 
     const { rows } = await query(
       `INSERT INTO orders (store_id, customer_name, customer_phone, customer_address, notes, items, total, status, whatsapp_message)

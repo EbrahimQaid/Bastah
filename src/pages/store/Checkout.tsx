@@ -22,6 +22,8 @@ export default function Checkout() {
   const { data: store } = useGetStore(storeSlug);
   const primaryColor = store?.primaryColor || "#7C3AED";
 
+  const shippingRate = Number(store?.shippingRate || 0);
+
   const [success, setSuccess] = useState(false);
   const [form, setForm] = useState({
     customerName: "",
@@ -214,12 +216,19 @@ export default function Checkout() {
           {/* Shipping Notice */}
           <div
             className="flex items-center gap-3 p-4 rounded-2xl"
-            style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}
+            style={{
+              background: shippingRate === 0 ? "#f0fdf4" : "#fef8f2",
+              border: shippingRate === 0 ? "1px solid #bbf7d0" : "1px solid #fbd38d"
+            }}
           >
-            <Truck className="w-5 h-5 text-green-600 shrink-0" />
+            <Truck className="w-5 h-5 shrink-0" style={{ color: shippingRate === 0 ? "#16a34a" : "#dd6b20" }} />
             <div>
-              <p className="text-sm font-bold text-green-800">شحن مجاني لجميع المناطق 🎉</p>
-              <p className="text-xs text-green-600 mt-0.5">التوصيل خلال 3-5 أيام عمل</p>
+              <p className="text-sm font-bold" style={{ color: shippingRate === 0 ? "#166534" : "#9c4221" }}>
+                {shippingRate === 0 ? "شحن مجاني لجميع المناطق 🎉" : `تكلفة الشحن الثابتة: ${format(shippingRate)}`}
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: shippingRate === 0 ? "#16a34a" : "#dd6b20" }}>
+                التوصيل خلال 3-5 أيام عمل
+              </p>
             </div>
           </div>
 
@@ -269,11 +278,15 @@ export default function Checkout() {
                 </div>
                 <div className="flex justify-between text-sm text-gray-500">
                   <span>الشحن</span>
-                  <span className="font-bold text-green-600">مجاني</span>
+                  {shippingRate === 0 ? (
+                    <span className="font-bold text-green-600">مجاني</span>
+                  ) : (
+                    <span className="font-semibold text-gray-900">{format(shippingRate)}</span>
+                  )}
                 </div>
                 <div className="flex justify-between items-center pt-3 border-t border-gray-100">
                   <span className="font-black text-gray-900">{t.total}</span>
-                  <span className="font-black text-2xl" style={{ color: primaryColor }}>{format(totalPrice)}</span>
+                  <span className="font-black text-2xl" style={{ color: primaryColor }}>{format(totalPrice + shippingRate)}</span>
                 </div>
               </div>
             </div>

@@ -9,12 +9,16 @@ import { Plus, Edit2, Trash2, Package, Star, Search, Filter } from "lucide-react
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 
 export default function Products() {
   const { data: products, isLoading } = useListDashboardProducts();
   const deleteProduct = useDeleteDashboardProduct();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"all" | "inStock" | "outOfStock">("all");
 
   const handleDelete = (id: number, name: string) => {
     if (confirm(`هل أنت متأكد من حذف المنتج "${name}"؟`)) {
@@ -26,6 +30,15 @@ export default function Products() {
       });
     }
   };
+
+  const filteredProducts = products?.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          String(product.id).includes(searchTerm);
+    const matchesStatus = filterStatus === "all" || 
+                          (filterStatus === "inStock" && product.inStock) || 
+                          (filterStatus === "outOfStock" && !product.inStock);
+    return matchesSearch && matchesStatus;
+  }) || [];
 
   return (
     <DashboardLayout>
@@ -52,17 +65,27 @@ export default function Products() {
               <Search className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 group-focus-within:text-primary transition-colors" />
               <input 
                 placeholder="ابحث عن منتج بالاسم أو الرمز…" 
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
                 className="w-full pr-14 pl-6 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all font-bold text-sm shadow-sm"
               />
            </div>
            <div className="flex items-center gap-3 px-6 py-4 bg-white border border-gray-100 rounded-2xl shadow-sm">
               <Filter className="w-5 h-5 text-gray-400" />
-              <span className="text-sm font-bold text-gray-500">تصفية حسب:</span>
-              <span className="text-sm font-black text-primary">الكل</span>
+              <span className="text-sm font-bold text-gray-500 whitespace-nowrap">تصفية حسب:</span>
+              <select
+                value={filterStatus}
+                onChange={e => setFilterStatus(e.target.value as any)}
+                className="bg-transparent text-sm font-black text-primary outline-none cursor-pointer border-none p-0 focus:ring-0 w-full"
+              >
+                <option value="all">الكل</option>
+                <option value="inStock">متوفر</option>
+                <option value="outOfStock">غير متوفر</option>
+              </select>
            </div>
            <div className="flex items-center justify-center gap-2 px-6 py-4 bg-primary/5 border border-primary/10 rounded-2xl">
               <Package className="w-5 h-5 text-primary" />
-              <span className="text-sm font-black text-primary">إجمالي المنتجات: {products?.length ?? 0}</span>
+              <span className="text-sm font-black text-primary">إجمالي المنتجات: {filteredProducts.length}</span>
            </div>
         </div>
 
@@ -92,20 +115,25 @@ export default function Products() {
           </motion.div>
         ) : (
           <div className="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-right">
-                <thead>
-                  <tr className="bg-gray-50/50 border-b border-gray-50 text-[11px] font-black text-gray-400 uppercase tracking-[0.1em]">
-                    <th className="px-8 py-5">المنتج</th>
-                    <th className="px-6 py-5">السعر</th>
-                    <th className="px-6 py-5">الحالة</th>
-                    <th className="px-6 py-5">الأقسام</th>
-                    <th className="px-8 py-5 text-left">الإجراءات</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  <AnimatePresence mode="popLayout">
-                    {products.map((product, i) => (
+            {filteredProducts.length === 0 ? (
+              <div className="py-16 text-center text-gray-400 font-bold">
+                لا توجد نتائج تطابق خيارات البحث الحالية.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-right">
+                  <thead>
+                    <tr className="bg-gray-50/50 border-b border-gray-50 text-[11px] font-black text-gray-400 uppercase tracking-[0.1em]">
+                      <th className="px-8 py-5">المنتج</th>
+                      <th className="px-6 py-5">السعر</th>
+                      <th className="px-6 py-5">الحالة</th>
+                      <th className="px-6 py-5">الأقسام</th>
+                      <th className="px-8 py-5 text-left">الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    <AnimatePresence mode="popLayout">
+                      {filteredProducts.map((product, i) => (
                       <motion.tr
                         key={product.id}
                         initial={{ opacity: 0, x: 20 }}
@@ -189,6 +217,7 @@ export default function Products() {
                 </tbody>
               </table>
             </div>
+            )}
           </div>
         )}
       </div>

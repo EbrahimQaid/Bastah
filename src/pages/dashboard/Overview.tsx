@@ -33,31 +33,31 @@ export default function Overview() {
   const statCards = [
     {
       title: "إجمالي المبيعات",
-      value: `$${(stats?.totalRevenue || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      value: `${(stats?.totalRevenue || 0).toLocaleString("ar-SA", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ${store?.defaultCurrency || "ر.س"}`,
       icon: DollarSign,
       color: "bg-violet-50 text-violet-600",
-      trend: "زيادة بنسبة 12% هذا الأسبوع",
+      trend: "إجمالي الأرباح المحققة للمتجر",
     },
     {
       title: "إجمالي الطلبات",
       value: stats?.totalOrders ?? 0,
       icon: ShoppingCart,
       color: "bg-blue-50 text-blue-600",
-      trend: `${stats?.newOrders ?? 0} طلبات جديدة`,
+      trend: `${stats?.newOrders ?? 0} طلبات جديدة قيد الانتظار`,
     },
     {
       title: "طلبات جديدة",
       value: stats?.newOrders ?? 0,
       icon: TrendingUp,
       color: "bg-amber-50 text-amber-600",
-      trend: "تحتاج إلى مراجعة",
+      trend: "تحتاج إلى مراجعة وتجهيز",
     },
     {
       title: "المنتجات",
       value: stats?.totalProducts ?? 0,
       icon: Package,
       color: "bg-emerald-50 text-emerald-600",
-      trend: "في الكتالوج الخاص بك",
+      trend: "منتجات مسجلة في المتجر",
     },
   ];
 
@@ -184,7 +184,9 @@ export default function Overview() {
                         </div>
                         <div className="flex items-center gap-6">
                           <StatusBadge status={order.status} />
-                          <p className="font-black text-base text-gray-900 min-w-[80px] text-left">${order.total.toFixed(2)}</p>
+                          <p className="font-black text-base text-gray-900 min-w-[80px] text-left">
+                            {order.total.toLocaleString("ar-SA", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} {store?.defaultCurrency || "ر.س"}
+                          </p>
                         </div>
                       </div>
                     </Link>
