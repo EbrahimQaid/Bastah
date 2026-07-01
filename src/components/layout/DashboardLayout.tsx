@@ -3,6 +3,7 @@ import { LayoutDashboard, Package, Tag, ShoppingCart, Settings, ExternalLink, St
 import { useGetDashboardStore } from "@/services/api";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import BastahLogo from "@/components/ui/BastahLogo";
 
 const links = [
   { href: "/dashboard",            label: "نظرة عامة",    enLabel: "Overview",    icon: LayoutDashboard },
@@ -43,16 +44,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       {/* Desktop Sidebar */}
       <aside className="w-72 bg-white border-l border-gray-100 flex-col hidden lg:flex shrink-0 shadow-[0_0_40px_rgba(0,0,0,0.02)] sticky top-0 h-screen z-40">
         {/* Brand Logo Area */}
-        <div className="px-8 py-10 flex flex-col items-center border-b border-gray-50">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/20 mb-4 transform hover:scale-105 transition-transform">
-            <Store className="w-7 h-7 text-white" />
-          </div>
-          <h1 className="font-black text-xl text-gray-900 tracking-tight flex items-center gap-1">
-            Seller<span className="text-primary">Hub</span>
-          </h1>
+        <div className="px-8 py-10 flex flex-col items-center border-b border-gray-50 w-full">
+          <Link href="/">
+            <div className="cursor-pointer">
+              <BastahLogo />
+            </div>
+          </Link>
           {store && (
-            <div className="mt-2 px-3 py-1 bg-gray-50 rounded-full border border-gray-100 max-w-full">
-              <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest truncate">{store.name}</p>
+            <div className="mt-4 px-3 py-1 bg-gray-50 rounded-full border border-gray-100 max-w-full">
+              <p className="text-[10px] text-gray-500 font-bold tracking-wider truncate">{store.name}</p>
             </div>
           )}
         </div>
@@ -105,12 +105,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header - Mobile Only */}
         <header className="lg:hidden bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
-          <div className="flex items-center gap-3">
-             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-               <Store className="w-5 h-5 text-white" />
-             </div>
-             <span className="font-black text-lg text-gray-900">SellerHub</span>
-          </div>
+          <Link href="/">
+            <div className="cursor-pointer">
+              <BastahLogo />
+            </div>
+          </Link>
           <button 
             onClick={() => setIsMobileMenuOpen(true)}
             className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
@@ -145,12 +144,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               className="fixed right-0 top-0 bottom-0 w-80 bg-white z-[101] lg:hidden flex flex-col"
             >
               <div className="p-8 border-b border-gray-50 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                    <Store className="w-5 h-5 text-white" />
+                <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className="cursor-pointer">
+                    <BastahLogo />
                   </div>
-                  <span className="font-black text-xl">SellerHub</span>
-                </div>
+                </Link>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 rounded-lg bg-gray-50">
                   <X className="w-5 h-5" />
                 </button>

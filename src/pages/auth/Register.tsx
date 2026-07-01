@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Zap,
 } from "lucide-react";
+import BastahLogo from "@/components/ui/BastahLogo";
 
 /* ── الميزات الظاهرة على يسار الصفحة ── */
 const FEATURES = [
@@ -84,14 +85,8 @@ export default function Register() {
       <div className="flex flex-col justify-center items-center p-8 bg-white">
         {/* Logo */}
         <div className="w-full max-w-md">
-          <div className="flex items-center gap-2 mb-10">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg"
-              style={{ background: "linear-gradient(135deg, #7C3AED, #A78BFA)" }}
-            >
-              ب
-            </div>
-            <span className="text-xl font-bold text-gray-900">بَسطة</span>
+          <div onClick={() => setLocation("/")} className="cursor-pointer mb-10 inline-block">
+            <BastahLogo />
           </div>
 
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -239,14 +234,8 @@ export default function Register() {
         }}
       >
         <div className="max-w-md">
-          <div className="flex items-center gap-2 mb-12">
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl font-bold">
-              ب
-            </div>
-            <div>
-              <p className="text-xl font-bold">بَسطة</p>
-              <p className="text-purple-200 text-sm">منصة التجارة الإلكترونية العربية</p>
-            </div>
+          <div onClick={() => setLocation("/")} className="cursor-pointer mb-12 inline-block">
+            <BastahLogo variant="light" />
           </div>
 
           <h2 className="text-4xl font-bold leading-tight mb-6">

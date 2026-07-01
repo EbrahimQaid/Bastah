@@ -11,6 +11,7 @@ import { STORE_SLUG } from "@/services/api";
 import Register from "@/pages/auth/Register";
 import Login from "@/pages/auth/Login";
 import Onboarding from "@/pages/auth/Onboarding";
+import Landing from "@/pages/Landing";
 
 // Store Pages
 import StoreHome from "@/pages/store/Home";
@@ -32,18 +33,10 @@ import DashboardSetup from "@/pages/dashboard/Setup";
 
 const queryClient = new QueryClient();
 
-function RootRedirect() {
-  const [, setLocation] = useLocation();
-  useEffect(() => {
-    setLocation(`/store/${STORE_SLUG}`);
-  }, [setLocation]);
-  return null;
-}
-
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={RootRedirect} />
+      <Route path="/" component={Landing} />
 
       {/* Auth Routes */}
       <Route path="/register" component={Register} />

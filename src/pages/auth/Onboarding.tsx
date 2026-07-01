@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Check, Store, Palette, Package, ArrowRight, ArrowLeft } from "lucide-react";
+import BastahLogo from "@/components/ui/BastahLogo";
 
 const STEPS = [
   { id: 1, title: "معلومات المتجر", icon: Store },
@@ -33,6 +34,27 @@ interface StoreData {
 export default function Onboarding() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+
+  useEffect(() => {
+    const token = localStorage.getItem("bastah_token");
+    if (!token) {
+      toast({ title: "يرجى تسجيل الدخول أولاً", variant: "destructive" });
+      setLocation("/login");
+      return;
+    }
+
+    // التحقق مما إذا كان لدى المستخدم متجر بالفعل
+    fetch("/api/dashboard/store", {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    .then(res => {
+      if (res.ok) {
+        setLocation("/dashboard");
+      }
+    })
+    .catch(() => {});
+  }, [setLocation]);
+
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<StoreData>({
@@ -71,12 +93,11 @@ export default function Onboarding() {
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl" style={{ fontFamily: "Tajawal, sans-serif" }}>
       {/* Header */}
-      <header className="bg-white border-b px-6 py-4 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold"
-          style={{ background: "linear-gradient(135deg,#7C3AED,#A78BFA)" }}>ب</div>
-        <span className="font-bold text-gray-900">بَسطة</span>
-        <span className="text-gray-400 mx-2">•</span>
-        <span className="text-gray-600 text-sm">إعداد المتجر</span>
+      <header className="bg-white border-b px-6 py-4 flex items-center justify-between">
+        <div onClick={() => setLocation("/")} className="cursor-pointer">
+          <BastahLogo />
+        </div>
+        <span className="text-gray-600 text-sm font-semibold">إعداد المتجر الجديد</span>
       </header>
 
       <div className="max-w-2xl mx-auto px-4 py-10">
