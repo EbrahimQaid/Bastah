@@ -8,6 +8,9 @@ import { LanguageProvider } from "@/context/language-context";
 import { CurrencyProvider } from "@/context/currency-context";
 import NotFound from "@/pages/not-found";
 import { STORE_SLUG } from "@/services/api";
+import Register from "@/pages/auth/Register";
+import Login from "@/pages/auth/Login";
+import Onboarding from "@/pages/auth/Onboarding";
 
 // Store Pages
 import StoreHome from "@/pages/store/Home";
@@ -42,6 +45,10 @@ function Router() {
     <Switch>
       <Route path="/" component={RootRedirect} />
 
+      {/* Auth Routes */}
+      <Route path="/register" component={Register} />
+      <Route path="/login" component={Login} />
+      <Route path="/onboarding" component={Onboarding} />
 
       {/* Customer Store Routes */}
       <Route path="/store/:storeSlug" component={StoreHome} />

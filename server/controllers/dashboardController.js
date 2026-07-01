@@ -1,5 +1,4 @@
-import { query, isDbReady } from '../lib/db.js';
-import { STORE, PRODUCTS, CATEGORIES, ORDERS } from '../models/data.js';
+import { query } from '../lib/db.js';
 
 /* ── Helper: Map db store to frontend format ── */
 function mapStore(row) {
@@ -24,11 +23,11 @@ function mapStore(row) {
 
 /* ─────────────────────────────── STORE ─────────────────────────────── */
 
-export const getDashboardStore = async (_, res) => {
-  if (!isDbReady()) return res.json(STORE);
+export const getDashboardStore = async (req, res) => {
+  if (!req.storeId) return res.status(404).json({ error: 'Store not found' });
   try {
-    const { rows } = await query('SELECT * FROM stores WHERE id = $1 LIMIT 1', [1]);
-    if (rows.length === 0) return res.json(STORE);
+    const { rows } = await query('SELECT * FROM stores WHERE id = $1 LIMIT 1', [req.storeId]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Store not found' });
     res.json(mapStore(rows[0]));
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -36,6 +35,7 @@ export const getDashboardStore = async (_, res) => {
 };
 
 export const updateDashboardStore = async (req, res) => {
+  if (!req.storeId) return res.status(404).json({ error: 'Store not found' });
   const body = req.body;
   const row = {
     name:             body.name,
@@ -45,17 +45,12 @@ export const updateDashboardStore = async (req, res) => {
     primary_color:    body.primaryColor || '#7C3AED',
     secondary_color:  body.secondaryColor || '#A78BFA',
     font_family:      body.fontFamily || 'Tajawal',
-    currencies:       body.currencies ? JSON.parse(body.currencies) : ['SAR'],
+    currencies:       body.currencies ? (typeof body.currencies === 'string' ? JSON.parse(body.currencies) : body.currencies) : ['SAR'],
     default_currency: body.defaultCurrency || 'SAR',
-    theme_config:     body.themeConfig ? JSON.parse(body.themeConfig) : null,
+    theme_config:     body.themeConfig ? (typeof body.themeConfig === 'string' ? JSON.parse(body.themeConfig) : body.themeConfig) : null,
     shipping_rate:    Number(body.shippingRate || 0),
     whatsapp_number:  body.whatsappNumber || '',
   };
-
-  if (!isDbReady()) {
-    Object.assign(STORE, body);
-    return res.json(STORE);
-  }
 
   try {
     const { rows } = await query(
@@ -63,13 +58,14 @@ export const updateDashboardStore = async (req, res) => {
         name = $1, description = $2, cover_image = $3, logo_image = $4,
         primary_color = $5, secondary_color = $6, font_family = $7,
         currencies = $8, default_currency = $9, theme_config = $10,
-        shipping_rate = $11, whatsapp_number = $12
-       WHERE id = 1 RETURNING *`,
+        shipping_rate = $11, whatsapp_number = $12, updated_at = NOW()
+       WHERE id = $13 RETURNING *`,
       [
         row.name, row.description, row.cover_image, row.logo_image,
         row.primary_color, row.secondary_color, row.font_family,
         row.currencies, row.default_currency, row.theme_config,
-        row.shipping_rate, row.whatsapp_number
+        row.shipping_rate, row.whatsapp_number,
+        req.storeId
       ]
     );
     if (rows.length === 0) return res.status(404).json({ error: 'Store not found' });
@@ -79,14 +75,14 @@ export const updateDashboardStore = async (req, res) => {
   }
 };
 
-export const initDashboardStore = (req, res) => res.status(201).json(STORE);
+export const initDashboardStore = (req, res) => res.status(201).json({ success: true });
 
 /* ─────────────────────────────── PRODUCTS ──────────────────────────── */
 
-export const listDashboardProducts = async (_, res) => {
-  if (!isDbReady()) return res.json(PRODUCTS);
+export const listDashboardProducts = async (req, res) => {
+  if (!req.storeId) return res.json([]);
   try {
-    const { rows } = await query('SELECT * FROM products WHERE store_id = $1 ORDER BY created_at DESC', [1]);
+    const { rows } = await query('SELECT * FROM products WHERE store_id = $1 ORDER BY created_at DESC', [req.storeId]);
     res.json(rows.map(toProduct));
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -94,12 +90,7 @@ export const listDashboardProducts = async (_, res) => {
 };
 
 export const createDashboardProduct = async (req, res) => {
-  if (!isDbReady()) {
-    const p = { id: PRODUCTS.length + 1, storeId: 1, createdAt: new Date().toISOString(), ...req.body };
-    PRODUCTS.push(p);
-    return res.status(201).json(p);
-  }
-
+  if (!req.storeId) return res.status(400).json({ error: 'Store not found' });
   const body = req.body;
   try {
     const { rows } = await query(
@@ -107,7 +98,7 @@ export const createDashboardProduct = async (req, res) => {
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
       [
-        1,
+        req.storeId,
         body.categoryId || null,
         body.name,
         body.description || '',
@@ -126,21 +117,15 @@ export const createDashboardProduct = async (req, res) => {
 };
 
 export const updateDashboardProduct = async (req, res) => {
+  if (!req.storeId) return res.status(400).json({ error: 'Store not found' });
   const id = Number(req.params.id);
-  if (!isDbReady()) {
-    const p = PRODUCTS.find(p => p.id === id);
-    if (!p) return res.status(404).json({ error: 'Not found' });
-    Object.assign(p, req.body);
-    return res.json(p);
-  }
-
   const body = req.body;
   try {
     const { rows } = await query(
       `UPDATE products SET
         category_id = $1, name = $2, description = $3, price = $4,
-        images = $5, sizes = $6, colors = $7, in_stock = $8, featured = $9
-       WHERE id = $10 RETURNING *`,
+        images = $5, sizes = $6, colors = $7, in_stock = $8, featured = $9, updated_at = NOW()
+       WHERE id = $10 AND store_id = $11 RETURNING *`,
       [
         body.categoryId || null,
         body.name,
@@ -151,7 +136,8 @@ export const updateDashboardProduct = async (req, res) => {
         body.variants?.colors || [],
         body.inStock ?? true,
         body.featured ?? false,
-        id
+        id,
+        req.storeId
       ]
     );
     if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
@@ -162,14 +148,11 @@ export const updateDashboardProduct = async (req, res) => {
 };
 
 export const deleteDashboardProduct = async (req, res) => {
+  if (!req.storeId) return res.status(400).json({ error: 'Store not found' });
   const id = Number(req.params.id);
-  if (!isDbReady()) {
-    const i = PRODUCTS.findIndex(p => p.id === id);
-    if (i !== -1) PRODUCTS.splice(i, 1);
-    return res.status(204).end();
-  }
   try {
-    await query('DELETE FROM products WHERE id = $1', [id]);
+    const { rows } = await query('DELETE FROM products WHERE id = $1 AND store_id = $2 RETURNING id', [id, req.storeId]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
     res.status(204).end();
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -178,10 +161,10 @@ export const deleteDashboardProduct = async (req, res) => {
 
 /* ─────────────────────────────── CATEGORIES ────────────────────────── */
 
-export const listDashboardCategories = async (_, res) => {
-  if (!isDbReady()) return res.json(CATEGORIES);
+export const listDashboardCategories = async (req, res) => {
+  if (!req.storeId) return res.json([]);
   try {
-    const { rows } = await query('SELECT * FROM categories WHERE store_id = $1 ORDER BY id', [1]);
+    const { rows } = await query('SELECT * FROM categories WHERE store_id = $1 ORDER BY id', [req.storeId]);
     res.json(rows.map(c => ({ id: c.id, storeId: c.store_id, name: c.name })));
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -189,15 +172,11 @@ export const listDashboardCategories = async (_, res) => {
 };
 
 export const createDashboardCategory = async (req, res) => {
-  if (!isDbReady()) {
-    const c = { id: CATEGORIES.length + 1, storeId: 1, ...req.body };
-    CATEGORIES.push(c);
-    return res.status(201).json(c);
-  }
+  if (!req.storeId) return res.status(400).json({ error: 'Store not found' });
   try {
     const { rows } = await query(
       'INSERT INTO categories (store_id, name) VALUES ($1, $2) RETURNING *',
-      [1, req.body.name]
+      [req.storeId, req.body.name]
     );
     res.status(201).json({ id: rows[0].id, storeId: rows[0].store_id, name: rows[0].name });
   } catch (error) {
@@ -206,14 +185,11 @@ export const createDashboardCategory = async (req, res) => {
 };
 
 export const deleteDashboardCategory = async (req, res) => {
+  if (!req.storeId) return res.status(400).json({ error: 'Store not found' });
   const id = Number(req.params.id);
-  if (!isDbReady()) {
-    const i = CATEGORIES.findIndex(c => c.id === id);
-    if (i !== -1) CATEGORIES.splice(i, 1);
-    return res.status(204).end();
-  }
   try {
-    await query('DELETE FROM categories WHERE id = $1', [id]);
+    const { rows } = await query('DELETE FROM categories WHERE id = $1 AND store_id = $2 RETURNING id', [id, req.storeId]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
     res.status(204).end();
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -222,10 +198,10 @@ export const deleteDashboardCategory = async (req, res) => {
 
 /* ─────────────────────────────── ORDERS ────────────────────────────── */
 
-export const listDashboardOrders = async (_, res) => {
-  if (!isDbReady()) return res.json(ORDERS);
+export const listDashboardOrders = async (req, res) => {
+  if (!req.storeId) return res.json([]);
   try {
-    const { rows } = await query('SELECT * FROM orders WHERE store_id = $1 ORDER BY created_at DESC', [1]);
+    const { rows } = await query('SELECT * FROM orders WHERE store_id = $1 ORDER BY created_at DESC', [req.storeId]);
     res.json(rows.map(toOrder));
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -233,13 +209,10 @@ export const listDashboardOrders = async (_, res) => {
 };
 
 export const getDashboardOrder = async (req, res) => {
+  if (!req.storeId) return res.status(400).json({ error: 'Store not found' });
   const id = Number(req.params.id);
-  if (!isDbReady()) {
-    const o = ORDERS.find(o => o.id === id);
-    return o ? res.json(o) : res.status(404).json({ error: 'Not found' });
-  }
   try {
-    const { rows } = await query('SELECT * FROM orders WHERE id = $1 LIMIT 1', [id]);
+    const { rows } = await query('SELECT * FROM orders WHERE id = $1 AND store_id = $2 LIMIT 1', [id, req.storeId]);
     if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
     res.json(toOrder(rows[0]));
   } catch (error) {
@@ -248,15 +221,13 @@ export const getDashboardOrder = async (req, res) => {
 };
 
 export const updateDashboardOrderStatus = async (req, res) => {
+  if (!req.storeId) return res.status(400).json({ error: 'Store not found' });
   const id = Number(req.params.id);
-  if (!isDbReady()) {
-    const o = ORDERS.find(o => o.id === id);
-    if (!o) return res.status(404).json({ error: 'Not found' });
-    o.status = req.body.status;
-    return res.json(o);
-  }
   try {
-    const { rows } = await query('UPDATE orders SET status = $1 WHERE id = $2 RETURNING *', [req.body.status, id]);
+    const { rows } = await query(
+      'UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2 AND store_id = $3 RETURNING *',
+      [req.body.status, id, req.storeId]
+    );
     if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
     res.json(toOrder(rows[0]));
   } catch (error) {
@@ -266,19 +237,14 @@ export const updateDashboardOrderStatus = async (req, res) => {
 
 /* ─────────────────────────────── STATS ─────────────────────────────── */
 
-export const getDashboardStats = async (_, res) => {
-  if (!isDbReady()) {
-    return res.json({
-      totalOrders:   ORDERS.length,
-      newOrders:     ORDERS.filter(o => o.status === 'new').length,
-      totalProducts: PRODUCTS.length,
-      totalRevenue:  ORDERS.reduce((s, o) => s + o.total, 0),
-    });
+export const getDashboardStats = async (req, res) => {
+  if (!req.storeId) {
+    return res.json({ totalOrders: 0, newOrders: 0, totalProducts: 0, totalRevenue: 0 });
   }
   try {
     const [prodRes, orderRes] = await Promise.all([
-      query('SELECT COUNT(*) as count FROM products WHERE store_id = $1', [1]),
-      query('SELECT status, total FROM orders WHERE store_id = $1', [1]),
+      query('SELECT COUNT(*) as count FROM products WHERE store_id = $1', [req.storeId]),
+      query('SELECT status, total FROM orders WHERE store_id = $1', [req.storeId]),
     ]);
     const orderRows = orderRes.rows || [];
     res.json({

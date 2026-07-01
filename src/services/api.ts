@@ -89,8 +89,17 @@ export type UpdateOrderStatusBodyStatus = "new" | "contacted" | "completed";
 // ─── Fetch Helper ──────────────────────────────────────────
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+  const token = localStorage.getItem("bastah_token");
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...options?.headers,
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`/api${path}`, {
-    headers: { "Content-Type": "application/json", ...options?.headers },
+    headers,
     ...options,
   });
   if (!res.ok) {

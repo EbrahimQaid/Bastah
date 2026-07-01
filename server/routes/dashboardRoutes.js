@@ -1,7 +1,11 @@
 import express from 'express';
 import * as dashboardController from '../controllers/dashboardController.js';
+import { requireAuth } from '../lib/auth.js';
 
 const router = express.Router();
+
+// Apply authentication middleware to all dashboard routes
+router.use(requireAuth);
 
 router.get('/store', dashboardController.getDashboardStore);
 router.put('/store', dashboardController.updateDashboardStore);

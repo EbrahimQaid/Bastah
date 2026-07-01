@@ -1,5 +1,4 @@
-import { query, isDbReady } from '../lib/db.js';
-import { STORE, PRODUCTS, CATEGORIES, ORDERS, incrementOrderId } from '../models/data.js';
+import { query } from '../lib/db.js';
 
 /* ── Helper: Map db store to frontend format ── */
 function mapStore(row) {
@@ -25,11 +24,6 @@ function mapStore(row) {
 /* ── Store ── */
 export const getStore = async (req, res) => {
   const { slug } = req.params;
-  if (!isDbReady()) {
-    if (slug !== STORE.slug) return res.status(404).json({ error: 'Store not found' });
-    return res.json(STORE);
-  }
-
   try {
     const { rows } = await query('SELECT * FROM stores WHERE slug = $1 LIMIT 1', [slug]);
     if (rows.length === 0) return res.status(404).json({ error: 'Store not found' });
@@ -43,15 +37,6 @@ export const getStore = async (req, res) => {
 export const listProducts = async (req, res) => {
   const { slug } = req.params;
   const { categoryId, search, minPrice, maxPrice } = req.query;
-
-  if (!isDbReady()) {
-    let products = [...PRODUCTS];
-    if (categoryId) products = products.filter(p => p.categoryId === Number(categoryId));
-    if (search)     products = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
-    if (minPrice)   products = products.filter(p => p.price >= Number(minPrice));
-    if (maxPrice)   products = products.filter(p => p.price <= Number(maxPrice));
-    return res.json(products);
-  }
 
   try {
     const { rows: storeRows } = await query('SELECT id FROM stores WHERE slug = $1 LIMIT 1', [slug]);
@@ -89,11 +74,6 @@ export const listProducts = async (req, res) => {
 
 export const getProduct = async (req, res) => {
   const { id } = req.params;
-  if (!isDbReady()) {
-    const product = PRODUCTS.find(p => p.id === Number(id));
-    return product ? res.json(product) : res.status(404).json({ error: 'Product not found' });
-  }
-
   try {
     const { rows } = await query('SELECT * FROM products WHERE id = $1 LIMIT 1', [Number(id)]);
     if (rows.length === 0) return res.status(404).json({ error: 'Product not found' });
@@ -106,8 +86,6 @@ export const getProduct = async (req, res) => {
 /* ── Categories ── */
 export const listCategories = async (req, res) => {
   const { slug } = req.params;
-  if (!isDbReady()) return res.json(CATEGORIES);
-
   try {
     const { rows: storeRows } = await query('SELECT id FROM stores WHERE slug = $1 LIMIT 1', [slug]);
     if (storeRows.length === 0) return res.status(404).json({ error: 'Store not found' });
@@ -128,24 +106,6 @@ export const createOrder = async (req, res) => {
   const { slug } = req.params;
   const { customerName, customerPhone, customerAddress, notes, items } = req.body;
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-
-  if (!isDbReady()) {
-    const order = {
-      id: incrementOrderId(),
-      storeId: 1,
-      customerName,
-      customerPhone,
-      customerAddress,
-      notes,
-      items,
-      total,
-      status: 'new',
-      whatsappMessage: `طلب جديد من ${customerName}`,
-      createdAt: new Date().toISOString(),
-    };
-    ORDERS.push(order);
-    return res.status(201).json(order);
-  }
 
   try {
     const { rows: storeRows } = await query('SELECT id FROM stores WHERE slug = $1 LIMIT 1', [slug]);
