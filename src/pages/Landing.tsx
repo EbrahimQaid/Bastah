@@ -3,21 +3,14 @@ import { Link, useLocation } from "wouter";
 import BastahLogo from "@/components/ui/BastahLogo";
 import {
   ArrowLeft,
-  ArrowRight,
   Check,
-  Store,
   ShoppingBag,
   Zap,
   Shield,
   TrendingUp,
-  Smartphone,
   MessageSquare,
-  Settings,
   Coins,
-  ChevronLeft,
-  Globe,
   Palette,
-  Package,
 } from "lucide-react";
 
 export default function Landing() {
@@ -36,37 +29,43 @@ export default function Landing() {
       icon: Zap,
       title: "متجر جاهز في دقائق",
       desc: "خطوات بسيطة لإعداد متجرك الإلكتروني وإطلاقه للجمهور دون الحاجة لأي خبرة برمجية.",
-      color: "from-purple-500 to-indigo-500",
+      color: "from-[#E8232A] to-[#ff5c5c]",
+      bg: "bg-[#E8232A]/10",
     },
     {
       icon: MessageSquare,
       title: "إشعارات واتساب فورية",
       desc: "تلقى تفاصيل الطلبات فوراً مع روابط دفع وسرعة وسلاسة للتواصل المباشر مع العملاء.",
-      color: "from-emerald-500 to-teal-500",
+      color: "from-[#E8232A] to-[#c0392b]",
+      bg: "bg-[#E8232A]/10",
     },
     {
       icon: Palette,
       title: "تخصيص كامل للهوية",
       desc: "تحكم بالألوان والخطوط والخلفيات لكي يطابق متجرك هويتك التجارية بنسبة 100%.",
-      color: "from-pink-500 to-rose-500",
+      color: "from-rose-600 to-[#E8232A]",
+      bg: "bg-rose-500/10",
     },
     {
       icon: Coins,
       title: "دعم تعدد العملات",
       desc: "بيع لعملائك بالعملة المحلية مع أسعار صرف مرنة ودقيقة وسهلة الحساب تلقائياً.",
       color: "from-amber-500 to-orange-500",
+      bg: "bg-amber-500/10",
     },
     {
       icon: TrendingUp,
       title: "لوحة تحكم إحصائية",
       desc: "تقارير بيع متكاملة ومؤشرات أداء تمكنك من متابعة نمو أرباحك وتطور متجرك بسهولة.",
       color: "from-blue-500 to-cyan-500",
+      bg: "bg-blue-500/10",
     },
     {
       icon: Shield,
       title: "استقرار وأمان دائم",
       desc: "حماية بياناتك وبيانات عملائك باستضافة سحابية متقدمة تضمن استقرار متجرك على مدار الساعة.",
       color: "from-violet-500 to-fuchsia-500",
+      bg: "bg-violet-500/10",
     },
   ];
 
@@ -95,20 +94,21 @@ export default function Landing() {
 
   return (
     <div
-      className="min-h-screen bg-slate-900 text-slate-100 selection:bg-emerald-500/20 selection:text-emerald-400 overflow-x-hidden"
+      className="min-h-screen bg-[#0d0d0d] text-slate-100 overflow-x-hidden"
       dir="rtl"
       style={{ fontFamily: "Tajawal, sans-serif" }}
     >
-      {/* Background Gradients */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-3xl -z-10 pointer-events-none" />
-      <div className="absolute top-1/3 right-1/4 w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-3xl -z-10 pointer-events-none" />
+      {/* Brand Red Background Blobs */}
+      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#E8232A]/8 rounded-full blur-3xl -z-10 pointer-events-none" />
+      <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-[#E8232A]/5 rounded-full blur-3xl -z-10 pointer-events-none" />
+      <div className="absolute bottom-1/4 left-0 w-[500px] h-[500px] bg-[#E8232A]/6 rounded-full blur-3xl -z-10 pointer-events-none" />
 
       {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-slate-900/80 border-b border-slate-800 transition-all">
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-[#0d0d0d]/85 border-b border-white/5 transition-all">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/">
             <div className="cursor-pointer">
-              <BastahLogo variant="light" />
+              <BastahLogo variant="light" size="md" />
             </div>
           </Link>
 
@@ -138,7 +138,7 @@ export default function Landing() {
             </button>
             <button
               onClick={handleStartFree}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-black text-sm shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="px-5 py-2.5 rounded-xl bg-[#E8232A] text-white font-black text-sm shadow-lg shadow-[#E8232A]/25 hover:shadow-[#E8232A]/40 hover:bg-[#d01f25] hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
               أنشئ متجرك مجاناً
             </button>
@@ -147,35 +147,51 @@ export default function Landing() {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-20 pb-24 md:pt-28 md:pb-32 max-w-7xl mx-auto px-6 text-center relative">
+      <section className="pt-20 pb-24 md:pt-32 md:pb-36 max-w-7xl mx-auto px-6 text-center relative">
         <div className="max-w-3xl mx-auto">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold mb-6">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#E8232A]/10 border border-[#E8232A]/20 text-[#ff6b6b] text-xs font-bold mb-6">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#E8232A] animate-ping" />
             منصة التجارة الإلكترونية العربية الأبسط لنمو تجارتك
+          </div>
+
+          {/* Big Logo Display */}
+          <div className="flex justify-center mb-8">
+            <BastahLogo variant="light" size="lg" />
           </div>
 
           {/* Headline */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.15] mb-6 text-white">
             أنشئ متجرك الإلكتروني الاحترافي
             <br />
-            <span className="bg-clip-text text-transparent bg-gradient-to-l from-emerald-400 via-teal-300 to-indigo-400">
+            <span
+              className="text-[#E8232A]"
+              style={{ textShadow: "0 0 40px rgba(232,35,42,0.4)" }}
+            >
               في أقل من 5 دقائق وبدون تعقيد
             </span>
           </h1>
 
           {/* Subheading */}
           <p className="text-lg md:text-xl text-slate-400 leading-relaxed mb-10 max-w-2xl mx-auto">
-            منصة <b className="text-slate-200">بَسطة</b> تمكنك من تحويل مشروعك أو
+            منصة <b className="text-white">بَسطة</b> تمكنك من تحويل مشروعك أو
             بسطتك التقليدية إلى متجر رقمي متكامل بألوانك الخاصة. تحكم بمنتجاتك،
             واستقبل طلباتك فورياً على الواتساب.
+          </p>
+
+          {/* Tagline */}
+          <p
+            className="text-base text-[#E8232A] font-bold mb-8"
+            style={{ fontFamily: "Tajawal, sans-serif" }}
+          >
+            منصة بسيطة، أثر كبير
           </p>
 
           {/* Hero CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
             <button
               onClick={handleStartFree}
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 font-black text-base shadow-xl shadow-emerald-500/10 hover:shadow-emerald-500/20 hover:scale-[1.03] active:scale-[0.97] transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#E8232A] text-white font-black text-base shadow-xl shadow-[#E8232A]/20 hover:shadow-[#E8232A]/35 hover:bg-[#d01f25] hover:scale-[1.03] active:scale-[0.97] transition-all flex items-center justify-center gap-2"
             >
               ابدأ الآن مجاناً
               <ArrowLeft className="w-5 h-5" />
@@ -183,7 +199,7 @@ export default function Landing() {
             <a
               href="/store/bastah"
               target="_blank"
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-slate-800 text-slate-200 hover:text-white font-bold text-base hover:bg-slate-700/80 transition-all border border-slate-700/50 flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-white/5 text-slate-200 hover:text-white font-bold text-base hover:bg-white/10 transition-all border border-white/10 flex items-center justify-center gap-2"
             >
               تصفح متجر عينة
               <ShoppingBag className="w-5 h-5 text-slate-400" />
@@ -191,7 +207,7 @@ export default function Landing() {
           </div>
 
           {/* Stats Bar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-6 rounded-2xl bg-slate-800/40 border border-slate-800/60 backdrop-blur-sm max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-6 rounded-2xl bg-white/3 border border-white/8 backdrop-blur-sm max-w-4xl mx-auto">
             {[
               { value: "0 ر.س", label: "تكلفة التأسيس" },
               { value: "+3,000", label: "متاجر نشطة" },
@@ -200,7 +216,7 @@ export default function Landing() {
             ].map((stat, idx) => (
               <div
                 key={idx}
-                className="text-center border-l last:border-l-0 border-slate-800/60"
+                className="text-center border-l last:border-l-0 border-white/10"
               >
                 <div className="text-xl sm:text-2xl font-black text-white">
                   {stat.value}
@@ -214,56 +230,59 @@ export default function Landing() {
         </div>
 
         {/* Dashboard Preview Mockup */}
-        <div className="mt-20 max-w-5xl mx-auto relative rounded-2xl overflow-hidden border border-slate-700/50 shadow-2xl shadow-purple-500/5">
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent z-10" />
-          <div className="bg-slate-800 px-4 py-3 flex items-center gap-2 border-b border-slate-700/60">
+        <div className="mt-20 max-w-5xl mx-auto relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-[#E8232A]/5">
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-transparent to-transparent z-10" />
+          <div className="bg-[#1a1a1a] px-4 py-3 flex items-center gap-2 border-b border-white/5">
             <div className="flex gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-rose-500/80" />
+              <span className="w-3 h-3 rounded-full bg-[#E8232A]/80" />
               <span className="w-3 h-3 rounded-full bg-amber-500/80" />
               <span className="w-3 h-3 rounded-full bg-emerald-500/80" />
             </div>
-            <div className="flex-1 bg-slate-900/60 rounded-md py-1 text-xs text-slate-500 font-mono tracking-wider max-w-sm mx-auto">
+            <div className="flex-1 bg-[#0d0d0d]/60 rounded-md py-1 text-xs text-slate-500 font-mono tracking-wider max-w-sm mx-auto">
               dashboard.bastah.store
             </div>
           </div>
-          <div className="p-4 bg-slate-900/50 flex gap-4 min-h-[300px]">
+          <div className="p-4 bg-[#111111]/80 flex gap-4 min-h-[300px]">
             {/* Sidebar Mock */}
-            <div className="w-1/4 rounded-xl bg-slate-900/80 border border-slate-800 p-3 hidden sm:flex flex-col gap-2">
-              <div className="h-6 w-16 bg-slate-800 rounded-md mb-4" />
-              <div className="h-8 bg-emerald-500/10 text-emerald-400 rounded-lg" />
-              <div className="h-8 bg-slate-800/40 rounded-lg" />
-              <div className="h-8 bg-slate-800/40 rounded-lg" />
+            <div className="w-1/4 rounded-xl bg-[#0d0d0d] border border-white/5 p-3 hidden sm:flex flex-col gap-2">
+              <div className="h-6 w-16 bg-white/5 rounded-md mb-4" />
+              <div className="h-8 bg-[#E8232A]/15 rounded-lg border border-[#E8232A]/20" />
+              <div className="h-8 bg-white/3 rounded-lg" />
+              <div className="h-8 bg-white/3 rounded-lg" />
             </div>
             {/* Main Mock */}
             <div className="flex-1 flex flex-col gap-4 text-right" dir="rtl">
               <div className="flex justify-between items-center">
-                <div className="h-8 w-32 bg-slate-800 rounded-lg" />
-                <div className="h-5 w-20 bg-slate-800 rounded-lg" />
+                <div className="h-8 w-32 bg-white/5 rounded-lg" />
+                <div className="h-5 w-20 bg-white/5 rounded-lg" />
               </div>
               <div className="grid grid-cols-3 gap-3">
-                <div className="h-20 bg-slate-800/40 rounded-xl p-3 border border-slate-850">
-                  <div className="h-3 w-12 bg-slate-800 rounded mb-2" />
-                  <div className="h-6 w-16 bg-slate-700 rounded" />
+                <div className="h-20 bg-white/3 rounded-xl p-3 border border-white/5">
+                  <div className="h-3 w-12 bg-white/5 rounded mb-2" />
+                  <div className="h-6 w-16 bg-[#E8232A]/20 rounded" />
                 </div>
-                <div className="h-20 bg-slate-800/40 rounded-xl p-3 border border-slate-850">
-                  <div className="h-3 w-12 bg-slate-800 rounded mb-2" />
-                  <div className="h-6 w-16 bg-slate-700 rounded" />
+                <div className="h-20 bg-white/3 rounded-xl p-3 border border-white/5">
+                  <div className="h-3 w-12 bg-white/5 rounded mb-2" />
+                  <div className="h-6 w-16 bg-white/10 rounded" />
                 </div>
-                <div className="h-20 bg-slate-800/40 rounded-xl p-3 border border-slate-850">
-                  <div className="h-3 w-12 bg-slate-800 rounded mb-2" />
-                  <div className="h-6 w-16 bg-slate-700 rounded" />
+                <div className="h-20 bg-white/3 rounded-xl p-3 border border-white/5">
+                  <div className="h-3 w-12 bg-white/5 rounded mb-2" />
+                  <div className="h-6 w-16 bg-white/10 rounded" />
                 </div>
               </div>
-              <div className="h-28 bg-slate-800/20 border border-slate-800/60 rounded-xl" />
+              <div className="h-28 bg-white/3 border border-white/5 rounded-xl" />
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 md:py-24 border-y border-slate-800 bg-slate-900/50">
+      <section id="features" className="py-20 md:py-24 border-y border-white/5 bg-[#0a0a0a]">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-16">
+            <div className="inline-block px-3 py-1 rounded-full bg-[#E8232A]/10 border border-[#E8232A]/20 text-[#ff6b6b] text-xs font-bold mb-4">
+              المميزات
+            </div>
             <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">
               كل ما تحتاجه لإطلاق وإدارة تجارتك
             </h2>
@@ -273,20 +292,20 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feat, idx) => {
               const Icon = feat.icon;
               return (
                 <div
                   key={idx}
-                  className="group p-8 rounded-2xl bg-slate-850 border border-slate-800 hover:border-slate-700 transition-all hover:scale-[1.01] duration-300"
+                  className="group p-8 rounded-2xl bg-white/3 border border-white/8 hover:border-[#E8232A]/30 hover:bg-white/5 transition-all hover:scale-[1.01] duration-300"
                 >
                   <div
-                    className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${feat.color} text-slate-950 mb-6 shadow-lg shadow-slate-950/20 group-hover:scale-110 transition-transform`}
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${feat.color} mb-6 shadow-lg group-hover:scale-110 transition-transform`}
                   >
                     <Icon className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-3 group-hover:text-emerald-400 transition-colors">
+                  <h3 className="text-lg font-bold text-white mb-3 group-hover:text-[#ff6b6b] transition-colors">
                     {feat.title}
                   </h3>
                   <p className="text-sm text-slate-400 leading-relaxed">
@@ -303,6 +322,9 @@ export default function Landing() {
       <section id="steps" className="py-20 md:py-24">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-16">
+            <div className="inline-block px-3 py-1 rounded-full bg-[#E8232A]/10 border border-[#E8232A]/20 text-[#ff6b6b] text-xs font-bold mb-4">
+              كيف يعمل؟
+            </div>
             <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">
               خطوات بسيطة لإطلاق بسطتك الرقمية
             </h2>
@@ -311,10 +333,13 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {steps.map((step, idx) => (
-              <div key={idx} className="relative p-6 bg-slate-800/20 border border-slate-800/80 rounded-2xl hover:bg-slate-800/40 transition-colors">
-                <span className="absolute top-4 left-4 text-4xl font-black text-emerald-500/20 font-mono">
+              <div
+                key={idx}
+                className="relative p-6 bg-white/3 border border-white/8 rounded-2xl hover:border-[#E8232A]/25 hover:bg-white/5 transition-all group"
+              >
+                <span className="absolute top-4 left-4 text-4xl font-black text-[#E8232A]/15 font-mono group-hover:text-[#E8232A]/25 transition-colors">
                   {step.num}
                 </span>
                 <h3 className="text-lg font-bold text-white mb-3 mt-6">
@@ -330,9 +355,12 @@ export default function Landing() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 md:py-24 border-t border-slate-800 bg-slate-950/40">
+      <section id="pricing" className="py-20 md:py-24 border-t border-white/5 bg-[#0a0a0a]">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-16">
+            <div className="inline-block px-3 py-1 rounded-full bg-[#E8232A]/10 border border-[#E8232A]/20 text-[#ff6b6b] text-xs font-bold mb-4">
+              الأسعار
+            </div>
             <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">
               خطط أسعار واضحة ومرنة
             </h2>
@@ -343,9 +371,9 @@ export default function Landing() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
             {/* Free Plan */}
-            <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800 relative flex flex-col justify-between">
+            <div className="p-8 rounded-2xl bg-white/3 border border-white/8 relative flex flex-col justify-between">
               <div>
-                <span className="text-xs font-bold text-emerald-400 px-2.5 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/20">
+                <span className="text-xs font-bold text-slate-300 px-2.5 py-1 rounded-full bg-white/5 border border-white/10">
                   الباقة الأساسية
                 </span>
                 <h3 className="text-2xl font-black text-white mt-4">الباقة المجانية</h3>
@@ -354,7 +382,7 @@ export default function Landing() {
                   <span className="text-4xl font-black text-white">0</span>
                   <span className="text-slate-400 text-sm">ريال / شهرياً</span>
                 </div>
-                <ul className="space-y-3.5 border-t border-slate-800/80 pt-6">
+                <ul className="space-y-3.5 border-t border-white/5 pt-6">
                   {[
                     "إضافة حتى 10 منتجات",
                     "أقسام وتصنيفات غير محدودة",
@@ -363,7 +391,7 @@ export default function Landing() {
                     "عملة افتراضية واحدة (SAR)",
                   ].map((feat, idx) => (
                     <li key={idx} className="flex items-center gap-2.5 text-sm text-slate-300">
-                      <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                      <Check className="w-4 h-4 text-[#E8232A] flex-shrink-0" />
                       <span>{feat}</span>
                     </li>
                   ))}
@@ -371,19 +399,19 @@ export default function Landing() {
               </div>
               <button
                 onClick={handleStartFree}
-                className="w-full mt-8 py-3 rounded-xl bg-slate-800 hover:bg-slate-700/80 text-white font-bold text-sm transition-all"
+                className="w-full mt-8 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-sm transition-all"
               >
                 سجل مجاناً
               </button>
             </div>
 
             {/* Pro Plan */}
-            <div className="p-8 rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-emerald-500 relative flex flex-col justify-between shadow-xl shadow-emerald-500/5">
-              <div className="absolute -top-3.5 right-6 text-xs font-black text-slate-950 px-3 py-1 rounded-full bg-emerald-400 shadow-md">
+            <div className="p-8 rounded-2xl bg-gradient-to-b from-[#E8232A]/10 to-[#E8232A]/5 border-2 border-[#E8232A] relative flex flex-col justify-between shadow-xl shadow-[#E8232A]/10">
+              <div className="absolute -top-3.5 right-6 text-xs font-black text-white px-3 py-1 rounded-full bg-[#E8232A] shadow-md">
                 الأكثر طلباً
               </div>
               <div>
-                <span className="text-xs font-bold text-purple-400 px-2.5 py-1 rounded-full bg-purple-400/10 border border-purple-400/20">
+                <span className="text-xs font-bold text-[#ff8080] px-2.5 py-1 rounded-full bg-[#E8232A]/10 border border-[#E8232A]/20">
                   باقة النمو الاحترافي
                 </span>
                 <h3 className="text-2xl font-black text-white mt-4">باقة بسطة الاحترافية</h3>
@@ -392,7 +420,7 @@ export default function Landing() {
                   <span className="text-4xl font-black text-white">99</span>
                   <span className="text-slate-400 text-sm">ريال / شهرياً</span>
                 </div>
-                <ul className="space-y-3.5 border-t border-slate-800/80 pt-6">
+                <ul className="space-y-3.5 border-t border-white/10 pt-6">
                   {[
                     "عدد منتجات غير محدود",
                     "تحكم كامل بالهوية والألوان والخطوط",
@@ -402,7 +430,7 @@ export default function Landing() {
                     "تحليلات وإحصائيات متقدمة",
                   ].map((feat, idx) => (
                     <li key={idx} className="flex items-center gap-2.5 text-sm text-slate-200">
-                      <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <Check className="w-4 h-4 text-[#E8232A] flex-shrink-0" />
                       <span>{feat}</span>
                     </li>
                   ))}
@@ -410,7 +438,7 @@ export default function Landing() {
               </div>
               <button
                 onClick={handleStartFree}
-                className="w-full mt-8 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-slate-950 font-black text-sm transition-all"
+                className="w-full mt-8 py-3 rounded-xl bg-[#E8232A] hover:bg-[#d01f25] text-white font-black text-sm transition-all shadow-lg shadow-[#E8232A]/25"
               >
                 اشترك الآن وابدأ البيع
               </button>
@@ -423,6 +451,9 @@ export default function Landing() {
       <section id="faq" className="py-20 md:py-24">
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center mb-16">
+            <div className="inline-block px-3 py-1 rounded-full bg-[#E8232A]/10 border border-[#E8232A]/20 text-[#ff6b6b] text-xs font-bold mb-4">
+              الأسئلة الشائعة
+            </div>
             <h2 className="text-3xl font-black text-white mb-4">
               الأسئلة الأكثر شيوعاً
             </h2>
@@ -431,7 +462,7 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             {[
               {
                 q: "هل يجب توفر خبرة تقنية لإنشاء متجر؟",
@@ -452,10 +483,15 @@ export default function Landing() {
             ].map((faq, idx) => (
               <div
                 key={idx}
-                className="p-6 rounded-xl bg-slate-800/30 border border-slate-800 text-right"
+                className="p-6 rounded-xl bg-white/3 border border-white/8 hover:border-[#E8232A]/20 transition-colors text-right"
               >
-                <h4 className="text-base font-bold text-white mb-2">{faq.q}</h4>
-                <p className="text-sm text-slate-400 leading-relaxed">{faq.a}</p>
+                <h4 className="text-base font-bold text-white mb-2 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-[#E8232A]/10 text-[#E8232A] flex items-center justify-center text-xs font-black flex-shrink-0">
+                    ؟
+                  </span>
+                  {faq.q}
+                </h4>
+                <p className="text-sm text-slate-400 leading-relaxed mr-7">{faq.a}</p>
               </div>
             ))}
           </div>
@@ -463,17 +499,26 @@ export default function Landing() {
       </section>
 
       {/* Final CTA Banner */}
-      <section className="py-20 md:py-24 relative overflow-hidden bg-gradient-to-tr from-violet-900/40 via-slate-900 to-emerald-950/30 border-t border-slate-800 text-center">
+      <section className="py-20 md:py-28 relative overflow-hidden border-t border-white/5 text-center">
+        {/* Big Red Glow */}
+        <div className="absolute inset-0 bg-gradient-radial from-[#E8232A]/15 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#E8232A]/8 rounded-full blur-3xl pointer-events-none" />
+
         <div className="max-w-3xl mx-auto px-6 relative z-10">
+          {/* Bastah icon big */}
+          <div className="flex justify-center mb-8">
+            <BastahLogo variant="gradient" size="lg" iconOnly />
+          </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight mb-6">
             حوّل بسطتك إلى متجر عالمي اليوم!
           </h2>
-          <p className="text-slate-300 text-base max-w-xl mx-auto mb-10 leading-relaxed">
+          <p className="text-slate-300 text-base max-w-xl mx-auto mb-4 leading-relaxed">
             انضم إلى آلاف التجار العرب الذين وثقوا بـ بسطة لبدء مسيرتهم في التجارة الرقمية.
           </p>
+          <p className="text-[#E8232A] font-bold mb-10">منصة بسيطة، أثر كبير</p>
           <button
             onClick={handleStartFree}
-            className="px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 font-black text-base shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-[1.03] active:scale-[0.97] transition-all inline-flex items-center gap-2"
+            className="px-8 py-4 rounded-xl bg-[#E8232A] text-white font-black text-base shadow-xl shadow-[#E8232A]/30 hover:shadow-[#E8232A]/50 hover:bg-[#d01f25] hover:scale-[1.03] active:scale-[0.97] transition-all inline-flex items-center gap-2"
           >
             أنشئ متجرك مجاناً الآن
             <ArrowLeft className="w-5 h-5" />
@@ -482,9 +527,9 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-slate-800/80 bg-slate-950">
+      <footer className="py-12 border-t border-white/5 bg-[#080808]">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <BastahLogo variant="light" />
+          <BastahLogo variant="light" size="md" />
           <p className="text-xs text-slate-500">
             &copy; {new Date().getFullYear()} بَسطة (Bastah). جميع الحقوق محفوظة.
           </p>

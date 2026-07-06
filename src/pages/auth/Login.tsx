@@ -43,8 +43,8 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4 relative overflow-hidden" dir="rtl" style={{ fontFamily: "Tajawal, sans-serif" }}>
       {/* Decorative Glow Elements */}
-      <div className="absolute top-1/4 left-1/4 w-[350px] h-[350px] bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 w-[350px] h-[350px] bg-[#E8232A]/8 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-[#E8232A]/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md bg-slate-900/60 border border-slate-800 backdrop-blur-md rounded-2xl shadow-xl p-8 relative z-10">
         {/* Logo */}
@@ -64,17 +64,17 @@ export default function Login() {
           <div>
             <Label htmlFor="email" className="text-slate-300">البريد الإلكتروني</Label>
             <Input id="email" type="email" required dir="ltr" placeholder="you@example.com"
-              className="mt-1.5 h-11 bg-slate-950 border-slate-800 text-white placeholder-slate-600 focus:border-purple-500 focus:ring-purple-500" value={form.email}
+              className="mt-1.5 h-11 bg-slate-950 border-slate-800 text-white placeholder-slate-600 focus:border-[#E8232A] focus:ring-[#E8232A]" value={form.email}
               onChange={e => setForm({ ...form, email: e.target.value })} />
           </div>
           <div>
             <div className="flex justify-between items-center">
               <Label htmlFor="password" className="text-slate-300">كلمة المرور</Label>
-              <button type="button" className="text-xs text-purple-400 hover:text-purple-300 transition-colors">نسيت كلمة المرور؟</button>
+              <button type="button" className="text-xs text-[#ff6b6b] hover:text-[#E8232A] transition-colors">نسيت كلمة المرور؟</button>
             </div>
             <div className="relative mt-1.5">
               <Input id="password" type={showPass ? "text" : "password"} required
-                placeholder="••••••••" className="h-11 pl-10 bg-slate-950 border-slate-800 text-white placeholder-slate-600 focus:border-purple-500 focus:ring-purple-500" value={form.password}
+                placeholder="••••••••" className="h-11 pl-10 bg-slate-950 border-slate-800 text-white placeholder-slate-600 focus:border-[#E8232A] focus:ring-[#E8232A]" value={form.password}
                 onChange={e => setForm({ ...form, password: e.target.value })} />
               <button type="button" onClick={() => setShowPass(!showPass)}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors">
@@ -83,13 +83,13 @@ export default function Login() {
             </div>
           </div>
 
-          <Button type="submit" disabled={loading} className="w-full h-12 text-base font-semibold mt-6 text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 transition-all border-none">
+          <Button type="submit" disabled={loading} className="w-full h-12 text-base font-semibold mt-6 text-white bg-[#E8232A] hover:bg-[#d01f25] transition-all border-none shadow-lg shadow-[#E8232A]/25">
             {loading ? "جارٍ الدخول..." : <span className="flex items-center gap-2">دخول لوحة التحكم <ArrowRight size={18} /></span>}
           </Button>
 
           <p className="text-center text-sm text-slate-400 mt-6">
             ليس لديك حساب؟{" "}
-            <button type="button" onClick={() => setLocation("/register")} className="text-emerald-400 font-semibold hover:underline">
+            <button type="button" onClick={() => setLocation("/register")} className="text-[#E8232A] font-semibold hover:underline">
               أنشئ متجرك مجاناً
             </button>
           </p>
