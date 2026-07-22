@@ -8,20 +8,17 @@ import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, ArrowRight, Package, Tag, 
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Cart() {
-  const [, params] = useRoute("/store/:storeSlug/cart");
-  const storeSlug = params?.storeSlug || "demo-store";
-
   const { items, updateQuantity, removeItem, totalPrice } = useCart();
   const { format } = useCurrency();
   const { t, isRTL } = useLanguage();
-  const { data: store } = useGetStore(storeSlug);
+  const { data: store } = useGetStore();
   const primaryColor = store?.primaryColor || "#7C3AED";
 
   const Arrow = isRTL ? ArrowLeft : ArrowRight;
   const itemCount = items.reduce((s, i) => s + i.quantity, 0);
 
   return (
-    <StoreLayout storeSlug={storeSlug}>
+    <StoreLayout>
       <div className="flex flex-col min-h-full pb-32" dir={isRTL ? "rtl" : "ltr"}>
 
         {/* Header */}
@@ -65,7 +62,7 @@ export default function Cart() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25, duration: 0.4 }}
             >
-              <Link href={`/store/${storeSlug}/products`}>
+              <Link href="/store/products">
                 <button
                   className="flex items-center gap-2 px-8 py-3.5 rounded-2xl text-white text-sm font-black transition-all hover:scale-105 active:scale-95"
                   style={{
@@ -208,7 +205,7 @@ export default function Cart() {
             </div>
 
             {/* Checkout */}
-            <Link href={`/store/${storeSlug}/checkout`} className="block pb-6">
+            <Link href="/store/checkout" className="block pb-6">
               <motion.button
                 whileTap={{ scale: 0.98 }}
                 className="w-full h-[54px] rounded-2xl text-white font-black text-base flex items-center justify-center gap-2.5 transition-all"

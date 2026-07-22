@@ -10,8 +10,6 @@ import { CheckCircle2, Lock, ChevronLeft, ChevronRight, Package, Truck, Shopping
 import { motion } from "framer-motion";
 
 export default function Checkout() {
-  const [, params] = useRoute("/store/:storeSlug/checkout");
-  const storeSlug = params?.storeSlug || "demo-store";
   const [, setLocation] = useLocation();
 
   const { items, totalPrice, clearCart } = useCart();
@@ -19,7 +17,7 @@ export default function Checkout() {
   const { t, isRTL } = useLanguage();
   const { toast } = useToast();
   const createOrder = useCreateOrder();
-  const { data: store } = useGetStore(storeSlug);
+  const { data: store } = useGetStore();
   const primaryColor = store?.primaryColor || "#7C3AED";
 
   const shippingRate = Number(store?.shippingRate || 0);
@@ -39,7 +37,7 @@ export default function Checkout() {
       return;
     }
     createOrder.mutate(
-      { storeSlug, data: { ...form, items } },
+      { data: { ...form, items } },
       {
         onSuccess: () => { setSuccess(true); clearCart(); },
         onError: () => { toast({ title: "حدث خطأ، يرجى المحاولة مرة أخرى", variant: "destructive" }); },
@@ -52,7 +50,7 @@ export default function Checkout() {
   /* ── Success Screen ───────────────────────────────────── */
   if (success) {
     return (
-      <StoreLayout storeSlug={storeSlug}>
+      <StoreLayout>
         <div className="flex flex-col items-center justify-center min-h-[70vh] p-8 text-center gap-7" dir={isRTL ? "rtl" : "ltr"}>
           <motion.div
             initial={{ scale: 0 }}
@@ -84,7 +82,7 @@ export default function Checkout() {
             className="flex flex-col gap-3 w-full max-w-[260px]"
           >
             <button
-              onClick={() => setLocation(`/store/${storeSlug}`)}
+              onClick={() => setLocation("/store")}
               className="w-full py-3.5 rounded-2xl text-white font-black text-sm transition-all active:scale-[0.98]"
               style={{
                 background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)`,
@@ -102,7 +100,7 @@ export default function Checkout() {
   /* ── Empty Cart ───────────────────────────────────────── */
   if (items.length === 0) {
     return (
-      <StoreLayout storeSlug={storeSlug}>
+      <StoreLayout>
         <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center gap-5">
           <div
             className="w-20 h-20 rounded-3xl flex items-center justify-center"
@@ -111,7 +109,7 @@ export default function Checkout() {
             <ShoppingBag className="w-9 h-9 opacity-30" style={{ color: primaryColor }} />
           </div>
           <p className="font-bold text-gray-500">{t.yourCartIsEmpty}</p>
-          <Link href={`/store/${storeSlug}`}>
+          <Link href="/store">
             <button
               className="px-8 py-3 rounded-2xl text-white font-bold text-sm transition-all active:scale-[0.98]"
               style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)` }}
@@ -128,13 +126,13 @@ export default function Checkout() {
   const inputFocusCls = `${inputCls} focus:border-[${primaryColor}] focus:ring-2`;
 
   return (
-    <StoreLayout storeSlug={storeSlug}>
+    <StoreLayout>
       <div className="pb-28" dir={isRTL ? "rtl" : "ltr"}>
 
         {/* Header */}
         <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-gray-100 px-5 py-3.5 flex items-center justify-between z-10">
           <div className="flex items-center gap-3">
-            <Link href={`/store/${storeSlug}/cart`}>
+            <Link href="/store/cart">
               <button className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-gray-600">
                 <BackIcon className="w-4 h-4" />
               </button>

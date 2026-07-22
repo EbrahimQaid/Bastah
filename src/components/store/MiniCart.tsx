@@ -5,11 +5,7 @@ import { useLanguage } from "@/context/language-context";
 import { useCurrency } from "@/context/currency-context";
 import { Link } from "wouter";
 
-interface MiniCartProps {
-  storeSlug: string;
-}
-
-export function MiniCart({ storeSlug }: MiniCartProps) {
+export function MiniCart() {
   const { items, totalItems, totalPrice, miniCartOpen, closeMiniCart, removeItem } = useCart();
   const { t, isRTL } = useLanguage();
   const { format } = useCurrency();
@@ -117,7 +113,7 @@ export function MiniCart({ storeSlug }: MiniCartProps) {
                   <span className="text-sm text-muted-foreground font-medium">{t.total}</span>
                   <span className="text-xl font-bold text-foreground">{format(totalPrice)}</span>
                 </div>
-                <Link href={`/store/${storeSlug}/cart`} onClick={closeMiniCart}>
+                <Link href="/store/cart" onClick={closeMiniCart}>
                   <button className="w-full h-12 bg-primary text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors active:scale-[0.98]">
                     {t.cart}
                     <ArrowRight className="w-4 h-4" />

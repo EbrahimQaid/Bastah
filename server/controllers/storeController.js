@@ -1,5 +1,8 @@
 import { query } from '../lib/db.js';
 
+// Single-store mode: always use this store
+const STORE_ID = Number(process.env.STORE_ID || 1);
+
 /* ── Helper: Map db store to frontend format ── */
 function mapStore(row) {
   return {
@@ -23,9 +26,8 @@ function mapStore(row) {
 
 /* ── Store ── */
 export const getStore = async (req, res) => {
-  const { slug } = req.params;
   try {
-    const { rows } = await query('SELECT * FROM stores WHERE slug = $1 LIMIT 1', [slug]);
+    const { rows } = await query('SELECT * FROM stores WHERE id = $1 LIMIT 1', [STORE_ID]);
     if (rows.length === 0) return res.status(404).json({ error: 'Store not found' });
     res.json(mapStore(rows[0]));
   } catch (error) {
@@ -35,16 +37,11 @@ export const getStore = async (req, res) => {
 
 /* ── Products ── */
 export const listProducts = async (req, res) => {
-  const { slug } = req.params;
   const { categoryId, search, minPrice, maxPrice } = req.query;
 
   try {
-    const { rows: storeRows } = await query('SELECT id FROM stores WHERE slug = $1 LIMIT 1', [slug]);
-    if (storeRows.length === 0) return res.status(404).json({ error: 'Store not found' });
-    const store = storeRows[0];
-
     let sql = 'SELECT * FROM products WHERE store_id = $1 AND is_active = true';
-    const params = [store.id];
+    const params = [STORE_ID];
 
     if (categoryId) {
       params.push(Number(categoryId));
@@ -75,7 +72,10 @@ export const listProducts = async (req, res) => {
 export const getProduct = async (req, res) => {
   const { id } = req.params;
   try {
-    const { rows } = await query('SELECT * FROM products WHERE id = $1 LIMIT 1', [Number(id)]);
+    const { rows } = await query(
+      'SELECT * FROM products WHERE id = $1 AND store_id = $2 LIMIT 1',
+      [Number(id), STORE_ID]
+    );
     if (rows.length === 0) return res.status(404).json({ error: 'Product not found' });
     res.json(toProduct(rows[0]));
   } catch (error) {
@@ -85,15 +85,10 @@ export const getProduct = async (req, res) => {
 
 /* ── Categories ── */
 export const listCategories = async (req, res) => {
-  const { slug } = req.params;
   try {
-    const { rows: storeRows } = await query('SELECT id FROM stores WHERE slug = $1 LIMIT 1', [slug]);
-    if (storeRows.length === 0) return res.status(404).json({ error: 'Store not found' });
-    const store = storeRows[0];
-
     const { rows } = await query(
       'SELECT * FROM categories WHERE store_id = $1 AND is_active = true ORDER BY sort_order ASC',
-      [store.id]
+      [STORE_ID]
     );
     res.json(rows.map(c => ({ id: c.id, storeId: c.store_id, name: c.name })));
   } catch (error) {
@@ -103,15 +98,13 @@ export const listCategories = async (req, res) => {
 
 /* ── Orders ── */
 export const createOrder = async (req, res) => {
-  const { slug } = req.params;
   const { customerName, customerPhone, customerAddress, notes, items } = req.body;
 
   try {
-    const { rows: storeRows } = await query('SELECT id, shipping_rate FROM stores WHERE slug = $1 LIMIT 1', [slug]);
+    const { rows: storeRows } = await query('SELECT shipping_rate FROM stores WHERE id = $1 LIMIT 1', [STORE_ID]);
     if (storeRows.length === 0) return res.status(404).json({ error: 'Store not found' });
-    const store = storeRows[0];
 
-    const shippingRate = Number(store.shipping_rate || 0);
+    const shippingRate = Number(storeRows[0].shipping_rate || 0);
     const subtotal = items.reduce((sum, i) => sum + Number(i.price) * Number(i.quantity), 0);
     const total = subtotal + shippingRate;
 
@@ -120,7 +113,7 @@ export const createOrder = async (req, res) => {
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
       [
-        store.id,
+        STORE_ID,
         customerName,
         customerPhone,
         customerAddress,
@@ -170,3 +163,4 @@ function toOrder(row) {
     createdAt:       row.created_at,
   };
 }
+

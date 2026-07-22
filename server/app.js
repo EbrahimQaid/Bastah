@@ -19,7 +19,7 @@ app.get('/api/healthz', (_, res) => res.json({ status: 'ok' }));
 
 // API Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/stores', storeRoutes);
+app.use('/api/store', storeRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
 // Serve static assets in production

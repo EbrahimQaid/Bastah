@@ -1,4 +1,4 @@
-import { useRoute, Link } from "wouter";
+import { Link } from "wouter";
 import { StoreLayout } from "@/components/layout/StoreLayout";
 import { useListStoreProducts, useListStoreCategories, useGetStore } from "@/services/api";
 import { motion } from "framer-motion";
@@ -7,13 +7,13 @@ import { useTheme, getCardClass, getHeroHeight, getBtnRadius } from "@/context/t
 import { ShoppingBag, Sparkles, ArrowLeft, ArrowRight, Tag, Flame } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 
-function ProductCard({ product, storeSlug, primaryColor }: { product: any; storeSlug: string; primaryColor: string }) {
+function ProductCard({ product, primaryColor }: { product: any; primaryColor: string }) {
   const { format } = useCurrency();
   const theme = useTheme();
   const { isRTL } = useLanguage();
 
   return (
-    <Link href={`/store/${storeSlug}/products/${product.id}`}>
+    <Link href={`/store/products/${product.id}`}>
       <div className="group cursor-pointer relative">
         {/* Card */}
         <div className="bg-white rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
@@ -76,12 +76,9 @@ function ProductCard({ product, storeSlug, primaryColor }: { product: any; store
 }
 
 export default function Home() {
-  const [, params] = useRoute("/store/:storeSlug");
-  const storeSlug = params?.storeSlug || "demo-store";
-
-  const { data: store } = useGetStore(storeSlug);
-  const { data: products } = useListStoreProducts(storeSlug);
-  const { data: categories } = useListStoreCategories(storeSlug);
+  const { data: store } = useGetStore();
+  const { data: products } = useListStoreProducts();
+  const { data: categories } = useListStoreCategories();
 
   const theme = useTheme();
   const heroHeightClass = getHeroHeight(theme.heroHeight);
@@ -106,7 +103,7 @@ export default function Home() {
     categories: theme.showCategories && categories && categories.length > 0 && (
       <div key="categories" className="px-5 py-5">
         <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-hide -mx-5 px-5">
-          <Link href={`/store/${storeSlug}/products`}>
+          <Link href={`/store/products`}>
             <button
               className={`px-5 py-2.5 text-sm font-bold whitespace-nowrap transition-all border-2 shadow-sm ${!categoryId ? "text-white border-transparent shadow-md" : "bg-white text-gray-600 border-gray-100 hover:border-gray-200"} ${btnRadius}`}
               style={!categoryId ? { background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`, borderColor: primaryColor } : {}}
@@ -115,7 +112,7 @@ export default function Home() {
             </button>
           </Link>
           {categories.map(cat => (
-            <Link key={cat.id} href={`/store/${storeSlug}/products?categoryId=${cat.id}`}>
+            <Link key={cat.id} href={`/store/products?categoryId=${cat.id}`}>
               <button
                 className={`px-5 py-2.5 text-sm font-bold whitespace-nowrap transition-all border-2 shadow-sm ${categoryId === cat.id.toString() ? "text-white border-transparent shadow-md" : "bg-white text-gray-600 border-gray-100 hover:border-gray-200"} ${btnRadius}`}
                 style={categoryId === cat.id.toString() ? { background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`, borderColor: primaryColor } : {}}
@@ -138,7 +135,7 @@ export default function Home() {
               {theme.featuredTitle || "المنتجات المميزة"}
             </h2>
           </div>
-          <Link href={`/store/${storeSlug}/products`}>
+          <Link href={`/store/products`}>
             <span className="flex items-center gap-1 text-sm font-bold transition-all hover:opacity-70"
               style={{ color: primaryColor }}>
               عرض الكل
@@ -151,7 +148,7 @@ export default function Home() {
           className={`grid gap-3.5 ${theme.gridCols === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
           {featuredProducts.map(product => (
             <motion.div variants={itemVar} key={product.id}>
-              <ProductCard product={product} storeSlug={storeSlug} primaryColor={primaryColor} />
+              <ProductCard product={product} primaryColor={primaryColor} />
             </motion.div>
           ))}
         </motion.div>
@@ -176,7 +173,7 @@ export default function Home() {
               className={`grid gap-3.5 ${theme.gridCols === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
               {allProducts.map(product => (
                 <motion.div variants={itemVar} key={product.id}>
-                  <ProductCard product={product} storeSlug={storeSlug} primaryColor={primaryColor} />
+                  <ProductCard product={product} primaryColor={primaryColor} />
                 </motion.div>
               ))}
             </motion.div>
@@ -184,7 +181,7 @@ export default function Home() {
         )}
 
         <div className="mt-8 flex justify-center pb-4">
-          <Link href={`/store/${storeSlug}/products`}>
+          <Link href={`/store/products`}>
             <button
               className={`px-10 py-3.5 border-2 font-bold text-sm transition-all hover:shadow-md ${btnRadius}`}
               style={{ borderColor: primaryColor, color: primaryColor, background: `${primaryColor}08` }}
@@ -200,7 +197,7 @@ export default function Home() {
   const order = theme.sectionOrder || ["categories", "featured", "allProducts"];
 
   return (
-    <StoreLayout storeSlug={storeSlug}>
+    <StoreLayout>
       <div className="flex flex-col pb-6">
 
         {/* ── HERO SECTION ─────────────────────────────────── */}
@@ -284,7 +281,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.32, duration: 0.5 }}
             >
-              <Link href={`/store/${storeSlug}/products`}>
+              <Link href="/store/products">
                 <button
                   className={`group flex items-center gap-2.5 px-8 py-3 text-sm font-black uppercase tracking-widest text-white transition-all duration-300 hover:scale-105 active:scale-95 ${btnRadius}`}
                   style={{

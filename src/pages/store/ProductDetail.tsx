@@ -28,12 +28,11 @@ function StarRating({ rating = 4.5, count = 38 }: { rating?: number; count?: num
 }
 
 export default function ProductDetail() {
-  const [, params] = useRoute("/store/:storeSlug/products/:productId");
-  const storeSlug = params?.storeSlug || "demo-store";
+  const [, params] = useRoute("/store/products/:productId");
   const productId = parseInt(params?.productId || "0", 10);
 
-  const { data: store } = useGetStore(storeSlug);
-  const { data: product, isLoading } = useGetStoreProduct(storeSlug, productId);
+  const { data: store } = useGetStore();
+  const { data: product, isLoading } = useGetStoreProduct(undefined, productId);
   const { addItem } = useCart();
   const { t, isRTL } = useLanguage();
   const { format } = useCurrency();
@@ -57,7 +56,7 @@ export default function ProductDetail() {
 
   if (isLoading) {
     return (
-      <StoreLayout storeSlug={storeSlug} hideBottomNav>
+      <StoreLayout hideBottomNav>
         <div className="animate-pulse">
           <div className="w-full aspect-[4/5] bg-gray-100" />
           <div className="p-6 space-y-4">
@@ -72,7 +71,7 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <StoreLayout storeSlug={storeSlug} hideBottomNav>
+      <StoreLayout hideBottomNav>
         <div className="p-20 text-center font-semibold text-lg text-gray-400 flex flex-col items-center gap-4">
           <Package className="w-12 h-12 text-gray-300" />
           المنتج غير موجود
@@ -111,12 +110,12 @@ export default function ProductDetail() {
   const BackIcon = isRTL ? ChevronRight : ChevronLeft;
 
   return (
-    <StoreLayout storeSlug={storeSlug} hideBottomNav>
+    <StoreLayout hideBottomNav>
       <div className="bg-white min-h-screen pb-[100px]" dir={isRTL ? "rtl" : "ltr"}>
 
         {/* Back Button */}
         <div className={`absolute top-4 ${isRTL ? "right-4" : "left-4"} z-10`}>
-          <Link href={`/store/${storeSlug}/products`}>
+          <Link href={`/store/products`}>
             <button className="w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center shadow-md text-gray-700 hover:bg-white transition-all hover:scale-105 active:scale-95">
               <BackIcon className="w-5 h-5" />
             </button>

@@ -1,18 +1,14 @@
 /**
- * 📡 API Service — Vendor Connect (Single Store)
+ * 📡 API Service — بَسطة (Single Store)
  *
- * Simple fetch + react-query hooks to replace @workspace/api-client-react.
- * All hooks are self-contained — no external workspace dependencies.
- *
- * الباكند ← أنت تبنيه بنفسك (Node.js + Express + PostgreSQL)
- * هذا الملف يتصل بالـ API endpoints اللي رح تبنيها
+ * Simple fetch + react-query hooks.
+ * Single-store mode: no slug routing needed.
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 // ─── Store Config ──────────────────────────────────────────
-// غيّر هذا لاسم المتجر الخاص بك (slug)
-export const STORE_SLUG = "bastah";
+export const STORE_SLUG = "bastah"; // kept for backwards compat references
 
 // ─── Types ─────────────────────────────────────────────────
 
@@ -30,6 +26,7 @@ export interface Store {
   defaultCurrency: string;
   themeConfig: string | null;
   whatsappNumber: string;
+  shippingRate: number;
   createdAt: string;
 }
 
@@ -112,10 +109,10 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 // ─── Query Keys ────────────────────────────────────────────
 
 export const queryKeys = {
-  store: () => ["store", STORE_SLUG] as const,
-  storeProducts: (filters?: Record<string, any>) => ["storeProducts", STORE_SLUG, filters] as const,
-  storeProduct: (id: number) => ["storeProduct", STORE_SLUG, id] as const,
-  storeCategories: () => ["storeCategories", STORE_SLUG] as const,
+  store: () => ["store"] as const,
+  storeProducts: (filters?: Record<string, any>) => ["storeProducts", filters] as const,
+  storeProduct: (id: number) => ["storeProduct", id] as const,
+  storeCategories: () => ["storeCategories"] as const,
   dashboardStore: () => ["dashboardStore"] as const,
   dashboardProducts: () => ["dashboardProducts"] as const,
   dashboardCategories: () => ["dashboardCategories"] as const,
@@ -128,23 +125,21 @@ export const queryKeys = {
 //  PUBLIC STORE HOOKS (الواجهة العامة للعملاء)
 // ════════════════════════════════════════════════════════════
 
-/** GET /api/stores/:slug */
-export function useGetStore(slug?: string, options?: { query?: any }) {
-  const storeSlug = slug || STORE_SLUG;
+/** GET /api/store */
+export function useGetStore(_slug?: string, options?: { query?: any }) {
   return useQuery({
     queryKey: queryKeys.store(),
-    queryFn: () => apiFetch<Store>(`/stores/${storeSlug}`),
+    queryFn: () => apiFetch<Store>(`/store`),
     ...options?.query,
   });
 }
 
-export function getGetStoreQueryKey(slug?: string) {
+export function getGetStoreQueryKey() {
   return queryKeys.store();
 }
 
-/** GET /api/stores/:slug/products */
-export function useListStoreProducts(slug?: string, filters?: { search?: string; categoryId?: number }) {
-  const storeSlug = slug || STORE_SLUG;
+/** GET /api/store/products */
+export function useListStoreProducts(_slug?: string, filters?: { search?: string; categoryId?: number }) {
   return useQuery({
     queryKey: queryKeys.storeProducts(filters),
     queryFn: () => {
@@ -152,36 +147,33 @@ export function useListStoreProducts(slug?: string, filters?: { search?: string;
       if (filters?.search) params.set("search", filters.search);
       if (filters?.categoryId) params.set("categoryId", String(filters.categoryId));
       const qs = params.toString();
-      return apiFetch<Product[]>(`/stores/${storeSlug}/products${qs ? `?${qs}` : ""}`);
+      return apiFetch<Product[]>(`/store/products${qs ? `?${qs}` : ""}`);
     },
   });
 }
 
-/** GET /api/stores/:slug/products/:id */
-export function useGetStoreProduct(slug: string | undefined, productId: number) {
-  const storeSlug = slug || STORE_SLUG;
+/** GET /api/store/products/:id */
+export function useGetStoreProduct(_slug: string | undefined, productId: number) {
   return useQuery({
     queryKey: queryKeys.storeProduct(productId),
-    queryFn: () => apiFetch<Product>(`/stores/${storeSlug}/products/${productId}`),
+    queryFn: () => apiFetch<Product>(`/store/products/${productId}`),
     enabled: productId > 0,
   });
 }
 
-/** GET /api/stores/:slug/categories */
-export function useListStoreCategories(slug?: string) {
-  const storeSlug = slug || STORE_SLUG;
+/** GET /api/store/categories */
+export function useListStoreCategories(_slug?: string) {
   return useQuery({
     queryKey: queryKeys.storeCategories(),
-    queryFn: () => apiFetch<Category[]>(`/stores/${storeSlug}/categories`),
+    queryFn: () => apiFetch<Category[]>(`/store/categories`),
   });
 }
 
-/** POST /api/stores/:slug/orders */
+/** POST /api/store/orders */
 export function useCreateOrder() {
   return useMutation({
-    mutationFn: ({ storeSlug, data }: { storeSlug?: string; data: any }) => {
-      const slug = storeSlug || STORE_SLUG;
-      return apiFetch<Order>(`/stores/${slug}/orders`, {
+    mutationFn: ({ data }: { data: any }) => {
+      return apiFetch<Order>(`/store/orders`, {
         method: "POST",
         body: JSON.stringify(data),
       });

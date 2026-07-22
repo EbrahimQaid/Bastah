@@ -1,4 +1,4 @@
-import { useRoute, Link } from "wouter";
+import { Link } from "wouter";
 import { StoreLayout } from "@/components/layout/StoreLayout";
 import { useListStoreProducts, useListStoreCategories, useGetStore } from "@/services/api";
 import { useState } from "react";
@@ -14,17 +14,15 @@ import { ShoppingBag, Sparkles } from "lucide-react";
 
 function ProductCard({
   product,
-  storeSlug,
   primaryColor,
 }: {
   product: any;
-  storeSlug: string;
   primaryColor: string;
 }) {
   const { format } = useCurrency();
 
   return (
-    <Link href={`/store/${storeSlug}/products/${product.id}`}>
+    <Link href={`/store/products/${product.id}`}>
       <div className="group cursor-pointer">
         <div
           className="bg-white rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
@@ -92,15 +90,13 @@ function ProductCard({
 }
 
 export default function ProductList() {
-  const [, params] = useRoute("/store/:storeSlug/products");
-  const storeSlug = params?.storeSlug || "demo-store";
   const searchParams = new URLSearchParams(window.location.search);
   const initialCategoryId = searchParams.get("categoryId") || "";
 
   const { t, isRTL } = useLanguage();
   const { format } = useCurrency();
 
-  const { data: store } = useGetStore(storeSlug);
+  const { data: store } = useGetStore();
   const primaryColor = store?.primaryColor || "#7C3AED";
 
   const [search, setSearch] = useState("");
@@ -111,8 +107,8 @@ export default function ProductList() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState({ minPrice: "", maxPrice: "" });
 
-  const { data: categories } = useListStoreCategories(storeSlug);
-  const { data: products, isLoading } = useListStoreProducts(storeSlug, {
+  const { data: categories } = useListStoreCategories();
+  const { data: products, isLoading } = useListStoreProducts(undefined, {
     search: debouncedSearch || undefined,
     categoryId: selectedCategory ? Number(selectedCategory) : undefined,
   });
@@ -150,7 +146,7 @@ export default function ProductList() {
   };
 
   return (
-    <StoreLayout storeSlug={storeSlug}>
+    <StoreLayout>
       <div className="flex flex-col min-h-full pb-24 relative" dir={isRTL ? "rtl" : "ltr"}>
 
         {/* ── Search + Filter Bar ─────────────────────── */}
@@ -281,7 +277,7 @@ export default function ProductList() {
             <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-4">
               {filteredProducts?.map(product => (
                 <motion.div variants={item} key={product.id}>
-                  <ProductCard product={product} storeSlug={storeSlug} primaryColor={primaryColor} />
+                  <ProductCard product={product} primaryColor={primaryColor} />
                 </motion.div>
               ))}
             </motion.div>

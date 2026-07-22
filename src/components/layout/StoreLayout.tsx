@@ -9,18 +9,16 @@ import { useEffect, useRef, useState } from "react";
 import { ThemeContext, parseThemeConfig } from "@/context/theme-context";
 import { StoreUIContext } from "@/context/store-ui-context";
 
-export function StoreLayout({ children, storeSlug, hideBottomNav = false }: { children: React.ReactNode; storeSlug: string; hideBottomNav?: boolean }) {
+export function StoreLayout({ children, hideBottomNav = false }: { children: React.ReactNode; hideBottomNav?: boolean }) {
   const { totalItems } = useCart();
-  const { data: store, isLoading, error, isError } = useGetStore(storeSlug, {
-    query: { queryKey: getGetStoreQueryKey(storeSlug), enabled: !!storeSlug },
-  });
+  const { data: store } = useGetStore();
   const [location] = useLocation();
   const { language, setLanguage, t, isRTL } = useLanguage();
   const { activeCurrency, setActiveCurrency, availableCurrencies, setAvailableCurrencies } = useCurrency();
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [announcementVisible, setAnnouncementVisible] = useState(true);
   const [darkMode, setDarkMode] = useState(() => {
-    try { return localStorage.getItem(`darkMode_${storeSlug}`) === "true"; } catch { return false; }
+    try { return localStorage.getItem(`darkMode`) === "true"; } catch { return false; }
   });
   const currencyRef = useRef<HTMLDivElement>(null);
 
@@ -29,7 +27,7 @@ export function StoreLayout({ children, storeSlug, hideBottomNav = false }: { ch
   const toggleDarkMode = () => {
     setDarkMode(prev => {
       const next = !prev;
-      try { localStorage.setItem(`darkMode_${storeSlug}`, String(next)); } catch {}
+      try { localStorage.setItem(`darkMode`, String(next)); } catch {}
       return next;
     });
   };
@@ -168,7 +166,7 @@ export function StoreLayout({ children, storeSlug, hideBottomNav = false }: { ch
               transition: "background 0.35s ease",
             }}
           >
-            <Link href={`/store/${storeSlug}`} className="flex items-center gap-2.5">
+            <Link href="/store" className="flex items-center gap-2.5">
               {store.logoImage ? (
                 <img src={store.logoImage} alt={store.name} className="w-9 h-9 rounded-xl object-cover shadow-sm" />
               ) : (
@@ -221,7 +219,7 @@ export function StoreLayout({ children, storeSlug, hideBottomNav = false }: { ch
                 {language === "en" ? "عربي" : "EN"}
               </button>
 
-              <Link href={`/store/${storeSlug}/products`}>
+              <Link href="/store/products">
                 <button
                   className="w-9 h-9 flex items-center justify-center rounded-xl transition-colors"
                   style={{ background: isWhite && !isDark ? "#f3f4f6" : "rgba(255,255,255,0.18)", color: navbarTextColor }}
@@ -230,7 +228,7 @@ export function StoreLayout({ children, storeSlug, hideBottomNav = false }: { ch
                 </button>
               </Link>
 
-              <Link href={`/store/${storeSlug}/cart`}>
+              <Link href="/store/cart">
                 <button
                   className="relative w-9 h-9 flex items-center justify-center rounded-xl transition-all hover:scale-105"
                   style={{
@@ -295,10 +293,10 @@ export function StoreLayout({ children, storeSlug, hideBottomNav = false }: { ch
               }}
             >
               {[
-                { href: `/store/${storeSlug}`,            icon: Home,         active: location === `/store/${storeSlug}` },
-                { href: `/store/${storeSlug}/products`,   icon: BadgePercent, active: location.startsWith(`/store/${storeSlug}/products`) },
-                { href: `/store/${storeSlug}/cart`,       icon: ShoppingBag,  active: cartActive, badge: totalItems > 0 ? totalItems : null },
-                { href: `/store/${storeSlug}/profile`,    icon: User,         active: location.startsWith(`/store/${storeSlug}/profile`) },
+                { href: "/store",          icon: Home,         active: location === "/store" },
+                { href: "/store/products", icon: BadgePercent, active: location.startsWith("/store/products") },
+                { href: "/store/cart",     icon: ShoppingBag,  active: location.startsWith("/store/cart"), badge: totalItems > 0 ? totalItems : null },
+                { href: "/store/profile",  icon: User,         active: location.startsWith("/store/profile") },
               ].map(({ href, icon: Icon, active, badge }, i) => (
                 <Link key={i} href={href} style={{ textDecoration: "none", display: "block" }}>
                   <div
@@ -390,7 +388,7 @@ export function StoreLayout({ children, storeSlug, hideBottomNav = false }: { ch
             </div>
           )}
 
-          <MiniCart storeSlug={storeSlug} />
+          <MiniCart />
         </div>
       </ThemeContext.Provider>
     </StoreUIContext.Provider>

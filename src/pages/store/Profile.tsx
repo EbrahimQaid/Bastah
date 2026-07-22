@@ -11,8 +11,9 @@ import {
 } from "lucide-react";
 
 // ── Inner component: runs INSIDE StoreLayout so StoreUIContext is available ──
-function ProfileContent({ storeSlug }: { storeSlug: string }) {
-  const { data: store } = useGetStore(storeSlug);
+// ── Inner component: runs INSIDE StoreLayout so StoreUIContext is available ──
+function ProfileContent() {
+  const { data: store } = useGetStore();
   const { language, setLanguage, isRTL } = useLanguage();
   const { activeCurrency, setActiveCurrency, availableCurrencies } = useCurrency();
   const { darkMode, toggleDarkMode } = useStoreUI();
@@ -102,10 +103,10 @@ function ProfileContent({ storeSlug }: { storeSlug: string }) {
 
         <div className="flex flex-col gap-2.5">
           {/* WhatsApp */}
-          {store?.whatsapp && (
+          {store?.whatsappNumber && (
             <motion.a
               custom={3} initial="hidden" animate="show" variants={itemVar}
-              href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`}
+              href={`https://wa.me/${store.whatsappNumber.replace(/\D/g, "")}`}
               target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-4 p-4 rounded-2xl bg-white transition-all hover:shadow-md active:scale-[0.98]"
               style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
@@ -115,52 +116,13 @@ function ProfileContent({ storeSlug }: { storeSlug: string }) {
               </div>
               <div className="flex-1">
                 <p className="font-bold text-gray-900 text-sm">واتساب</p>
-                <p className="text-xs text-gray-400 mt-0.5">{store.whatsapp}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{store.whatsappNumber}</p>
               </div>
               <ChevronRight className="w-4 h-4 text-gray-300" style={{ transform: isRTL ? "rotate(180deg)" : "none" }} />
             </motion.a>
           )}
 
-          {/* Instagram */}
-          {store?.instagram && (
-            <motion.a
-              custom={4} initial="hidden" animate="show" variants={itemVar}
-              href={store.instagram} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-4 p-4 rounded-2xl bg-white transition-all hover:shadow-md active:scale-[0.98]"
-              style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
-            >
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: "#E1306C15" }}>
-                <Instagram className="w-5 h-5" style={{ color: "#E1306C" }} />
-              </div>
-              <div className="flex-1">
-                <p className="font-bold text-gray-900 text-sm">إنستقرام</p>
-                <p className="text-xs text-gray-400 mt-0.5">@{store.instagram.split("/").filter(Boolean).pop()}</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-gray-300" style={{ transform: isRTL ? "rotate(180deg)" : "none" }} />
-            </motion.a>
-          )}
-
-          {/* TikTok */}
-          {store?.tiktok && (
-            <motion.a
-              custom={5} initial="hidden" animate="show" variants={itemVar}
-              href={store.tiktok} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-4 p-4 rounded-2xl bg-white transition-all hover:shadow-md active:scale-[0.98]"
-              style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
-            >
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-gray-950/5">
-                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-gray-900"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z"/></svg>
-              </div>
-              <div className="flex-1">
-                <p className="font-bold text-gray-900 text-sm">تيك توك</p>
-                <p className="text-xs text-gray-400 mt-0.5">@{store.tiktok.split("/").filter(Boolean).pop()}</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-gray-300" style={{ transform: isRTL ? "rotate(180deg)" : "none" }} />
-            </motion.a>
-          )}
-
-          {/* If no social links */}
-          {!store?.whatsapp && !store?.instagram && !store?.tiktok && (
+          {!store?.whatsappNumber && (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <Globe className="w-10 h-10 text-gray-200 mb-3" />
               <p className="text-sm text-gray-400">لا توجد روابط تواصل</p>
@@ -258,7 +220,7 @@ function ProfileContent({ storeSlug }: { storeSlug: string }) {
 
       {/* ── CTA ── */}
       <div className="px-5 mt-6">
-        <Link href={`/store/${storeSlug}/products`}>
+        <Link href="/store/products">
           <button
             className="w-full h-14 rounded-2xl text-white font-black text-sm flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-[0.98]"
             style={{
@@ -278,12 +240,9 @@ function ProfileContent({ storeSlug }: { storeSlug: string }) {
 
 // ── Outer component: wraps content in StoreLayout (which provides the context) ──
 export default function StoreProfile() {
-  const [, params] = useRoute("/store/:storeSlug/profile");
-  const storeSlug = params?.storeSlug || "demo-store";
-
   return (
-    <StoreLayout storeSlug={storeSlug}>
-      <ProfileContent storeSlug={storeSlug} />
+    <StoreLayout>
+      <ProfileContent />
     </StoreLayout>
   );
 }

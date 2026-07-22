@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
+import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,11 +6,7 @@ import { CartProvider } from "@/hooks/use-cart";
 import { LanguageProvider } from "@/context/language-context";
 import { CurrencyProvider } from "@/context/currency-context";
 import NotFound from "@/pages/not-found";
-import { STORE_SLUG } from "@/services/api";
-import Register from "@/pages/auth/Register";
 import Login from "@/pages/auth/Login";
-import Onboarding from "@/pages/auth/Onboarding";
-import Landing from "@/pages/Landing";
 
 // Store Pages
 import StoreHome from "@/pages/store/Home";
@@ -36,20 +31,21 @@ const queryClient = new QueryClient();
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Landing} />
+      {/* الصفحة الرئيسية → المتجر مباشرة */}
+      <Route path="/">
+        <Redirect to="/store" />
+      </Route>
 
-      {/* Auth Routes */}
-      <Route path="/register" component={Register} />
+      {/* Auth */}
       <Route path="/login" component={Login} />
-      <Route path="/onboarding" component={Onboarding} />
 
-      {/* Customer Store Routes */}
-      <Route path="/store/:storeSlug" component={StoreHome} />
-      <Route path="/store/:storeSlug/products" component={StoreProductList} />
-      <Route path="/store/:storeSlug/products/:productId" component={StoreProductDetail} />
-      <Route path="/store/:storeSlug/cart" component={StoreCart} />
-      <Route path="/store/:storeSlug/checkout" component={StoreCheckout} />
-      <Route path="/store/:storeSlug/profile" component={StoreProfile} />
+      {/* Customer Store Routes — single store, no slug */}
+      <Route path="/store" component={StoreHome} />
+      <Route path="/store/products" component={StoreProductList} />
+      <Route path="/store/products/:productId" component={StoreProductDetail} />
+      <Route path="/store/cart" component={StoreCart} />
+      <Route path="/store/checkout" component={StoreCheckout} />
+      <Route path="/store/profile" component={StoreProfile} />
 
       {/* Seller Dashboard Routes */}
       <Route path="/dashboard" component={DashboardOverview} />
@@ -85,6 +81,5 @@ function App() {
     </QueryClientProvider>
   );
 }
-
 
 export default App;

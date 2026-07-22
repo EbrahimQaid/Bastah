@@ -27,12 +27,7 @@ export default function Login() {
       const data = await res.json();
       localStorage.setItem("bastah_token", data.token);
       localStorage.setItem("bastah_user", JSON.stringify(data.user));
-      // إذا لم يكمل الإعداد، أرسله للـ Onboarding
-      if (!data.user.hasStore) {
-        setLocation("/onboarding");
-      } else {
-        setLocation("/dashboard");
-      }
+      setLocation("/dashboard");
     } catch (err: any) {
       toast({ title: err.message, variant: "destructive" });
     } finally {
