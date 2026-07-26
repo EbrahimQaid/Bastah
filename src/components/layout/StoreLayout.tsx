@@ -11,7 +11,7 @@ import { StoreUIContext } from "@/context/store-ui-context";
 
 export function StoreLayout({ children, hideBottomNav = false }: { children: React.ReactNode; hideBottomNav?: boolean }) {
   const { totalItems } = useCart();
-  const { data: store } = useGetStore();
+  const { data: store, isLoading, isError, error } = useGetStore();
   const [location] = useLocation();
   const { language, setLanguage, t, isRTL } = useLanguage();
   const { activeCurrency, setActiveCurrency, availableCurrencies, setAvailableCurrencies } = useCurrency();

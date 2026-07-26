@@ -1,5 +1,5 @@
-import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Package, Tag, ShoppingCart, Settings, ExternalLink, Store, Menu, X, ChevronRight } from "lucide-react";
+import { Link, useLocation, Redirect } from "wouter";
+import { LayoutDashboard, Package, Tag, ShoppingCart, Settings, ExternalLink, Store, Menu, X, ChevronRight, LogOut } from "lucide-react";
 import { useGetDashboardStore } from "@/services/api";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,6 +18,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: store, isLoading, error } = useGetDashboardStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const handleLogout = () => {
+    localStorage.removeItem("bastah_token");
+    localStorage.removeItem("bastah_user");
+    window.location.href = "/login";
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#fdfdfd]">
@@ -33,9 +39,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   }
 
   if (error || !store) {
+    // 401 = غير مُصادق عليه → توجيه لصفحة تسجيل الدخول
+    const isAuthError = (error as any)?.message?.includes("401") || !localStorage.getItem("bastah_token");
+    if (isAuthError) {
+      localStorage.removeItem("bastah_token");
+      localStorage.removeItem("bastah_user");
+      return <Redirect to="/login" />;
+    }
     if (location !== "/dashboard/setup") {
-      window.location.href = "/dashboard/setup";
-      return null;
+      return <Redirect to="/dashboard/setup" />;
     }
   }
 
@@ -86,18 +98,23 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Sidebar Footer */}
-        <div className="p-6">
-          {store && (
-            <a
-              href={`/store/${store.slug}`}
-              target="_blank"
-              rel="noreferrer"
-              className="group flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-gray-900 text-white text-sm font-bold hover:bg-gray-800 transition-all shadow-lg shadow-gray-200"
-            >
-              <ExternalLink className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              عرض المتجر
-            </a>
-          )}
+        <div className="p-6 space-y-2">
+          <a
+            href="/store"
+            target="_blank"
+            rel="noreferrer"
+            className="group flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-gray-900 text-white text-sm font-bold hover:bg-gray-800 transition-all shadow-lg shadow-gray-200"
+          >
+            <ExternalLink className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            عرض المتجر
+          </a>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-2xl text-red-500 bg-red-50 hover:bg-red-100 text-sm font-bold transition-all"
+          >
+            <LogOut className="w-4 h-4" />
+            تسجيل الخروج
+          </button>
         </div>
       </aside>
 
@@ -174,16 +191,21 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 })}
               </div>
 
-              <div className="p-6 border-t border-gray-50">
-                 {store && (
-                   <a
-                    href={`/store/${store.slug}`}
-                    className="w-full flex items-center justify-center gap-3 py-4 bg-gray-900 text-white rounded-2xl font-bold"
-                   >
-                    <ExternalLink className="w-4 h-4" />
-                    عرض المتجر
-                   </a>
-                 )}
+              <div className="p-6 border-t border-gray-50 space-y-2">
+                <a
+                  href="/store"
+                  className="w-full flex items-center justify-center gap-3 py-4 bg-gray-900 text-white rounded-2xl font-bold"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  عرض المتجر
+                </a>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-2 py-3 text-red-500 bg-red-50 hover:bg-red-100 rounded-2xl font-bold text-sm transition-all"
+                >
+                  <LogOut className="w-4 h-4" />
+                  تسجيل الخروج
+                </button>
               </div>
             </motion.aside>
           </>

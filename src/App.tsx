@@ -7,6 +7,8 @@ import { LanguageProvider } from "@/context/language-context";
 import { CurrencyProvider } from "@/context/currency-context";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/auth/Login";
+import Register from "@/pages/auth/Register";
+import Onboarding from "@/pages/auth/Onboarding";
 
 // Store Pages
 import StoreHome from "@/pages/store/Home";
@@ -28,6 +30,13 @@ import DashboardSetup from "@/pages/dashboard/Setup";
 
 const queryClient = new QueryClient();
 
+// ─── Auth Guard: يحمي مسارات لوحة التحكم ───────────────────────
+function ProtectedRoute({ component: Component }: { component: React.ComponentType<any> }) {
+  const token = typeof window !== "undefined" ? localStorage.getItem("bastah_token") : null;
+  if (!token) return <Redirect to="/login" />;
+  return <Component />;
+}
+
 function Router() {
   return (
     <Switch>
@@ -38,6 +47,8 @@ function Router() {
 
       {/* Auth */}
       <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
+      <Route path="/onboarding" component={Onboarding} />
 
       {/* Customer Store Routes — single store, no slug */}
       <Route path="/store" component={StoreHome} />
@@ -47,16 +58,16 @@ function Router() {
       <Route path="/store/checkout" component={StoreCheckout} />
       <Route path="/store/profile" component={StoreProfile} />
 
-      {/* Seller Dashboard Routes */}
-      <Route path="/dashboard" component={DashboardOverview} />
-      <Route path="/dashboard/products" component={DashboardProducts} />
-      <Route path="/dashboard/products/new" component={DashboardProductForm} />
-      <Route path="/dashboard/products/:productId/edit" component={DashboardProductForm} />
-      <Route path="/dashboard/categories" component={DashboardCategories} />
-      <Route path="/dashboard/orders" component={DashboardOrders} />
-      <Route path="/dashboard/orders/:orderId" component={DashboardOrderDetail} />
-      <Route path="/dashboard/settings" component={DashboardSettings} />
-      <Route path="/dashboard/setup" component={DashboardSetup} />
+      {/* Seller Dashboard Routes — محمية بالمصادقة */}
+      <Route path="/dashboard">{() => <ProtectedRoute component={DashboardOverview} />}</Route>
+      <Route path="/dashboard/products">{() => <ProtectedRoute component={DashboardProducts} />}</Route>
+      <Route path="/dashboard/products/new">{() => <ProtectedRoute component={DashboardProductForm} />}</Route>
+      <Route path="/dashboard/products/:productId/edit">{() => <ProtectedRoute component={DashboardProductForm} />}</Route>
+      <Route path="/dashboard/categories">{() => <ProtectedRoute component={DashboardCategories} />}</Route>
+      <Route path="/dashboard/orders">{() => <ProtectedRoute component={DashboardOrders} />}</Route>
+      <Route path="/dashboard/orders/:orderId">{() => <ProtectedRoute component={DashboardOrderDetail} />}</Route>
+      <Route path="/dashboard/settings">{() => <ProtectedRoute component={DashboardSettings} />}</Route>
+      <Route path="/dashboard/setup">{() => <ProtectedRoute component={DashboardSetup} />}</Route>
 
       <Route component={NotFound} />
     </Switch>
