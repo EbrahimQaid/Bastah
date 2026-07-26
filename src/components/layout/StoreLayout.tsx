@@ -99,7 +99,7 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
     );
   }
 
-  if (!store && !isLoading) {
+  if (!store) {
     return <div className="min-h-screen flex items-center justify-center font-bold text-lg">Store not found</div>;
   }
 
