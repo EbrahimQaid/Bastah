@@ -9,20 +9,27 @@ const __dirname = path.dirname(__filename);
 
 const connectionString = process.env.DATABASE_URL;
 
-if (!connectionString) {
-  throw new Error("DATABASE_URL is missing in environment variables");
-}
+const pool = connectionString
+  ? new pg.Pool({
+      connectionString,
+      max: Number(process.env.DB_POOL_MAX || 10),
+      idleTimeoutMillis: 30_000,
+      connectionTimeoutMillis: 5_000,
+      ssl:
+        process.env.NODE_ENV === "production"
+          ? { rejectUnauthorized: true }
+          : undefined,
+    })
+  : null;
 
-const pool = new pg.Pool({
-  connectionString,
-  max: Number(process.env.DB_POOL_MAX || 10),
-  idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 5_000,
-  ssl:
-    process.env.NODE_ENV === "production"
-      ? { rejectUnauthorized: true }
-      : undefined,
-});
+function requirePool() {
+  if (!pool) {
+    const error = new Error("DATABASE_URL is missing in Vercel environment variables");
+    error.code = "CONFIGURATION_ERROR";
+    throw error;
+  }
+  return pool;
+}
 
 // Migrations are an explicit deployment step; never run them during a request.
 if (process.env.AUTO_INIT_DB === "true") {
@@ -115,11 +122,11 @@ async function initializeDatabase() {
 }
 
 export const query = (text, params) => {
-  return pool.query(text, params);
+  return requirePool().query(text, params);
 };
 
 export async function withTransaction(callback) {
-  const client = await pool.connect();
+  const client = await requirePool().connect();
   try {
     await client.query("BEGIN");
     const result = await callback(client);
@@ -133,4 +140,4 @@ export async function withTransaction(callback) {
   }
 }
 
-export const isDbReady = () => true;
+export const isDbReady = () => Boolean(pool);

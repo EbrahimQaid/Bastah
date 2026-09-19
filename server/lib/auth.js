@@ -7,8 +7,13 @@ export const JWT_SECRET =
     ? null
     : "bastah-dev-secret-change-in-production");
 
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET must be configured in production");
+export function getJwtSecret() {
+  if (!JWT_SECRET) {
+    const error = new Error("JWT_SECRET is missing in Vercel environment variables");
+    error.code = "CONFIGURATION_ERROR";
+    throw error;
+  }
+  return JWT_SECRET;
 }
 
 export const requireAuth = async (req, res, next) => {
@@ -21,7 +26,7 @@ export const requireAuth = async (req, res, next) => {
 
   const token = authHeader.split(" ")[1];
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, getJwtSecret());
     const { rows } = await query(
       `SELECT u.id, u.email, u.role, s.id AS store_id
        FROM users u

@@ -2,14 +2,14 @@ import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { query } from "../lib/db.js";
-import { requireAuth, JWT_SECRET } from "../lib/auth.js";
+import { requireAuth, getJwtSecret } from "../lib/auth.js";
 
 const router = express.Router();
 const BCRYPT_ROUNDS = Number(process.env.BCRYPT_ROUNDS) || 10;
 
 /* ── Helper: generate JWT ── */
 function signToken(payload) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: "7d" });
 }
 
 /* ── POST /api/auth/register ── */
@@ -163,7 +163,7 @@ router.get("/me", async (req, res) => {
     return res.status(401).json({ error: "غير مصرح" });
 
   try {
-    const payload = jwt.verify(authHeader.slice(7), JWT_SECRET);
+    const payload = jwt.verify(authHeader.slice(7), getJwtSecret());
     const { rows } = await query(
       "SELECT id, email, full_name, phone, role, avatar_url FROM users WHERE id = $1 LIMIT 1",
       [payload.userId],

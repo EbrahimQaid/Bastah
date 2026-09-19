@@ -5,6 +5,8 @@ import { fileURLToPath } from "url";
 import storeRoutes from "./routes/storeRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import { isDbReady } from "./lib/db.js";
+import { JWT_SECRET } from "./lib/auth.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,7 +29,14 @@ app.use((req, res, next) => {
 });
 
 // Health check
-app.get("/api/healthz", (_, res) => res.json({ status: "ok" }));
+app.get("/api/healthz", (_, res) => {
+  const configured = Boolean(isDbReady() && JWT_SECRET);
+  res.status(configured ? 200 : 503).json({
+    status: configured ? "ok" : "misconfigured",
+    database: isDbReady() ? "configured" : "missing DATABASE_URL",
+    auth: JWT_SECRET ? "configured" : "missing JWT_SECRET",
+  });
+});
 
 // API Routes
 app.use("/api/auth", authRoutes);
