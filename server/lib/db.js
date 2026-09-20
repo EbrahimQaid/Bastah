@@ -17,14 +17,16 @@ const pool = connectionString
       connectionTimeoutMillis: 5_000,
       ssl:
         process.env.NODE_ENV === "production"
-          ? { rejectUnauthorized: true }
+          ? { rejectUnauthorized: false }
           : undefined,
     })
   : null;
 
 function requirePool() {
   if (!pool) {
-    const error = new Error("DATABASE_URL is missing in Vercel environment variables");
+    const error = new Error(
+      "DATABASE_URL is missing in Vercel environment variables",
+    );
     error.code = "CONFIGURATION_ERROR";
     throw error;
   }
