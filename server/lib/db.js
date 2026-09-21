@@ -116,12 +116,12 @@ async function initializeDatabase() {
         await client.query(`
           UPDATE stores 
           SET name = 'دكاني - Dukkani',
-              description = 'منصة المتاجر الذكية - دكانك الرقمي بين يديك',
+              description = 'دكانك الرقمي بين يديك',
               primary_color = '#991B1B',
               secondary_color = '#DC2626',
               logo_image = '',
               slug = 'dukkani'
-          WHERE name LIKE '%بسطة%' OR name LIKE '%بَسطة%' OR name ILIKE '%bastah%' OR primary_color = '#7C3AED';
+          WHERE name LIKE '%بسطة%' OR name LIKE '%بَسطة%' OR name ILIKE '%bastah%' OR primary_color = '#7C3AED' OR description LIKE '%محفظة جيب%' OR description LIKE '%منصة المتاجر الذكية%';
         `);
       }
     } finally {
@@ -139,7 +139,7 @@ const fallbackState = {
       id: 1,
       slug: "dukkani",
       name: "دكاني - Dukkani",
-      description: "منصة المتاجر الذكية - دكانك الرقمي بين يديك",
+      description: "دكانك الرقمي بين يديك",
       cover_image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&q=80",
       logo_image: "",
       primary_color: "#991B1B",

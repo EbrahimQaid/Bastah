@@ -12,19 +12,20 @@ export class StoreModel {
     let logoImage = row.logo_image || "";
     let primaryColor = row.primary_color || "#991B1B";
     let secondaryColor = row.secondary_color || "#DC2626";
-    let description = row.description || "منصة المتاجر الذكية - دكانك الرقمي بين يديك";
+    let description = row.description || "دكانك الرقمي بين يديك";
 
     // Clean up any old Bastah naming / logo artifact from previous database seeds
     const isOldBastah =
       name.includes("بسطة") ||
       name.includes("بَسطة") ||
       name.toLowerCase().includes("bastah") ||
-      (typeof logoImage === "string" && logoImage.toLowerCase().includes("bastah"));
+      (typeof logoImage === "string" && logoImage.toLowerCase().includes("bastah")) ||
+      (typeof description === "string" && (description.includes("محفظة جيب") || description.includes("منصة المتاجر الذكية")));
 
     if (isOldBastah) {
       name = "دكاني - Dukkani";
       logoImage = ""; // Clear old Bastah sticker logo to use clean Dukkani vector icon
-      description = "منصة المتاجر الذكية - دكانك الرقمي بين يديك";
+      description = "دكانك الرقمي بين يديك";
       primaryColor = "#991B1B";
       secondaryColor = "#DC2626";
     }
