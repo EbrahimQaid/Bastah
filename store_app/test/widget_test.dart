@@ -12,7 +12,7 @@ import 'package:store_app/main.dart';
 
 void main() {
   testWidgets('store header renders', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: StoreHeader(store: StoreData(name: 'بَسطة', description: '', coverImage: '', logoImage: '', primaryColor: '#7C3AED', currency: 'SAR', shippingRate: 0), itemCount: 0, onCart: _noop, onProducts: _noop)));
+    await tester.pumpWidget(const MaterialApp(home: StoreHeader(store: StoreData(name: 'بَسطة', description: '', coverImage: '', logoImage: '', primaryColor: '#7C3AED', currency: 'SAR', shippingRate: 0, whatsappNumber: ''), itemCount: 0, onCart: _noop, onProducts: _noop)));
     expect(find.text('بَسطة'), findsOneWidget);
   });
 }

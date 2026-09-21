@@ -11,8 +11,8 @@ const textColor = Color(0xFF111827);
 void main() => runApp(const BastahApp());
 
 class StoreData {
-  const StoreData({required this.name, required this.description, required this.coverImage, required this.logoImage, required this.primaryColor, required this.currency, required this.shippingRate});
-  final String name, description, coverImage, logoImage, primaryColor, currency;
+  const StoreData({required this.name, required this.description, required this.coverImage, required this.logoImage, required this.primaryColor, required this.currency, required this.shippingRate, required this.whatsappNumber});
+  final String name, description, coverImage, logoImage, primaryColor, currency, whatsappNumber;
   final double shippingRate;
   factory StoreData.fromJson(Map<String, dynamic> json) => StoreData(
         name: json['name'] as String? ?? 'بَسطة',
@@ -22,16 +22,18 @@ class StoreData {
         primaryColor: json['primaryColor'] as String? ?? '#7C3AED',
         currency: json['defaultCurrency'] as String? ?? 'SAR',
         shippingRate: double.tryParse('${json['shippingRate'] ?? 0}') ?? 0,
+        whatsappNumber: json['whatsappNumber'] as String? ?? '',
       );
 }
 
 class Product {
-  Product({required this.id, required this.name, required this.description, required this.price, required this.images, required this.inStock, required this.featured});
+  Product({required this.id, required this.name, required this.description, required this.price, required this.images, required this.inStock, required this.featured, required this.sizes, required this.colors});
   final int id;
   final String name, description;
   final double price;
   final List<String> images;
   final bool inStock, featured;
+  final List<String> sizes, colors;
   factory Product.fromJson(Map<String, dynamic> json) => Product(
         id: json['id'] as int,
         name: json['name'] as String? ?? '',
@@ -40,6 +42,8 @@ class Product {
         images: List<String>.from(json['images'] ?? const []),
         inStock: json['inStock'] as bool? ?? false,
         featured: json['featured'] as bool? ?? false,
+        sizes: List<String>.from((json['variants'] as Map?)?['sizes'] ?? const []),
+        colors: List<String>.from((json['variants'] as Map?)?['colors'] ?? const []),
       );
 }
 
@@ -71,6 +75,7 @@ class StoreApi {
     if (response.statusCode >= 400) throw Exception(_serverMessage(response, 'تعذر تحميل المنتجات'));
     return (jsonDecode(response.body) as List).map((item) => Product.fromJson(item)).toList();
   }
+  Future<Product> product(int id) async => Product.fromJson(await _get('/store/products/$id'));
   Future<Map<String, dynamic>> createOrder(Map<String, dynamic> body) async {
     final response = await http.post(Uri.parse('$apiBase/store/orders'), headers: {'Content-Type': 'application/json'}, body: jsonEncode(body));
     if (response.statusCode >= 400) throw Exception(_serverMessage(response, 'تعذر إرسال الطلب'));
@@ -137,6 +142,7 @@ class _StoreAppShellState extends State<StoreAppShell> {
   late Future<StoreData> store;
   late Future<List<Product>> products;
   late Future<List<Category>> categories;
+  int? detailId;
   @override void initState() { super.initState(); store = widget.api.store(); products = widget.api.products(); categories = widget.api.categories(); }
   void retry() => setState(() { store = widget.api.store(); products = widget.api.products(); categories = widget.api.categories(); });
 
@@ -149,9 +155,11 @@ class _StoreAppShellState extends State<StoreAppShell> {
           final data = snapshot.data!;
           return Scaffold(
             backgroundColor: pageBackground,
-            appBar: StoreHeader(store: data, itemCount: widget.itemCount, onCart: () => widget.onTab(2), onProducts: () => widget.onTab(1)),
-            body: IndexedStack(index: widget.tab, children: [HomeScreen(store: data, products: products, categories: categories, onAdd: widget.onAdd, onProducts: () => widget.onTab(1)), ProductScreen(store: data, api: widget.api, products: products, categories: categories, onAdd: widget.onAdd), CartScreen(store: data, cart: widget.cart, total: widget.total, onUpdate: widget.onUpdate, onOrder: widget.onOrder)]),
-            bottomNavigationBar: FloatingBottomNav(selected: widget.tab, count: widget.itemCount, color: parseColor(data.primaryColor), onSelect: widget.onTab),
+            appBar: detailId == null ? StoreHeader(store: data, itemCount: widget.itemCount, onCart: () => widget.onTab(2), onProducts: () => widget.onTab(1)) : null,
+            body: detailId != null
+              ? ProductDetailScreen(api: widget.api, productId: detailId!, store: data, onBack: () => setState(() => detailId = null), onAdd: widget.onAdd)
+              : IndexedStack(index: widget.tab, children: [HomeScreen(store: data, products: products, categories: categories, onAdd: widget.onAdd, onProducts: () => widget.onTab(1), onOpen: (id) => setState(() => detailId = id)), ProductScreen(store: data, api: widget.api, products: products, categories: categories, onAdd: widget.onAdd, onOpen: (id) => setState(() => detailId = id)), CartScreen(store: data, cart: widget.cart, total: widget.total, onUpdate: widget.onUpdate, onOrder: widget.onOrder), ProfileScreen(store: data, onProducts: () => widget.onTab(1))]),
+            bottomNavigationBar: detailId == null ? FloatingBottomNav(selected: widget.tab, count: widget.itemCount, color: parseColor(data.primaryColor), onSelect: widget.onTab) : null,
           );
         },
       );
@@ -167,20 +175,21 @@ class StoreHeader extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, required this.store, required this.products, required this.categories, required this.onAdd, required this.onProducts});
+  const HomeScreen({super.key, required this.store, required this.products, required this.categories, required this.onAdd, required this.onProducts, required this.onOpen});
   final StoreData store;
   final Future<List<Product>> products;
   final Future<List<Category>> categories;
   final ValueChanged<Product> onAdd;
   final VoidCallback onProducts;
+  final ValueChanged<int> onOpen;
   @override
   Widget build(BuildContext context) => ListView(padding: const EdgeInsets.only(bottom: 110), children: [
         HeroBanner(store: store),
         CategoryStrip(categories: categories, color: parseColor(store.primaryColor), onTap: onProducts),
         SectionTitle(title: 'المنتجات المميزة', icon: Icons.auto_awesome, color: parseColor(store.primaryColor), onMore: onProducts),
-        ProductGrid(products: products, featuredOnly: true, color: parseColor(store.primaryColor), onAdd: onAdd),
+        ProductGrid(products: products, featuredOnly: true, color: parseColor(store.primaryColor), onAdd: onAdd, onOpen: onOpen),
         SectionTitle(title: 'أحدث الإضافات', icon: Icons.local_offer_outlined, color: parseColor(store.primaryColor)),
-        ProductGrid(products: products, featuredOnly: false, color: parseColor(store.primaryColor), onAdd: onAdd),
+        ProductGrid(products: products, featuredOnly: false, color: parseColor(store.primaryColor), onAdd: onAdd, onOpen: onOpen),
         Padding(padding: const EdgeInsets.fromLTRB(18, 22, 18, 8), child: FilledButton(onPressed: onProducts, style: FilledButton.styleFrom(backgroundColor: parseColor(store.primaryColor), minimumSize: const Size.fromHeight(52), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))), child: const Text('عرض جميع المنتجات', style: TextStyle(fontWeight: FontWeight.w900))),),
       ]);
 }
@@ -242,31 +251,34 @@ class SectionTitle extends StatelessWidget {
 }
 
 class ProductGrid extends StatelessWidget {
-  const ProductGrid({super.key, required this.products, required this.featuredOnly, required this.color, required this.onAdd});
+  const ProductGrid({super.key, required this.products, required this.featuredOnly, required this.color, required this.onAdd, required this.onOpen});
   final Future<List<Product>> products;
   final bool featuredOnly;
   final Color color;
   final ValueChanged<Product> onAdd;
-  @override Widget build(BuildContext context) => FutureBuilder<List<Product>>(future: products, builder: (_, snapshot) { if (snapshot.connectionState == ConnectionState.waiting) return const SizedBox(height: 240, child: Center(child: CircularProgressIndicator())); if (snapshot.hasError) return const SizedBox.shrink(); final list = (snapshot.data ?? []).where((product) => featuredOnly ? product.featured : !product.featured).take(6).toList(); if (list.isEmpty) return const SizedBox.shrink(); return GridView.builder(padding: const EdgeInsets.symmetric(horizontal: 18), shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), itemCount: list.length, gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 14, mainAxisSpacing: 14, childAspectRatio: .63), itemBuilder: (_, index) => ProductCard(product: list[index], color: color, onAdd: onAdd)); });
+  final ValueChanged<int> onOpen;
+  @override Widget build(BuildContext context) => FutureBuilder<List<Product>>(future: products, builder: (_, snapshot) { if (snapshot.connectionState == ConnectionState.waiting) return const SizedBox(height: 240, child: Center(child: CircularProgressIndicator())); if (snapshot.hasError) return const SizedBox.shrink(); final list = (snapshot.data ?? []).where((product) => featuredOnly ? product.featured : !product.featured).take(6).toList(); if (list.isEmpty) return const SizedBox.shrink(); return GridView.builder(padding: const EdgeInsets.symmetric(horizontal: 18), shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), itemCount: list.length, gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 14, mainAxisSpacing: 14, childAspectRatio: .63), itemBuilder: (_, index) => ProductCard(product: list[index], color: color, onAdd: onAdd, onOpen: onOpen)); });
 }
 
 class ProductCard extends StatelessWidget {
-  const ProductCard({super.key, required this.product, required this.color, required this.onAdd});
+  const ProductCard({super.key, required this.product, required this.color, required this.onAdd, required this.onOpen});
   final Product product;
   final Color color;
   final ValueChanged<Product> onAdd;
-  @override Widget build(BuildContext context) => Card(elevation: 0, color: Colors.white, clipBehavior: Clip.antiAlias, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [Expanded(child: Stack(fit: StackFit.expand, children: [product.images.isEmpty ? Container(color: color.withOpacity(.08), child: Icon(Icons.shopping_bag_outlined, color: color, size: 36)) : storeImage(product.images.first, fit: BoxFit.cover, fallback: Container(color: color.withOpacity(.08), child: Icon(Icons.shopping_bag_outlined, color: color, size: 36))), if (product.featured) const Positioned(top: 10, right: 10, child: _FeaturedBadge()), if (!product.inStock) Positioned.fill(child: Container(color: Colors.black45, child: const Center(child: Chip(label: Text('نفد المخزون'))))) ])), Padding(padding: const EdgeInsets.fromLTRB(12, 10, 12, 4), child: Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: textColor))), Padding(padding: const EdgeInsets.fromLTRB(12, 0, 12, 10), child: Row(children: [Text('${product.price.toStringAsFixed(2)} ر.س', style: TextStyle(color: color, fontWeight: FontWeight.w900)), const Spacer(), IconButton(onPressed: product.inStock ? () => onAdd(product) : null, icon: Icon(Icons.shopping_bag_outlined, color: color, size: 19), style: IconButton.styleFrom(backgroundColor: color.withOpacity(.1), padding: EdgeInsets.zero, fixedSize: const Size(34, 34)))]))]));
+  final ValueChanged<int> onOpen;
+  @override Widget build(BuildContext context) => GestureDetector(onTap: () => onOpen(product.id), child: Card(elevation: 0, color: Colors.white, clipBehavior: Clip.antiAlias, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [Expanded(child: Stack(fit: StackFit.expand, children: [product.images.isEmpty ? Container(color: color.withOpacity(.08), child: Icon(Icons.shopping_bag_outlined, color: color, size: 36)) : storeImage(product.images.first, fit: BoxFit.cover, fallback: Container(color: color.withOpacity(.08), child: Icon(Icons.shopping_bag_outlined, color: color, size: 36))), if (product.featured) const Positioned(top: 10, right: 10, child: _FeaturedBadge()), if (!product.inStock) Positioned.fill(child: Container(color: Colors.black45, child: const Center(child: Chip(label: Text('نفد المخزون'))))) ])), Padding(padding: const EdgeInsets.fromLTRB(12, 10, 12, 4), child: Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: textColor))), Padding(padding: const EdgeInsets.fromLTRB(12, 0, 12, 10), child: Row(children: [Text('${product.price.toStringAsFixed(2)} ر.س', style: TextStyle(color: color, fontWeight: FontWeight.w900)), const Spacer(), IconButton(onPressed: product.inStock ? () => onAdd(product) : null, icon: Icon(Icons.shopping_bag_outlined, color: color, size: 19), style: IconButton.styleFrom(backgroundColor: color.withOpacity(.1), padding: EdgeInsets.zero, fixedSize: const Size(34, 34)))]))])));
 }
 
 class _FeaturedBadge extends StatelessWidget { const _FeaturedBadge(); @override Widget build(BuildContext context) => DecoratedBox(decoration: BoxDecoration(color: primary, borderRadius: BorderRadius.circular(20)), child: const Padding(padding: EdgeInsets.symmetric(horizontal: 8, vertical: 5), child: Text('مميز', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900)))); }
 
 class ProductScreen extends StatefulWidget {
-  const ProductScreen({super.key, required this.store, required this.api, required this.products, required this.categories, required this.onAdd});
+  const ProductScreen({super.key, required this.store, required this.api, required this.products, required this.categories, required this.onAdd, required this.onOpen});
   final StoreData store;
   final StoreApi api;
   final Future<List<Product>> products;
   final Future<List<Category>> categories;
   final ValueChanged<Product> onAdd;
+  final ValueChanged<int> onOpen;
   @override State<ProductScreen> createState() => _ProductScreenState();
 }
 class _ProductScreenState extends State<ProductScreen> {
@@ -275,7 +287,7 @@ class _ProductScreenState extends State<ProductScreen> {
   late Future<List<Product>> filtered;
   @override void initState() { super.initState(); filtered = widget.products; }
   void apply() => setState(() => filtered = widget.api.products(search: search, categoryId: category));
-  @override Widget build(BuildContext context) => ListView(padding: const EdgeInsets.only(bottom: 110), children: [Padding(padding: const EdgeInsets.fromLTRB(18, 18, 18, 12), child: const Text('المنتجات', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900, color: textColor))), Padding(padding: const EdgeInsets.symmetric(horizontal: 18), child: TextField(onChanged: (value) { search = value; apply(); }, decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: 'ابحث عن منتج...', filled: true, fillColor: Colors.white, border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide.none)))), const SizedBox(height: 12), CategoryStrip(categories: widget.categories, color: parseColor(widget.store.primaryColor), onTap: () { category = null; apply(); }), ProductGrid(products: filtered, featuredOnly: false, color: parseColor(widget.store.primaryColor), onAdd: widget.onAdd)]);
+  @override Widget build(BuildContext context) => ListView(padding: const EdgeInsets.only(bottom: 110), children: [Padding(padding: const EdgeInsets.fromLTRB(18, 18, 18, 12), child: const Text('المنتجات', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900, color: textColor))), Padding(padding: const EdgeInsets.symmetric(horizontal: 18), child: TextField(onChanged: (value) { search = value; apply(); }, decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: 'ابحث عن منتج...', filled: true, fillColor: Colors.white, border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide.none)))), const SizedBox(height: 12), CategoryStrip(categories: widget.categories, color: parseColor(widget.store.primaryColor), onTap: () { category = null; apply(); }), ProductGrid(products: filtered, featuredOnly: false, color: parseColor(widget.store.primaryColor), onAdd: widget.onAdd, onOpen: widget.onOpen)]);
 }
 
 class CartScreen extends StatefulWidget {
@@ -305,12 +317,63 @@ class CartLineCard extends StatelessWidget {
   @override Widget build(BuildContext context) => Container(margin: const EdgeInsets.only(bottom: 12), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 12)]), child: Row(children: [ClipRRect(borderRadius: BorderRadius.circular(12), child: line.product.images.isEmpty ? Container(width: 82, height: 92, color: color.withOpacity(.08), child: Icon(Icons.shopping_bag_outlined, color: color)) : storeImage(line.product.images.first, width: 82, height: 92, fit: BoxFit.cover)), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(line.product.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800)), const SizedBox(height: 18), Row(children: [Text('${(line.product.price * line.quantity).toStringAsFixed(2)} ر.س', style: TextStyle(color: color, fontWeight: FontWeight.w900)), const Spacer(), Container(decoration: BoxDecoration(color: pageBackground, borderRadius: BorderRadius.circular(30)), child: Row(children: [IconButton(onPressed: () => onUpdate(line, -1), icon: const Icon(Icons.remove, size: 16)), Text('${line.quantity}', style: const TextStyle(fontWeight: FontWeight.w900)), IconButton(onPressed: () => onUpdate(line, 1), icon: Icon(Icons.add, size: 16, color: color))]))])]))]));
 }
 
+class ProductDetailScreen extends StatefulWidget {
+  const ProductDetailScreen({super.key, required this.api, required this.productId, required this.store, required this.onBack, required this.onAdd});
+  final StoreApi api;
+  final int productId;
+  final StoreData store;
+  final VoidCallback onBack;
+  final ValueChanged<Product> onAdd;
+  @override State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+}
+
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  late Future<Product> product;
+  String? size;
+  String? color;
+  @override void initState() { super.initState(); product = widget.api.product(widget.productId); }
+  @override Widget build(BuildContext context) => FutureBuilder<Product>(future: product, builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+        if (snapshot.hasError || snapshot.data == null) return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey), const SizedBox(height: 12), const Text('المنتج غير موجود'), TextButton(onPressed: widget.onBack, child: const Text('العودة للمنتجات'))]));
+        final item = snapshot.data!;
+        final themeColor = parseColor(widget.store.primaryColor);
+        return Stack(children: [ListView(padding: const EdgeInsets.only(bottom: 110), children: [Stack(children: [SizedBox(height: 330, width: double.infinity, child: item.images.isEmpty ? Container(color: themeColor.withOpacity(.08), child: Icon(Icons.shopping_bag_outlined, size: 60, color: themeColor)) : storeImage(item.images.first, fit: BoxFit.cover, fallback: Container(color: themeColor.withOpacity(.08)))), Positioned(top: 18, right: 18, child: CircleAvatar(backgroundColor: Colors.white.withOpacity(.92), child: IconButton(onPressed: widget.onBack, icon: const Icon(Icons.arrow_forward, color: textColor))))]), Padding(padding: const EdgeInsets.all(22), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7), decoration: BoxDecoration(color: item.inStock ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2), borderRadius: BorderRadius.circular(20)), child: Text(item.inStock ? 'متوفر' : 'غير متوفر', style: TextStyle(color: item.inStock ? Colors.green.shade700 : Colors.red, fontWeight: FontWeight.bold, fontSize: 12))), const SizedBox(height: 12), Text(item.name, style: const TextStyle(fontSize: 27, fontWeight: FontWeight.w900, color: textColor)), const SizedBox(height: 8), Row(children: [const Icon(Icons.star, size: 18, color: Colors.amber), const Text(' 4.5  (38)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey))]), const SizedBox(height: 12), Text('${item.price.toStringAsFixed(2)} ر.س', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: themeColor)), if (item.description.isNotEmpty) Container(width: double.infinity, margin: const EdgeInsets.only(top: 20), padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: themeColor.withOpacity(.06), borderRadius: BorderRadius.circular(18)), child: Text(item.description, style: const TextStyle(color: Colors.black54, height: 1.6))), if (item.sizes.isNotEmpty) _options('اختر المقاس', item.sizes, size, (value) => setState(() => size = value), themeColor), if (item.colors.isNotEmpty) _options('اختر اللون', item.colors, color, (value) => setState(() => color = value), themeColor)]))]), Positioned(bottom: 0, left: 0, right: 0, child: SafeArea(child: Container(padding: const EdgeInsets.fromLTRB(18, 12, 18, 12), color: Colors.white, child: FilledButton.icon(onPressed: item.inStock ? () { widget.onAdd(item); ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تمت الإضافة للسلة ✓'))); } : null, icon: const Icon(Icons.shopping_bag_outlined), label: Text(item.inStock ? 'أضف للسلة' : 'نفد المخزون'), style: FilledButton.styleFrom(backgroundColor: themeColor, minimumSize: const Size.fromHeight(52), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))))))) ]);
+      });
+  Widget _options(String title, List<String> values, String? selected, ValueChanged<String> onSelect, Color color) => Padding(padding: const EdgeInsets.only(top: 22), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.w900)), const SizedBox(height: 10), Wrap(spacing: 8, children: values.map((value) => ChoiceChip(label: Text(value), selected: selected == value, selectedColor: color, labelStyle: TextStyle(color: selected == value ? Colors.white : textColor), onSelected: (_) => onSelect(value))).toList())]));
+}
+
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key, required this.store, required this.onProducts});
+  final StoreData store;
+  final VoidCallback onProducts;
+  @override
+  Widget build(BuildContext context) {
+    final color = parseColor(store.primaryColor);
+    return ListView(padding: const EdgeInsets.only(bottom: 110), children: [
+      SizedBox(height: 190, child: Stack(fit: StackFit.expand, children: [
+        store.coverImage.isEmpty ? Container(decoration: BoxDecoration(gradient: LinearGradient(colors: [color, color.withOpacity(.55)]))) : storeImage(store.coverImage, fit: BoxFit.cover),
+        Container(color: Colors.black38),
+        Align(alignment: Alignment.bottomCenter, child: CircleAvatar(radius: 42, backgroundColor: color, child: store.logoImage.isEmpty ? Text(store.name.characters.first, style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w900)) : ClipOval(child: storeImage(store.logoImage, width: 84, height: 84)))),
+      ])),
+      const SizedBox(height: 52),
+      Center(child: Text(store.name, style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900))),
+      Padding(padding: const EdgeInsets.all(18), child: Text(store.description, textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey))),
+      const Divider(indent: 18, endIndent: 18),
+      _profileTile(Icons.language, 'اللغة', 'العربية', color),
+      _profileTile(Icons.currency_exchange, 'العملة', store.currency, color),
+      if (store.whatsappNumber.isNotEmpty) _profileTile(Icons.chat_outlined, 'واتساب', store.whatsappNumber, color),
+      Padding(padding: const EdgeInsets.all(18), child: FilledButton.icon(onPressed: onProducts, icon: const Icon(Icons.shopping_bag_outlined), label: const Text('تسوق الآن'), style: FilledButton.styleFrom(backgroundColor: color, minimumSize: const Size.fromHeight(52), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))))),
+    ]);
+  }
+  Widget _profileTile(IconData icon, String title, String value, Color color) => ListTile(leading: Icon(icon, color: color), title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)), trailing: Text(value, style: const TextStyle(color: Colors.grey)));
+}
+
 class FloatingBottomNav extends StatelessWidget {
   const FloatingBottomNav({super.key, required this.selected, required this.count, required this.color, required this.onSelect});
   final int selected, count;
   final Color color;
   final ValueChanged<int> onSelect;
-  @override Widget build(BuildContext context) => SafeArea(child: Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 12), child: Container(height: 68, decoration: BoxDecoration(color: Colors.white.withOpacity(.94), borderRadius: BorderRadius.circular(34), boxShadow: const [BoxShadow(color: Color(0x18000000), blurRadius: 28, offset: Offset(0, 8))]), child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [_nav(0, Icons.home_outlined, 'الرئيسية'), _nav(1, Icons.grid_view_outlined, 'المنتجات'), _nav(2, Icons.shopping_bag_outlined, 'السلة', badge: count)]))));
+  @override Widget build(BuildContext context) => SafeArea(child: Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 12), child: Container(height: 68, decoration: BoxDecoration(color: Colors.white.withOpacity(.94), borderRadius: BorderRadius.circular(34), boxShadow: const [BoxShadow(color: Color(0x18000000), blurRadius: 28, offset: Offset(0, 8))]), child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [_nav(0, Icons.home_outlined, 'الرئيسية'), _nav(1, Icons.grid_view_outlined, 'المنتجات'), _nav(2, Icons.shopping_bag_outlined, 'السلة', badge: count), _nav(3, Icons.person_outline, 'حسابي')]))) );
   Widget _nav(int index, IconData icon, String label, {int badge = 0}) => GestureDetector(onTap: () => onSelect(index), child: SizedBox(width: 78, child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Badge(isLabelVisible: badge > 0, label: Text('$badge'), child: Icon(icon, color: selected == index ? color : const Color(0xFF6B7280))), const SizedBox(height: 3), Text(label, style: TextStyle(fontSize: 9, fontWeight: selected == index ? FontWeight.w900 : FontWeight.normal, color: selected == index ? color : const Color(0xFF6B7280)))])));
 }
 
