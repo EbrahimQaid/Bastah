@@ -116,7 +116,7 @@ async function initializeDatabase() {
         await client.query(`
           UPDATE stores 
           SET name = 'دكاني - Dukkani',
-              description = 'منصة المتاجر الذكية بهوية محفظة جيب الإلكترونية',
+              description = 'منصة المتاجر الذكية - دكانك الرقمي بين يديك',
               primary_color = '#991B1B',
               secondary_color = '#DC2626',
               logo_image = '',
@@ -139,7 +139,7 @@ const fallbackState = {
       id: 1,
       slug: "dukkani",
       name: "دكاني - Dukkani",
-      description: "منصة المتاجر الذكية بهوية محفظة جيب الإلكترونية",
+      description: "منصة المتاجر الذكية - دكانك الرقمي بين يديك",
       cover_image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&q=80",
       logo_image: "",
       primary_color: "#991B1B",

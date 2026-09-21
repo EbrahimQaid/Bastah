@@ -529,7 +529,7 @@ ON CONFLICT (id) DO NOTHING;
 
 -- Stores
 INSERT INTO stores (id, owner_id, plan_id, slug, name, name_ar, description, primary_color, secondary_color, font_family, whatsapp_number, default_currency, currencies)
-VALUES (1, 1, 1, 'bastah', 'دكاني - Dukkani', 'متجر دكاني', 'منصة المتاجر الذكية بهوية محفظة جيب الإلكترونية', '#991B1B', '#DC2626', 'Tajawal', '967770000000', 'YER', ARRAY['YER', 'SAR', 'USD'])
+VALUES (1, 1, 1, 'dukkani', 'دكاني - Dukkani', 'متجر دكاني', 'منصة المتاجر الذكية - دكانك الرقمي بين يديك', '#991B1B', '#DC2626', 'Tajawal', '967770000000', 'YER', ARRAY['YER', 'SAR', 'USD'])
 ON CONFLICT (id) DO NOTHING;
 
 -- Categories

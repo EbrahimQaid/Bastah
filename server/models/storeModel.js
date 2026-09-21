@@ -12,7 +12,7 @@ export class StoreModel {
     let logoImage = row.logo_image || "";
     let primaryColor = row.primary_color || "#991B1B";
     let secondaryColor = row.secondary_color || "#DC2626";
-    let description = row.description || "منصة المتاجر الذكية بهوية محفظة جيب الإلكترونية";
+    let description = row.description || "منصة المتاجر الذكية - دكانك الرقمي بين يديك";
 
     // Clean up any old Bastah naming / logo artifact from previous database seeds
     const isOldBastah =
@@ -24,7 +24,7 @@ export class StoreModel {
     if (isOldBastah) {
       name = "دكاني - Dukkani";
       logoImage = ""; // Clear old Bastah sticker logo to use clean Dukkani vector icon
-      description = "منصة المتاجر الذكية بهوية محفظة جيب الإلكترونية";
+      description = "منصة المتاجر الذكية - دكانك الرقمي بين يديك";
       primaryColor = "#991B1B";
       secondaryColor = "#DC2626";
     }

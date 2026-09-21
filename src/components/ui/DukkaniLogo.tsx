@@ -45,8 +45,8 @@ export default function DukkaniLogo({
 
   const defaultTagline =
     language === "en"
-      ? "Your store in your pocket"
-      : "دكانك الرقمي في جيبك";
+      ? "Your digital store in your hands"
+      : "دكانك الرقمي بين يديك";
   const displayTagline = tagline || defaultTagline;
 
   const idSuffix = React.useId().replace(/:/g, "");

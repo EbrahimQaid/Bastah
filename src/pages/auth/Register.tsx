@@ -235,7 +235,7 @@ export default function Register() {
           </div>
 
           <h2 className="text-4xl font-bold leading-tight mb-6">
-            دُكّـانك الرقمي في جيبك
+            دُكّـانك الرقمي بين يديك
             <br />
             <span className="text-amber-300">في 3 دقائق</span>
           </h2>

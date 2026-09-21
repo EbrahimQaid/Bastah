@@ -55,7 +55,7 @@ export default function Landing() {
     {
       icon: Shield,
       title: "جاهز للمحافظ والبنوك اليمنية",
-      desc: "عرض أرقام حساباتك للدفع مباشرة عبر بنك الكريمي (حساب أو جوال)، محفظة جيب، ون كاش، فلوسك، وشبكات الحوالات.",
+      desc: "عرض أرقام حساباتك للدفع مباشرة عبر بنك الكريمي (حساب أو جوال)، ون كاش، فلوسك، وشبكات الحوالات.",
       color: "from-red-600 to-rose-700",
       bg: "bg-rose-50 text-[#E4122C]",
     },
@@ -165,7 +165,7 @@ export default function Landing() {
           {/* Friendly Top Pill */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-50 border border-rose-200/80 text-[#E4122C] text-xs font-bold mb-6 shadow-xs">
             <span className="w-2 h-2 rounded-full bg-[#E4122C] animate-ping" />
-            <span>دُكّـانك الرقمي في جيبك • منصة دُكّـانـي للتجارة الذكية والسهلة</span>
+            <span>دُكّـانك الرقمي بين يديك • منصة دُكّـانـي للتجارة الذكية والسهلة</span>
           </div>
 
           {/* Main Logo & Wordmark Highlight */}
@@ -178,13 +178,13 @@ export default function Landing() {
             افتح دُكّـانـك الرقمي في 3 دقائق
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E4122C] via-rose-600 to-[#CC0A22]">
-              دُكّانك الرقمي في جيبك.. وبكل بساطة!
+              دُكّانك الرقمي بين يديك.. وبكل بساطة!
             </span>
           </h1>
 
           {/* Subheading */}
           <p className="text-base sm:text-lg md:text-xl text-slate-600 leading-relaxed mb-8 max-w-2xl mx-auto">
-            ودّع التكاليف والتعقيد البرمجي! منصة <b className="text-[#E4122C]">دُكّـانـي</b> صُممت خصيصاً للشباب وتجار اليمن؛ أضف منتجاتك بسهولة، واستقبل طلبات زبائنك مباشرة على الواتساب مع دعم الدفع بـ <b className="text-slate-900">الريال اليمني، بنك الكريمي، محفظة جيب، وون كاش</b> بدون أي عمولة على مبيعاتك.
+            ودّع التكاليف والتعقيد البرمجي! منصة <b className="text-[#E4122C]">دُكّـانـي</b> صُممت خصيصاً للشباب وتجار اليمن؛ أضف منتجاتك بسهولة، واستقبل طلبات زبائنك مباشرة على الواتساب مع دعم الدفع بـ <b className="text-slate-900">الريال اليمني، بنك الكريمي، وون كاش</b> بدون أي عمولة على مبيعاتك.
           </p>
 
           {/* Hero CTAs */}
@@ -338,8 +338,8 @@ export default function Landing() {
                   <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[9px] font-black border border-emerald-100">
                     الكريمي جوال
                   </span>
-                  <span className="px-2 py-0.5 rounded-md bg-rose-50 text-[#E4122C] text-[9px] font-black border border-rose-100">
-                    محفظة جيب
+                  <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[9px] font-black border border-amber-100">
+                    حوالة مصرفية
                   </span>
                   <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[9px] font-black border border-blue-100">
                     ون كاش
@@ -553,7 +553,7 @@ export default function Landing() {
               },
               {
                 q: "كيف يستلم التاجر أرباحه في اليمن؟",
-                a: "تضيف بياناتك المفضلة (رقم حسابك في بنك الكريمي أو الكريمي جوال، محفظة جيب، ون كاش، فلوسك، أو استلام الحوالات). وعندما يطلب الزبون، تصله هذه البيانات في رسالة الواتساب لتأكيد التحويل مباشرة.",
+                a: "تضيف بياناتك المفضلة (رقم حسابك في بنك الكريمي أو الكريمي جوال، ون كاش، فلوسك، أو استلام الحوالات). وعندما يطلب الزبون، تصله هذه البيانات في رسالة الواتساب لتأكيد التحويل مباشرة.",
               },
               {
                 q: "هل تدعم المنصة البيع بالريال اليمني؟",
@@ -595,7 +595,7 @@ export default function Landing() {
               حوّل تجارتك إلى دُكّـان رقمي ذكي اليوم!
             </h2>
             <p className="text-rose-100 text-base sm:text-lg mb-8 leading-relaxed">
-              دُكّانك الرقمي في جيبك وعلى طول معك.. انضم لآلاف الشباب والتجار الذين بدأوا تجارتهم الإلكترونية بكل ثقة ويسر.
+              دُكّانك الرقمي بين يديك وعلى طول معك.. انضم لآلاف الشباب والتجار الذين بدأوا تجارتهم الإلكترونية بكل ثقة ويسر.
             </p>
             <button
               onClick={handleStartFree}
@@ -613,7 +613,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-5 sm:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <DukkaniLogo variant="crimson" size="md" />
           <p className="text-xs text-slate-500 font-medium">
-            &copy; {new Date().getFullYear()} دُكّـانـي (Dukkani) • دُكّانك الرقمي في جيبك.
+            &copy; {new Date().getFullYear()} دُكّـانـي (Dukkani) • دُكّانك الرقمي بين يديك.
           </p>
           <div className="flex items-center gap-6 text-xs text-slate-500 font-bold">
             <span className="hover:text-[#E4122C] cursor-pointer transition-colors">شروط الاستخدام</span>
