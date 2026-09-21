@@ -203,19 +203,19 @@ class HeroBanner extends StatelessWidget {
         ? Container(decoration: BoxDecoration(gradient: LinearGradient(colors: [parseColor(store.primaryColor), const Color(0xFF171126)])))
         : storeImage(store.coverImage, fit: BoxFit.cover, fallback: Container(color: parseColor(store.primaryColor)));
     return SizedBox(
-      height: 230,
+      height: 260,
       child: Stack(fit: StackFit.expand, children: [
         background,
         Container(color: Colors.black.withOpacity(.45)),
         Padding(
-          padding: const EdgeInsets.all(26),
+          padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 20),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            if (store.logoImage.isNotEmpty) ClipRRect(borderRadius: BorderRadius.circular(16), child: storeImage(store.logoImage, width: 58, height: 58, fit: BoxFit.cover)),
-            const SizedBox(height: 12),
+            if (store.logoImage.isNotEmpty) ClipRRect(borderRadius: BorderRadius.circular(14), child: storeImage(store.logoImage, width: 52, height: 52, fit: BoxFit.contain)),
+            const SizedBox(height: 8),
             Text(store.name, style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900)),
             Text(store.description, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 13)),
-            const SizedBox(height: 14),
-            FilledButton(onPressed: () {}, style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: parseColor(store.primaryColor), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), child: const Text('تسوق الآن', style: TextStyle(fontWeight: FontWeight.w900))),
+            const SizedBox(height: 10),
+            FilledButton(onPressed: () {}, style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: parseColor(store.primaryColor), minimumSize: const Size(108, 44), padding: const EdgeInsets.symmetric(horizontal: 18), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), child: const Text('تسوق الآن', style: TextStyle(fontWeight: FontWeight.w900))),
           ]),
         ),
       ]),
