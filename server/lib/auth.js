@@ -5,7 +5,7 @@ export const JWT_SECRET =
   process.env.JWT_SECRET ||
   (process.env.NODE_ENV === "production"
     ? null
-    : "bastah-dev-secret-change-in-production");
+    : "dukkani-dev-secret-change-in-production");
 
 export function getJwtSecret() {
   if (!JWT_SECRET) {

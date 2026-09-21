@@ -19,6 +19,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
+    localStorage.removeItem("dukkani_token");
+    localStorage.removeItem("dukkani_user");
     localStorage.removeItem("bastah_token");
     localStorage.removeItem("bastah_user");
     window.location.href = "/login";
@@ -40,8 +42,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   if (error || !store) {
     // 401 = غير مُصادق عليه → توجيه لصفحة تسجيل الدخول
-    const isAuthError = (error as any)?.message?.includes("401") || !localStorage.getItem("bastah_token");
+    const hasToken = localStorage.getItem("dukkani_token") || localStorage.getItem("bastah_token");
+    const isAuthError = (error as any)?.message?.includes("401") || !hasToken;
     if (isAuthError) {
+      localStorage.removeItem("dukkani_token");
+      localStorage.removeItem("dukkani_user");
       localStorage.removeItem("bastah_token");
       localStorage.removeItem("bastah_user");
       return <Redirect to="/login" />;

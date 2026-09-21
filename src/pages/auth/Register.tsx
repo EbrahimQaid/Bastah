@@ -62,7 +62,8 @@ export default function Register() {
       }
 
       const data = await res.json();
-      // حفظ الـ token مؤقتاً
+      localStorage.setItem("dukkani_token", data.token);
+      localStorage.setItem("dukkani_user", JSON.stringify(data.user));
       localStorage.setItem("bastah_token", data.token);
       localStorage.setItem("bastah_user", JSON.stringify(data.user));
 

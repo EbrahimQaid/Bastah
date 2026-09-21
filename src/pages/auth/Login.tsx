@@ -25,6 +25,8 @@ export default function Login() {
       });
       if (!res.ok) throw new Error((await res.json()).error || "بيانات خاطئة");
       const data = await res.json();
+      localStorage.setItem("dukkani_token", data.token);
+      localStorage.setItem("dukkani_user", JSON.stringify(data.user));
       localStorage.setItem("bastah_token", data.token);
       localStorage.setItem("bastah_user", JSON.stringify(data.user));
       setLocation("/dashboard");

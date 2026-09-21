@@ -32,7 +32,9 @@ const queryClient = new QueryClient();
 
 // ─── Auth Guard: يحمي مسارات لوحة التحكم ───────────────────────
 function ProtectedRoute({ component: Component }: { component: React.ComponentType<any> }) {
-  const token = typeof window !== "undefined" ? localStorage.getItem("bastah_token") : null;
+  const token = typeof window !== "undefined"
+    ? (localStorage.getItem("dukkani_token") || localStorage.getItem("bastah_token"))
+    : null;
   if (!token) return <Redirect to="/login" />;
   return <Component />;
 }

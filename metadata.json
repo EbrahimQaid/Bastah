@@ -1,0 +1,6 @@
+{
+  "name": "دُكّـانـي",
+  "description": "منصة دُكّـانـي للتجارة الذكية - دُكّانك الرقمي في جيبك؛ أسهل منصة لإنشاء المتاجر في اليمن بدعم الريال اليمني، بنك الكريمي، محفظة جيب، ون كاش، وإشعارات الواتساب الفورية.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

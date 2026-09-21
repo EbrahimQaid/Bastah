@@ -435,11 +435,11 @@ export default function Home() {
             </div>
 
             <button
-              onClick={() => handleCopyCoupon("BASTAH10")}
+              onClick={() => handleCopyCoupon("DUKKANI10")}
               className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[9.5px] font-black border border-dashed transition-all active:scale-95 bg-white/90 dark:bg-slate-800/90 shadow-2xs"
               style={{ borderColor: primaryColor, color: primaryColor }}
             >
-              <span>BASTAH10</span>
+              <span>DUKKANI10</span>
               <Copy className="w-2 h-2" />
             </button>
           </div>

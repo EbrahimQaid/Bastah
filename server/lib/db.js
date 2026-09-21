@@ -100,7 +100,7 @@ const fallbackState = {
   stores: [
     {
       id: 1,
-      slug: "bastah",
+      slug: "dukkani",
       name: "دكاني - Dukkani",
       description: "منصة المتاجر الذكية بهوية محفظة جيب الإلكترونية",
       cover_image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&q=80",
@@ -194,6 +194,28 @@ const fallbackState = {
 
 function handleFallbackQuery(text, params = []) {
   const normalized = text.trim().toUpperCase();
+
+  if (normalized.startsWith("INSERT INTO STORES")) {
+    const newStore = {
+      id: fallbackState.stores.length + 1,
+      owner_id: params[0] || 1,
+      plan_id: 1,
+      slug: params[1] || `store-${Date.now()}`,
+      name: params[2] || "متجر جديد",
+      description: params[3] || "",
+      whatsapp_number: params[4] || "",
+      primary_color: params[5] || "#991B1B",
+      secondary_color: params[6] || "#DC2626",
+      font_family: params[7] || "Tajawal",
+      shipping_rate: Number(params[8] || 0),
+      default_currency: params[9] || "YER",
+      currencies: Array.isArray(params[10]) ? params[10] : [params[9] || "YER"],
+      is_active: true,
+      created_at: new Date().toISOString(),
+    };
+    fallbackState.stores.push(newStore);
+    return { rows: [newStore] };
+  }
 
   if (normalized.includes("FROM STORES") || normalized.startsWith("SELECT * FROM STORES")) {
     return { rows: fallbackState.stores };
@@ -290,11 +312,37 @@ function handleFallbackQuery(text, params = []) {
   if (normalized.includes("COUNT(*)")) {
     return { rows: [{ count: "1" }] };
   }
-  if (normalized.includes("SELECT ID, EMAIL, ROLE, S.ID AS STORE_ID FROM USERS")) {
-    return { rows: [{ id: 1, email: "demo@dukkani.store", role: "seller", store_id: 1 }] };
+  if (normalized.startsWith("INSERT INTO USERS")) {
+    const newUser = {
+      id: fallbackState.users.length + 1,
+      email: (params[0] || "").toLowerCase(),
+      password_hash: params[1] || "",
+      full_name: params[2] || "",
+      phone: params[3] || null,
+      role: params[4] || "seller",
+      is_active: true,
+      avatar_url: "",
+      created_at: new Date().toISOString(),
+    };
+    fallbackState.users.push(newUser);
+    return { rows: [newUser] };
   }
+
+  if (normalized.includes("SELECT ID, EMAIL, ROLE, S.ID AS STORE_ID FROM USERS")) {
+    const targetId = params[0] ? Number(params[0]) : 1;
+    const user = fallbackState.users.find(u => u.id === targetId) || fallbackState.users[0];
+    return { rows: [{ id: user.id, email: user.email, role: user.role, store_id: 1 }] };
+  }
+
   if (normalized.includes("FROM USERS")) {
-    return { rows: fallbackState.users };
+    let users = [...fallbackState.users];
+    if (text.includes("email = $") && params[0]) {
+      const emailParam = String(params[0]).toLowerCase();
+      users = users.filter(u => u.email.toLowerCase() === emailParam);
+    } else if (text.includes("id = $") && params[0]) {
+      users = users.filter(u => u.id === Number(params[0]));
+    }
+    return { rows: users };
   }
 
   return { rows: [] };

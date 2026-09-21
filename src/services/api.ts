@@ -1,5 +1,5 @@
 /**
- * 📡 API Service — بَسطة (Single Store)
+ * 📡 API Service — دُكّـانـي (Dukkani Single Store)
  *
  * Simple fetch + react-query hooks.
  * Single-store mode: no slug routing needed.
@@ -8,7 +8,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 // ─── Store Config ──────────────────────────────────────────
-export const STORE_SLUG = "bastah"; // kept for backwards compat references
+export const STORE_SLUG = "dukkani";
 
 // ─── Types ─────────────────────────────────────────────────
 
@@ -87,7 +87,7 @@ export type UpdateOrderStatusBodyStatus = "new" | "contacted" | "completed";
 // ─── Fetch Helper ──────────────────────────────────────────
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const token = localStorage.getItem("bastah_token");
+  const token = localStorage.getItem("dukkani_token") || localStorage.getItem("bastah_token");
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options?.headers as Record<string, string> || {}),

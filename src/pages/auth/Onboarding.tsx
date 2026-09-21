@@ -36,7 +36,7 @@ export default function Onboarding() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const token = localStorage.getItem("bastah_token");
+    const token = localStorage.getItem("dukkani_token") || localStorage.getItem("bastah_token");
     if (!token) {
       toast({ title: "يرجى تسجيل الدخول أولاً", variant: "destructive" });
       setLocation("/login");
@@ -59,8 +59,8 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<StoreData>({
     name: "", slug: "", description: "", whatsappNumber: "",
-    primaryColor: "#7C3AED", secondaryColor: "#A78BFA",
-    fontFamily: "Tajawal", category: "", shippingRate: "0", defaultCurrency: "SAR",
+    primaryColor: "#991B1B", secondaryColor: "#DC2626",
+    fontFamily: "Tajawal", category: "", shippingRate: "0", defaultCurrency: "YER",
   });
 
   const set = (k: keyof StoreData, v: string) => setData(p => ({ ...p, [k]: v }));
@@ -74,14 +74,14 @@ export default function Onboarding() {
   const handleFinish = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("bastah_token");
+      const token = localStorage.getItem("dukkani_token") || localStorage.getItem("bastah_token");
       const res = await fetch("/api/auth/store/create", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error((await res.json()).error || "فشل إنشاء المتجر");
-      toast({ title: "🎉 تم إنشاء متجرك بنجاح!" });
+      toast({ title: "🎉 تم إنشاء متجرك في دكاني بنجاح!" });
       setLocation("/dashboard");
     } catch (err: any) {
       toast({ title: err.message, variant: "destructive" });
@@ -144,12 +144,12 @@ export default function Onboarding() {
                 <Label>رابط المتجر *</Label>
                 <div className="flex mt-1">
                   <span className="inline-flex items-center px-3 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-gray-500 text-sm">
-                    bastah.store/
+                    dukkani.store/
                   </span>
                   <Input className="rounded-r-none h-11" dir="ltr" placeholder="my-store"
                     value={data.slug} onChange={e => set("slug", e.target.value)} />
                 </div>
-                <p className="text-xs text-gray-400 mt-1">رابطك: <b>bastah.store/{data.slug || "my-store"}</b></p>
+                <p className="text-xs text-gray-400 mt-1">رابطك: <b>dukkani.store/{data.slug || "my-store"}</b></p>
               </div>
 
               <div>
@@ -282,7 +282,7 @@ export default function Onboarding() {
                 <p className="font-semibold text-gray-700 mb-3">ملخص المتجر</p>
                 {[
                   ["الاسم", data.name || "—"],
-                  ["الرابط", `bastah.store/${data.slug}` || "—"],
+                  ["الرابط", `dukkani.store/${data.slug}` || "—"],
                   ["النوع", data.category || "—"],
                   ["الواتساب", data.whatsappNumber || "—"],
                   ["الشحن", `${data.shippingRate} ${data.defaultCurrency}`],
