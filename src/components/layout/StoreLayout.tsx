@@ -81,22 +81,30 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
   }
 
   if (isError) {
+    const rawErrorMessage = (error as Error)?.message || "";
+    const isPoolLimitError =
+      rawErrorMessage.includes("EMAXCONNSESSION") ||
+      rawErrorMessage.includes("max clients reached") ||
+      rawErrorMessage.includes("pool_size");
+
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-white max-w-md mx-auto border-x">
-        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
-          <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-white dark:bg-slate-900 max-w-md mx-auto border-x border-gray-100 dark:border-slate-800">
+        <div className="w-16 h-16 bg-red-50 dark:bg-red-950/50 rounded-2xl flex items-center justify-center mb-4 text-[#991B1B]">
+          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h2 className="text-lg font-bold text-gray-900 mb-1">حدث خطأ أثناء الاتصال بالخادم</h2>
-        <p className="text-xs text-gray-500 max-w-sm mb-4 leading-relaxed">
-          {(error as Error)?.message || "يرجى التحقق من اتصال قاعدة البيانات"}
+        <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">حدث خطأ أثناء الاتصال بالخادم</h2>
+        <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mb-4 leading-relaxed">
+          {isPoolLimitError
+            ? "تم الوصول للحد الأقصى لجلسات الاتصال في قاعدة البيانات (Session Pool). جاري معالجة الاتصال التلقائي، اضغط على إعادة المحاولة."
+            : rawErrorMessage || "يرجى التحقق من اتصال قاعدة البيانات"}
         </p>
         <button 
           onClick={() => window.location.reload()} 
-          className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs shadow-md transition-all active:scale-95"
+          className="px-6 py-2.5 bg-[#991B1B] hover:bg-[#7F1D1D] text-white rounded-xl font-bold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5"
         >
-          إعادة المحاولة
+          <span>إعادة المحاولة</span>
         </button>
       </div>
     );

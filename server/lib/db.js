@@ -3,12 +3,24 @@ import pg from "pg";
 import fs from "fs";
 import path from "path";
 
-const connectionString = process.env.DATABASE_URL;
+let connectionString = process.env.DATABASE_URL;
+
+// Auto-switch Supabase pooler from Session mode (5432) to Transaction mode (6543)
+// This resolves: "(EMAXCONNSESSION) max clients reached in session mode - max clients are limited to pool_size: 15"
+if (connectionString && connectionString.includes("pooler.supabase.com:5432")) {
+  console.log("⚡ Auto-switching Supabase pooler from Session mode (5432) to Transaction mode (6543) for Vercel stability");
+  connectionString = connectionString.replace("pooler.supabase.com:5432", "pooler.supabase.com:6543");
+}
 
 const isLocalhost =
   !connectionString ||
   connectionString.includes("localhost") ||
   connectionString.includes("127.0.0.1");
+
+const isServerless =
+  Boolean(process.env.VERCEL) ||
+  Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) ||
+  Boolean(process.env.LAMBDA_TASK_ROOT);
 
 // Cloud databases (Supabase, Neon, AWS RDS, Render, etc.) require SSL with rejectUnauthorized: false
 // to prevent "self-signed certificate in certificate chain" errors in serverless environments.
@@ -18,12 +30,15 @@ const sslConfig = isLocalhost
       rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === "true",
     };
 
+// Serverless optimization:
+// On Vercel, serverless instances scale horizontally. Limiting max connections to 1-2 per lambda
+// and aggressively releasing idle connections prevents exhausting Supabase/Neon connection pools.
 const pool = connectionString
   ? new pg.Pool({
       connectionString,
-      max: Number(process.env.DB_POOL_MAX || 10),
-      idleTimeoutMillis: 30_000,
-      connectionTimeoutMillis: 10_000,
+      max: Number(process.env.DB_POOL_MAX || (isServerless ? 1 : 10)),
+      idleTimeoutMillis: isServerless ? 1_000 : 30_000,
+      connectionTimeoutMillis: 5_000,
       ssl: sslConfig,
     })
   : null;
@@ -377,12 +392,17 @@ export const query = async (text, params) => {
     } catch (err) {
       const isConnectionOrCertError =
         err.code === "42P01" || // relation does not exist
+        err.code === "53300" || // too_many_connections
         err.code === "ECONNREFUSED" ||
         err.code === "ENOTFOUND" ||
         err.code === "ETIMEDOUT" ||
         err.message?.includes("certificate") ||
         err.message?.includes("SSL") ||
-        err.message?.includes("Connection terminated");
+        err.message?.includes("Connection terminated") ||
+        err.message?.includes("max clients reached") ||
+        err.message?.includes("EMAXCONNSESSION") ||
+        err.message?.includes("remaining connection slots") ||
+        err.message?.includes("too many clients");
 
       if (isConnectionOrCertError) {
         console.warn(`⚠️ PostgreSQL connection warning: ${err.message}. Using fallback memory state.`);
@@ -417,12 +437,17 @@ export async function withTransaction(callback) {
     }
   } catch (err) {
     const isConnectionOrCertError =
+      err.code === "53300" ||
       err.code === "ECONNREFUSED" ||
       err.code === "ENOTFOUND" ||
       err.code === "ETIMEDOUT" ||
       err.message?.includes("certificate") ||
       err.message?.includes("SSL") ||
-      err.message?.includes("Connection terminated");
+      err.message?.includes("Connection terminated") ||
+      err.message?.includes("max clients reached") ||
+      err.message?.includes("EMAXCONNSESSION") ||
+      err.message?.includes("remaining connection slots") ||
+      err.message?.includes("too many clients");
 
     if (isConnectionOrCertError) {
       console.warn(`⚠️ PostgreSQL transaction connection warning: ${err.message}. Using fallback.`);
