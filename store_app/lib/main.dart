@@ -171,7 +171,7 @@ class StoreHeader extends StatelessWidget implements PreferredSizeWidget {
   final int itemCount;
   final VoidCallback onCart, onProducts;
   @override Size get preferredSize => const Size.fromHeight(64);
-  @override Widget build(BuildContext context) => AppBar(elevation: 0, backgroundColor: Colors.white.withOpacity(.94), surfaceTintColor: Colors.transparent, titleSpacing: 18, title: Row(children: [store.logoImage.isEmpty ? CircleAvatar(radius: 18, backgroundColor: parseColor(store.primaryColor), child: Text(store.name.characters.first, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900))) : ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.network(store.logoImage, width: 36, height: 36, fit: BoxFit.cover)), const SizedBox(width: 10), Text(store.name, style: const TextStyle(color: textColor, fontWeight: FontWeight.w900, fontSize: 17))]), actions: [IconButton(onPressed: onProducts, icon: const Icon(Icons.search, color: textColor)), IconButton(onPressed: onCart, icon: Badge(isLabelVisible: itemCount > 0, label: Text('$itemCount'), child: const Icon(Icons.shopping_bag_outlined, color: textColor))), const SizedBox(width: 8)]);
+  @override Widget build(BuildContext context) => AppBar(elevation: 0, backgroundColor: Colors.white.withOpacity(.94), surfaceTintColor: Colors.transparent, titleSpacing: 18, title: Row(children: [store.logoImage.isEmpty ? CircleAvatar(radius: 18, backgroundColor: parseColor(store.primaryColor), child: Text(store.name.characters.first, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900))) : ClipRRect(borderRadius: BorderRadius.circular(12), child: storeImage(store.logoImage, width: 36, height: 36, fit: BoxFit.cover)), const SizedBox(width: 10), Text(store.name, style: const TextStyle(color: textColor, fontWeight: FontWeight.w900, fontSize: 17))]), actions: [IconButton(onPressed: onProducts, icon: const Icon(Icons.search, color: textColor)), IconButton(onPressed: onCart, icon: Badge(isLabelVisible: itemCount > 0, label: Text('$itemCount'), child: const Icon(Icons.shopping_bag_outlined, color: textColor))), const SizedBox(width: 8)]);
 }
 
 class HomeScreen extends StatelessWidget {
@@ -201,7 +201,7 @@ class HeroBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final background = store.coverImage.isEmpty
         ? Container(decoration: BoxDecoration(gradient: LinearGradient(colors: [parseColor(store.primaryColor), const Color(0xFF171126)])))
-        : Image.network(store.coverImage, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(color: parseColor(store.primaryColor)));
+        : storeImage(store.coverImage, fit: BoxFit.cover, fallback: Container(color: parseColor(store.primaryColor)));
     return SizedBox(
       height: 230,
       child: Stack(fit: StackFit.expand, children: [
@@ -210,7 +210,7 @@ class HeroBanner extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(26),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            if (store.logoImage.isNotEmpty) ClipRRect(borderRadius: BorderRadius.circular(16), child: Image.network(store.logoImage, width: 58, height: 58, fit: BoxFit.cover)),
+            if (store.logoImage.isNotEmpty) ClipRRect(borderRadius: BorderRadius.circular(16), child: storeImage(store.logoImage, width: 58, height: 58, fit: BoxFit.cover)),
             const SizedBox(height: 12),
             Text(store.name, style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900)),
             Text(store.description, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 13)),
