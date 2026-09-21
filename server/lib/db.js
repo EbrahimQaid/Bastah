@@ -132,6 +132,10 @@ const fallbackState = {
       price: 180,
       images: ["https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800&q=80"],
       variants: { sizes: ["S", "M", "L", "XL"], colors: ["أبيض", "كريمي"] },
+      sizes: ["S", "M", "L", "XL"],
+      colors: ["أبيض", "كريمي"],
+      stock_quantity: 50,
+      track_inventory: false,
       in_stock: true,
       featured: true,
       is_active: true,
@@ -146,6 +150,10 @@ const fallbackState = {
       price: 95,
       images: ["https://images.unsplash.com/photo-1615397349754-cfa2066a298e?w=800&q=80"],
       variants: { sizes: ["50g", "100g"], colors: [] },
+      sizes: ["50g", "100g"],
+      colors: [],
+      stock_quantity: 100,
+      track_inventory: false,
       in_stock: true,
       featured: true,
       is_active: true,
@@ -160,6 +168,10 @@ const fallbackState = {
       price: 350,
       images: ["https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800&q=80"],
       variants: { sizes: [], colors: [] },
+      sizes: [],
+      colors: [],
+      stock_quantity: 20,
+      track_inventory: false,
       in_stock: true,
       featured: true,
       is_active: true,
@@ -183,7 +195,7 @@ const fallbackState = {
 function handleFallbackQuery(text, params = []) {
   const normalized = text.trim().toUpperCase();
 
-  if (normalized.startsWith("SELECT * FROM STORES")) {
+  if (normalized.includes("FROM STORES") || normalized.startsWith("SELECT * FROM STORES")) {
     return { rows: fallbackState.stores };
   }
   if (normalized.startsWith("UPDATE STORES")) {
@@ -201,16 +213,80 @@ function handleFallbackQuery(text, params = []) {
   if (normalized.startsWith("SELECT * FROM CATEGORIES") || normalized.includes("FROM CATEGORIES")) {
     return { rows: fallbackState.categories };
   }
-  if (normalized.startsWith("SELECT * FROM PRODUCTS") || normalized.includes("FROM PRODUCTS")) {
-    let prods = [...fallbackState.products];
-    if (text.includes("id = $") && params[0]) {
-      prods = prods.filter(p => p.id === Number(params[0]));
-    }
-    return { rows: prods };
+
+  // Orders queries
+  if (normalized.startsWith("INSERT INTO ORDERS")) {
+    const newOrder = {
+      id: fallbackState.orders.length + 1001,
+      store_id: params[0] || 1,
+      customer_name: params[1] || "",
+      customer_phone: params[2] || "",
+      customer_address: params[3] || "",
+      notes: params[4] || "",
+      items: typeof params[5] === "string" ? JSON.parse(params[5]) : params[5] || [],
+      subtotal: Number(params[6] || 0),
+      shipping_amount: Number(params[7] || 0),
+      total: Number(params[8] || 0),
+      status: "new",
+      whatsapp_message: params[9] || "",
+      created_at: new Date().toISOString(),
+      order_number: `ORD-${Date.now().toString().slice(-6)}`,
+    };
+    fallbackState.orders.unshift(newOrder);
+    return { rows: [newOrder] };
+  }
+  if (normalized.startsWith("INSERT INTO ORDER_ITEMS")) {
+    return { rows: [{ id: Date.now() }] };
   }
   if (normalized.startsWith("SELECT * FROM ORDERS") || normalized.includes("FROM ORDERS")) {
     return { rows: fallbackState.orders };
   }
+
+  // Products queries
+  if (normalized.includes("FROM PRODUCTS")) {
+    let prods = [...fallbackState.products];
+    // Check if query is looking for id = ANY($2)
+    const arrayParam = params.find(p => Array.isArray(p));
+    if (arrayParam) {
+      const ids = arrayParam.map(Number);
+      prods = prods.filter(p => ids.includes(Number(p.id)));
+    } else if (text.includes("id = $") || text.includes("id = ANY")) {
+      // Find numeric id param that isn't store_id
+      const idParam = params.length > 1 ? params[1] : params[0];
+      if (idParam !== undefined && typeof idParam !== "object") {
+        prods = prods.filter(p => Number(p.id) === Number(idParam));
+      }
+    }
+    return { rows: prods };
+  }
+  if (normalized.startsWith("INSERT INTO PRODUCTS")) {
+    const newProd = {
+      id: fallbackState.products.length + 1,
+      store_id: params[0] || 1,
+      category_id: params[1] || null,
+      name: params[2] || "",
+      description: params[3] || "",
+      price: Number(params[4] || 0),
+      images: Array.isArray(params[5]) ? params[5] : [],
+      sizes: Array.isArray(params[6]) ? params[6] : [],
+      colors: Array.isArray(params[7]) ? params[7] : [],
+      in_stock: params[8] ?? true,
+      featured: params[9] ?? false,
+      track_inventory: false,
+      stock_quantity: 50,
+      is_active: true,
+      created_at: new Date().toISOString(),
+    };
+    fallbackState.products.push(newProd);
+    return { rows: [newProd] };
+  }
+  if (normalized.startsWith("UPDATE PRODUCTS")) {
+    return { rows: [] };
+  }
+  if (normalized.startsWith("DELETE FROM PRODUCTS")) {
+    return { rows: [] };
+  }
+
   if (normalized.includes("COUNT(*)")) {
     return { rows: [{ count: "1" }] };
   }

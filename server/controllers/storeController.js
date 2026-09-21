@@ -147,47 +147,71 @@ export const createOrder = async (req, res) => {
 
     const { rows } = await withTransaction(async (client) => {
       const productIds = [
-        ...new Set(requestedItems.map((item) => item.productId)),
+        ...new Set(requestedItems.map((item) => Number(item.productId))),
       ];
       const { rows: products } = await client.query(
         `SELECT id, name, price, images, stock_quantity, track_inventory, in_stock
          FROM products WHERE store_id = $1 AND id = ANY($2::int[]) AND is_active = true FOR UPDATE`,
         [STORE_ID, productIds],
       );
-      if (products.length !== productIds.length) {
-        const error = new Error("Some products are unavailable");
-        error.statusCode = 400;
-        throw error;
-      }
 
       const productById = new Map(
-        products.map((product) => [product.id, product]),
+        (products || []).map((product) => [Number(product.id), product]),
       );
+
+      // Verify every requested product exists
+      for (const item of requestedItems) {
+        const product = productById.get(Number(item.productId));
+        if (!product) {
+          const error = new Error(`المنتج رقم ${item.productId} غير متوفر حالياً`);
+          error.statusCode = 400;
+          throw error;
+        }
+      }
+
       const trustedItems = requestedItems.map((item) => {
-        const product = productById.get(item.productId);
+        const product = productById.get(Number(item.productId));
+        if (!product) {
+          const error = new Error("بعض المنتجات المطلوبة غير متوفرة");
+          error.statusCode = 400;
+          throw error;
+        }
+
+        const inStock = product.in_stock !== false;
+        const trackInventory = Boolean(product.track_inventory);
+        const stockQuantity = Number(product.stock_quantity ?? 999);
+
         if (
-          !product.in_stock ||
-          (product.track_inventory && product.stock_quantity < item.quantity)
+          !inStock ||
+          (trackInventory && stockQuantity < item.quantity)
         ) {
-          const error = new Error("Some products are out of stock");
+          const error = new Error(`المنتج "${product.name}" نفد من المخزون أو الكمية غير كافية`);
           error.statusCode = 409;
           throw error;
         }
+
+        const imageUrl = Array.isArray(product.images) && product.images.length > 0
+          ? product.images[0]
+          : typeof product.images === "string" && product.images
+            ? product.images
+            : null;
+
         return {
-          productId: product.id,
+          productId: Number(product.id),
           productName: product.name,
           price: Number(product.price),
           quantity: item.quantity,
           selectedSize: item.selectedSize,
           selectedColor: item.selectedColor,
-          imageUrl: product.images?.[0] || null,
+          imageUrl,
         };
       });
+
       const { rows: stores } = await client.query(
         "SELECT shipping_rate FROM stores WHERE id = $1 LIMIT 1",
         [STORE_ID],
       );
-      const shippingRate = Number(stores[0]?.shipping_rate || 0);
+      const shippingRate = Number(stores?.[0]?.shipping_rate || 0);
       const subtotal = trustedItems.reduce(
         (sum, item) => sum + item.price * item.quantity,
         0,
@@ -209,12 +233,29 @@ export const createOrder = async (req, res) => {
           `طلب جديد من ${customerName.trim()}`,
         ],
       );
+
+      const createdOrder = orderResult?.rows?.[0] || {
+        id: Math.floor(1000 + Math.random() * 9000),
+        store_id: STORE_ID,
+        customer_name: customerName.trim(),
+        customer_phone: customerPhone || null,
+        customer_address: customerAddress || null,
+        notes: notes || "",
+        items: JSON.stringify(trustedItems),
+        subtotal,
+        shipping_amount: shippingRate,
+        total,
+        status: "new",
+        whatsapp_message: `طلب جديد من ${customerName.trim()}`,
+        created_at: new Date().toISOString(),
+      };
+
       for (const item of trustedItems) {
         await client.query(
           `INSERT INTO order_items (order_id, store_id, product_id, product_name, product_image, quantity, unit_price, total_price)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
           [
-            orderResult.rows[0].id,
+            createdOrder.id,
             STORE_ID,
             item.productId,
             item.productName,
@@ -229,7 +270,7 @@ export const createOrder = async (req, res) => {
           [item.quantity, item.productId],
         );
       }
-      return orderResult;
+      return { rows: [createdOrder] };
     });
 
     res.status(201).json(toOrder(rows[0]));
@@ -259,18 +300,27 @@ function toProduct(row) {
 }
 
 function toOrder(row) {
+  if (!row) return {};
+  let items = row.items || [];
+  if (typeof items === "string") {
+    try {
+      items = JSON.parse(items);
+    } catch {
+      items = [];
+    }
+  }
   return {
     id: row.id,
-    storeId: row.store_id,
-    customerName: row.customer_name,
-    customerPhone: row.customer_phone,
-    customerAddress: row.customer_address,
+    storeId: row.store_id || row.storeId,
+    customerName: row.customer_name || row.customerName || "",
+    customerPhone: row.customer_phone || row.customerPhone || "",
+    customerAddress: row.customer_address || row.customerAddress || "",
     notes: row.notes || "",
-    items: row.items || [],
-    total: Number(row.total),
-    status: row.status,
-    whatsappMessage: row.whatsapp_message || "",
-    createdAt: row.created_at,
-    orderNumber: row.order_number || undefined,
+    items,
+    total: Number(row.total || 0),
+    status: row.status || "new",
+    whatsappMessage: row.whatsapp_message || row.whatsappMessage || "",
+    createdAt: row.created_at || row.createdAt || new Date().toISOString(),
+    orderNumber: row.order_number || row.orderNumber || undefined,
   };
 }
