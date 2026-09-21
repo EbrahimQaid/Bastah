@@ -96,18 +96,10 @@ export default function ProductForm() {
       setLocation("/dashboard/products");
     };
 
-    const onError = (error: Error) => {
-      toast({
-        title: "تعذر حفظ المنتج",
-        description: error.message.replace(/^API Error \d+:\s*/, ""),
-        variant: "destructive",
-      });
-    };
-
     if (isEdit) {
-      updateProduct.mutate({ productId, data }, { onSuccess, onError });
+      updateProduct.mutate({ productId, data }, { onSuccess });
     } else {
-      createProduct.mutate({ data }, { onSuccess, onError });
+      createProduct.mutate({ data }, { onSuccess });
     }
   };
 

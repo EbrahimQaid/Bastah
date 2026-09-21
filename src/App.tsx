@@ -9,7 +9,6 @@ import NotFound from "@/pages/not-found";
 import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
 import Onboarding from "@/pages/auth/Onboarding";
-import Landing from "@/pages/Landing";
 
 // Store Pages
 import StoreHome from "@/pages/store/Home";
@@ -29,25 +28,11 @@ import DashboardOrderDetail from "@/pages/dashboard/OrderDetail";
 import DashboardSettings from "@/pages/dashboard/Settings";
 import DashboardSetup from "@/pages/dashboard/Setup";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 30_000,
-      gcTime: 5 * 60_000,
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 // ─── Auth Guard: يحمي مسارات لوحة التحكم ───────────────────────
-function ProtectedRoute({
-  component: Component,
-}: {
-  component: React.ComponentType<any>;
-}) {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("bastah_token") : null;
+function ProtectedRoute({ component: Component }: { component: React.ComponentType<any> }) {
+  const token = typeof window !== "undefined" ? localStorage.getItem("bastah_token") : null;
   if (!token) return <Redirect to="/login" />;
   return <Component />;
 }
@@ -57,7 +42,7 @@ function Router() {
     <Switch>
       {/* الصفحة الرئيسية → المتجر مباشرة */}
       <Route path="/">
-        <Landing />
+        <Redirect to="/store" />
       </Route>
 
       {/* Auth */}
@@ -74,33 +59,15 @@ function Router() {
       <Route path="/store/profile" component={StoreProfile} />
 
       {/* Seller Dashboard Routes — محمية بالمصادقة */}
-      <Route path="/dashboard">
-        {() => <ProtectedRoute component={DashboardOverview} />}
-      </Route>
-      <Route path="/dashboard/products">
-        {() => <ProtectedRoute component={DashboardProducts} />}
-      </Route>
-      <Route path="/dashboard/products/new">
-        {() => <ProtectedRoute component={DashboardProductForm} />}
-      </Route>
-      <Route path="/dashboard/products/:productId/edit">
-        {() => <ProtectedRoute component={DashboardProductForm} />}
-      </Route>
-      <Route path="/dashboard/categories">
-        {() => <ProtectedRoute component={DashboardCategories} />}
-      </Route>
-      <Route path="/dashboard/orders">
-        {() => <ProtectedRoute component={DashboardOrders} />}
-      </Route>
-      <Route path="/dashboard/orders/:orderId">
-        {() => <ProtectedRoute component={DashboardOrderDetail} />}
-      </Route>
-      <Route path="/dashboard/settings">
-        {() => <ProtectedRoute component={DashboardSettings} />}
-      </Route>
-      <Route path="/dashboard/setup">
-        {() => <ProtectedRoute component={DashboardSetup} />}
-      </Route>
+      <Route path="/dashboard">{() => <ProtectedRoute component={DashboardOverview} />}</Route>
+      <Route path="/dashboard/products">{() => <ProtectedRoute component={DashboardProducts} />}</Route>
+      <Route path="/dashboard/products/new">{() => <ProtectedRoute component={DashboardProductForm} />}</Route>
+      <Route path="/dashboard/products/:productId/edit">{() => <ProtectedRoute component={DashboardProductForm} />}</Route>
+      <Route path="/dashboard/categories">{() => <ProtectedRoute component={DashboardCategories} />}</Route>
+      <Route path="/dashboard/orders">{() => <ProtectedRoute component={DashboardOrders} />}</Route>
+      <Route path="/dashboard/orders/:orderId">{() => <ProtectedRoute component={DashboardOrderDetail} />}</Route>
+      <Route path="/dashboard/settings">{() => <ProtectedRoute component={DashboardSettings} />}</Route>
+      <Route path="/dashboard/setup">{() => <ProtectedRoute component={DashboardSetup} />}</Route>
 
       <Route component={NotFound} />
     </Switch>

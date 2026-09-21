@@ -1,8 +1,8 @@
 import { Link } from "wouter";
 import { StoreLayout } from "@/components/layout/StoreLayout";
 import { useListStoreProducts, useListStoreCategories, useGetStore } from "@/services/api";
-import { useState } from "react";
-import { Search, X, SlidersHorizontal, PackageX } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Search, X, SlidersHorizontal, PackageX, ShoppingBag, Sparkles, Star, Check, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -10,7 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { useLanguage } from "@/context/language-context";
 import { useCurrency } from "@/context/currency-context";
-import { ShoppingBag, Sparkles } from "lucide-react";
+import { useCart } from "@/hooks/use-cart";
+import { useToast } from "@/hooks/use-toast";
 
 function ProductCard({
   product,
@@ -20,21 +21,52 @@ function ProductCard({
   primaryColor: string;
 }) {
   const { format } = useCurrency();
+  const { addItem } = useCart();
+  const { toast } = useToast();
+  const [justAdded, setJustAdded] = useState(false);
+
+  const handleQuickAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (product.variants?.sizes?.length || product.variants?.colors?.length) {
+      window.location.href = `/store/products/${product.id}`;
+      return;
+    }
+
+    if (!product.inStock) return;
+
+    addItem({
+      productId: product.id,
+      productName: product.name,
+      price: product.price,
+      quantity: 1,
+      imageUrl: product.images?.[0] ?? undefined,
+    });
+
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 1800);
+    toast({
+      title: "تمت الإضافة للسلة ✓",
+      description: product.name,
+    });
+  };
 
   return (
     <Link href={`/store/products/${product.id}`}>
-      <div className="group cursor-pointer">
+      <div className="group cursor-pointer h-full">
         <div
-          className="bg-white rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-          style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
+          className="bg-white dark:bg-slate-900/90 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl flex flex-col h-full border border-gray-100 dark:border-slate-800"
+          style={{ boxShadow: "0 2px 14px rgba(0,0,0,0.05)" }}
         >
           {/* Image */}
-          <div className="h-[200px] relative overflow-hidden bg-gray-50">
+          <div className="h-[190px] relative overflow-hidden bg-gray-50 dark:bg-slate-800">
             {product.images?.[0] ? (
               <img
                 src={product.images[0]}
                 alt={product.name}
-                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700 ease-out"
+                loading="lazy"
+                className="object-cover w-full h-full group-hover:scale-108 transition-transform duration-700 ease-out"
               />
             ) : (
               <div
@@ -48,7 +80,7 @@ function ProductCard({
             {/* Featured badge */}
             {product.featured && (
               <div
-                className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-1 rounded-full text-white text-[9px] font-black uppercase tracking-wider"
+                className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2.5 py-0.5 rounded-full text-white text-[9px] font-black uppercase tracking-wider shadow-sm"
                 style={{ background: primaryColor }}
               >
                 <Sparkles className="w-2.5 h-2.5" />
@@ -56,9 +88,15 @@ function ProductCard({
               </div>
             )}
 
+            {/* Rating pill */}
+            <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-2 py-0.5 rounded-full shadow-sm text-[10px] font-bold text-gray-800 dark:text-gray-200">
+              <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+              <span>4.9</span>
+            </div>
+
             {/* Sold Out */}
             {!product.inStock && (
-              <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center">
+              <div className="absolute inset-0 bg-black/55 backdrop-blur-[2px] flex items-center justify-center">
                 <span className="bg-white text-gray-900 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg">
                   نفد المخزون
                 </span>
@@ -67,20 +105,42 @@ function ProductCard({
           </div>
 
           {/* Info */}
-          <div className="p-3.5">
-            <h3 className="font-bold text-[13px] text-gray-900 leading-snug line-clamp-2 mb-2">
+          <div className="p-3.5 flex flex-col justify-between flex-1">
+            <h3 className="font-bold text-[13px] text-gray-900 dark:text-gray-100 leading-snug line-clamp-2 mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
               {product.name}
             </h3>
-            <div className="flex items-center justify-between">
-              <p className="text-base font-black" style={{ color: primaryColor }}>
-                {format(product.price)}
-              </p>
-              <div
-                className="w-8 h-8 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200"
-                style={{ background: `${primaryColor}15` }}
-              >
-                <ShoppingBag className="w-3.5 h-3.5" style={{ color: primaryColor }} />
+            <div className="flex items-center justify-between pt-1 border-t border-gray-50 dark:border-slate-800">
+              <div>
+                <span className="text-[10px] text-gray-400 font-medium block leading-none mb-0.5">السعر</span>
+                <p className="text-sm sm:text-base font-black" style={{ color: primaryColor }}>
+                  {format(product.price)}
+                </p>
               </div>
+
+              <button
+                onClick={handleQuickAdd}
+                disabled={!product.inStock}
+                aria-label="Add to cart"
+                className="w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-105 shadow-sm"
+                style={{
+                  background: justAdded
+                    ? "#22c55e"
+                    : product.inStock
+                    ? `${primaryColor}15`
+                    : "#f3f4f6",
+                  color: justAdded
+                    ? "#ffffff"
+                    : product.inStock
+                    ? primaryColor
+                    : "#9ca3af",
+                }}
+              >
+                {justAdded ? (
+                  <Check className="w-4 h-4 animate-bounce" />
+                ) : (
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                )}
+              </button>
             </div>
           </div>
         </div>
@@ -94,7 +154,7 @@ export default function ProductList() {
   const initialCategoryId = searchParams.get("categoryId") || "";
 
   const { t, isRTL } = useLanguage();
-  const { format } = useCurrency();
+  const { format, activeCurrency } = useCurrency();
 
   const { data: store } = useGetStore();
   const primaryColor = store?.primaryColor || "#7C3AED";
@@ -104,6 +164,7 @@ export default function ProductList() {
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategoryId);
   const [minPrice, setMinPrice] = useState<string>("");
   const [maxPrice, setMaxPrice] = useState<string>("");
+  const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">("default");
   const [filterOpen, setFilterOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState({ minPrice: "", maxPrice: "" });
 
@@ -113,13 +174,24 @@ export default function ProductList() {
     categoryId: selectedCategory ? Number(selectedCategory) : undefined,
   });
 
-  const filteredProducts = products?.filter(p => {
-    if (appliedFilters.minPrice && p.price < Number(appliedFilters.minPrice)) return false;
-    if (appliedFilters.maxPrice && p.price > Number(appliedFilters.maxPrice)) return false;
-    return true;
-  });
+  const filteredProducts = useMemo(() => {
+    if (!products) return [];
+    let list = products.filter(p => {
+      if (appliedFilters.minPrice && p.price < Number(appliedFilters.minPrice)) return false;
+      if (appliedFilters.maxPrice && p.price > Number(appliedFilters.maxPrice)) return false;
+      return true;
+    });
 
-  const hasActiveFilters = appliedFilters.minPrice || appliedFilters.maxPrice || selectedCategory;
+    if (sortBy === "price-asc") {
+      list = [...list].sort((a, b) => a.price - b.price);
+    } else if (sortBy === "price-desc") {
+      list = [...list].sort((a, b) => b.price - a.price);
+    }
+
+    return list;
+  }, [products, appliedFilters, sortBy]);
+
+  const hasActiveFilters = appliedFilters.minPrice || appliedFilters.maxPrice || selectedCategory || sortBy !== "default";
 
   const handleApplyFilters = () => {
     setAppliedFilters({ minPrice, maxPrice });
@@ -131,6 +203,7 @@ export default function ProductList() {
     setMaxPrice("");
     setAppliedFilters({ minPrice: "", maxPrice: "" });
     setSelectedCategory("");
+    setSortBy("default");
     setSearch("");
     setFilterOpen(false);
   };
@@ -150,16 +223,16 @@ export default function ProductList() {
       <div className="flex flex-col min-h-full pb-24 relative" dir={isRTL ? "rtl" : "ltr"}>
 
         {/* ── Search + Filter Bar ─────────────────────── */}
-        <div className="sticky top-0 z-40 bg-white/96 backdrop-blur-xl pt-4 pb-3.5 px-5 border-b border-gray-100">
-          <div className="flex gap-3 mb-4">
+        <div className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl pt-3.5 pb-3 px-5 border-b border-gray-100 dark:border-slate-800">
+          <div className="flex gap-2.5 mb-3">
             {/* Search Input */}
             <div className="relative flex-1">
               <Search
-                className={`absolute ${isRTL ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400`}
+                className={`absolute ${isRTL ? "right-3.5" : "left-3.5"} top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400`}
               />
               <input
                 type="text"
-                className={`w-full h-12 ${isRTL ? "pr-11 pl-10" : "pl-11 pr-10"} rounded-2xl bg-gray-50 border border-gray-100 text-sm font-medium text-gray-800 placeholder:text-gray-400 outline-none focus:border-gray-300 focus:bg-white transition-all`}
+                className={`w-full h-11 ${isRTL ? "pr-10 pl-9" : "pl-10 pr-9"} rounded-2xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-sm font-medium text-gray-800 dark:text-gray-200 placeholder:text-gray-400 outline-none focus:border-purple-300 dark:focus:border-purple-600 transition-all`}
                 placeholder={t.searchProducts}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -168,7 +241,7 @@ export default function ProductList() {
               {search && (
                 <button
                   onClick={() => setSearch("")}
-                  className={`absolute ${isRTL ? "left-4" : "right-4"} top-1/2 -translate-y-1/2 w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-300 transition-colors`}
+                  className={`absolute ${isRTL ? "left-3" : "right-3"} top-1/2 -translate-y-1/2 w-5 h-5 bg-gray-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-300 transition-colors`}
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -178,19 +251,18 @@ export default function ProductList() {
             {/* Filter Button */}
             <button
               onClick={() => setFilterOpen(true)}
-              className="h-12 w-12 rounded-2xl shrink-0 flex items-center justify-center relative transition-all hover:scale-105 active:scale-95"
+              className="h-11 px-3 rounded-2xl shrink-0 flex items-center gap-1.5 text-xs font-bold relative transition-all active:scale-95 shadow-sm"
               style={{
-                background: hasActiveFilters ? `${primaryColor}12` : "#f3f4f6",
+                background: hasActiveFilters ? `${primaryColor}15` : "#f3f4f6",
+                color: hasActiveFilters ? primaryColor : "#4b5563",
                 border: hasActiveFilters ? `1.5px solid ${primaryColor}40` : "1.5px solid transparent",
               }}
             >
-              <SlidersHorizontal
-                className="w-5 h-5"
-                style={{ color: hasActiveFilters ? primaryColor : "#6b7280" }}
-              />
+              <SlidersHorizontal className="w-4 h-4" />
+              <span>{isRTL ? "تصفية" : "Filter"}</span>
               {hasActiveFilters && (
                 <span
-                  className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full border-2 border-white"
+                  className="w-2 h-2 rounded-full"
                   style={{ background: primaryColor }}
                 />
               )}
@@ -198,27 +270,27 @@ export default function ProductList() {
           </div>
 
           {/* Category Chips */}
-          <div className="flex gap-2.5 overflow-x-auto scrollbar-hide pb-0.5 -mx-5 px-5">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-0.5 -mx-5 px-5">
             <button
               onClick={() => setSelectedCategory("")}
-              className="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all border-2 shrink-0"
+              className="px-4 py-1.5 rounded-full text-xs font-black whitespace-nowrap transition-all border shrink-0"
               style={
                 !selectedCategory
-                  ? { background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`, color: "#fff", borderColor: "transparent", boxShadow: `0 4px 12px ${primaryColor}35` }
-                  : { background: "#f3f4f6", color: "#374151", borderColor: "transparent" }
+                  ? { background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`, color: "#fff", borderColor: "transparent", boxShadow: `0 3px 10px ${primaryColor}30` }
+                  : { background: "#f3f4f6", color: "#4b5563", borderColor: "transparent" }
               }
             >
-              الكل
+              الكل ({products?.length || 0})
             </button>
             {categories?.map(cat => (
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id.toString())}
-                className="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all border-2 shrink-0"
+                className="px-4 py-1.5 rounded-full text-xs font-black whitespace-nowrap transition-all border shrink-0"
                 style={
                   selectedCategory === cat.id.toString()
-                    ? { background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`, color: "#fff", borderColor: "transparent", boxShadow: `0 4px 12px ${primaryColor}35` }
-                    : { background: "#f3f4f6", color: "#374151", borderColor: "transparent" }
+                    ? { background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`, color: "#fff", borderColor: "transparent", boxShadow: `0 3px 10px ${primaryColor}30` }
+                    : { background: "#f3f4f6", color: "#4b5563", borderColor: "transparent" }
                 }
               >
                 {cat.name}
@@ -227,54 +299,84 @@ export default function ProductList() {
           </div>
         </div>
 
-        {/* Products Count */}
-        <div className="px-5 pt-5 pb-2 flex justify-between items-center">
-          <p className="text-sm font-semibold text-gray-400">
+        {/* Products Count + Sort Pills */}
+        <div className="px-5 pt-3 pb-2 flex justify-between items-center text-xs">
+          <p className="font-bold text-gray-500 dark:text-gray-400">
             {filteredProducts?.length || 0} {t.products}
           </p>
-          {hasActiveFilters && (
-            <button onClick={handleClearFilters} className="text-xs font-bold hover:opacity-70 transition-opacity" style={{ color: primaryColor }}>
-              {t.clearFilters}
+
+          <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-slate-800 p-1 rounded-xl">
+            <button
+              onClick={() => setSortBy("default")}
+              className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all ${
+                sortBy === "default"
+                  ? "bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 shadow-xs"
+                  : "text-gray-500 hover:text-gray-800"
+              }`}
+            >
+              {isRTL ? "الافتراضي" : "Default"}
             </button>
-          )}
+            <button
+              onClick={() => setSortBy("price-asc")}
+              className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all ${
+                sortBy === "price-asc"
+                  ? "bg-white dark:bg-slate-900 shadow-xs"
+                  : "text-gray-500 hover:text-gray-800"
+              }`}
+              style={sortBy === "price-asc" ? { color: primaryColor } : {}}
+            >
+              {isRTL ? "الأقل سعراً" : "Price: Low"}
+            </button>
+            <button
+              onClick={() => setSortBy("price-desc")}
+              className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all ${
+                sortBy === "price-desc"
+                  ? "bg-white dark:bg-slate-900 shadow-xs"
+                  : "text-gray-500 hover:text-gray-800"
+              }`}
+              style={sortBy === "price-desc" ? { color: primaryColor } : {}}
+            >
+              {isRTL ? "الأعلى سعراً" : "Price: High"}
+            </button>
+          </div>
         </div>
 
         {/* Product Grid */}
-        <div className="px-5 flex-1 flex flex-col">
+        <div className="px-5 flex-1 flex flex-col pt-1">
           {isLoading ? (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3.5">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="flex flex-col gap-3">
-                  <Skeleton className="h-[200px] w-full rounded-2xl" />
+                  <Skeleton className="h-[190px] w-full rounded-2xl" />
                   <Skeleton className="h-4 w-3/4 rounded-full" />
                   <Skeleton className="h-5 w-1/4 rounded-full" />
                 </div>
               ))}
             </div>
           ) : filteredProducts?.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center py-20 text-center space-y-5">
+            <div className="flex-1 flex flex-col items-center justify-center py-20 text-center space-y-4">
               <div
-                className="w-20 h-20 rounded-full flex items-center justify-center"
-                style={{ background: `${primaryColor}10` }}
+                className="w-18 h-18 rounded-2xl flex items-center justify-center shadow-inner"
+                style={{ background: `${primaryColor}12` }}
               >
-                <PackageX className="w-9 h-9" style={{ color: primaryColor, opacity: 0.5 }} />
+                <PackageX className="w-8 h-8" style={{ color: primaryColor, opacity: 0.6 }} />
               </div>
-              <div className="space-y-1.5">
-                <h3 className="text-lg font-bold text-gray-900">{t.noProductsFound}</h3>
-                <p className="text-gray-400 text-sm max-w-[220px] mx-auto">
+              <div className="space-y-1">
+                <h3 className="text-base font-black text-gray-900 dark:text-gray-100">{t.noProductsFound}</h3>
+                <p className="text-gray-400 text-xs max-w-[220px] mx-auto leading-relaxed">
                   {isRTL ? "لا توجد منتجات تطابق الفلاتر الحالية." : "Nothing matches your current filters."}
                 </p>
               </div>
               <button
                 onClick={handleClearFilters}
-                className="px-8 py-3 rounded-full text-sm font-bold transition-all"
-                style={{ background: `${primaryColor}12`, color: primaryColor, border: `1.5px solid ${primaryColor}30` }}
+                className="px-6 py-2.5 rounded-xl text-xs font-black transition-all shadow-sm active:scale-95"
+                style={{ background: `${primaryColor}15`, color: primaryColor, border: `1px solid ${primaryColor}30` }}
               >
                 {t.clearFilters}
               </button>
             </div>
           ) : (
-            <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-4">
+            <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3.5">
               {filteredProducts?.map(product => (
                 <motion.div variants={item} key={product.id}>
                   <ProductCard product={product} primaryColor={primaryColor} />
@@ -294,7 +396,7 @@ export default function ProductList() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="absolute inset-0 bg-black/40 backdrop-blur-sm z-50"
+                className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50"
                 onClick={() => setFilterOpen(false)}
               />
               <motion.div
@@ -304,46 +406,46 @@ export default function ProductList() {
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", stiffness: 350, damping: 35 }}
-                className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl z-[51] pb-10 max-h-[80%] overflow-y-auto"
-                style={{ boxShadow: "0 -8px 40px rgba(0,0,0,0.15)" }}
+                className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white dark:bg-slate-900 rounded-t-3xl z-[51] pb-8 max-h-[85%] overflow-y-auto border-t border-gray-100 dark:border-slate-800"
+                style={{ boxShadow: "0 -8px 40px rgba(0,0,0,0.2)" }}
               >
                 {/* Handle */}
                 <div className="flex justify-center pt-3 pb-2">
-                  <div className="w-10 h-1 bg-gray-200 rounded-full" />
+                  <div className="w-10 h-1.5 bg-gray-200 dark:bg-slate-700 rounded-full" />
                 </div>
 
-                <div className="px-6 pt-3">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-black text-gray-900">{t.filters}</h2>
+                <div className="px-6 pt-2">
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-lg font-black text-gray-900 dark:text-gray-100">{t.filters}</h2>
                     <button
                       onClick={() => setFilterOpen(false)}
-                      className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
+                      className="w-8 h-8 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
                     >
                       <X className="w-4 h-4" />
                     </button>
                   </div>
 
                   {/* Price Range */}
-                  <div className="space-y-4 mb-8">
-                    <h3 className="font-bold text-base text-gray-900">{t.priceRange}</h3>
+                  <div className="space-y-3 mb-6">
+                    <h3 className="font-bold text-sm text-gray-900 dark:text-gray-100">{t.priceRange} ({activeCurrency.symbol})</h3>
                     <div className="flex items-center gap-3">
                       <div className="flex-1">
-                        <label className="text-xs text-gray-400 mb-1.5 block font-bold uppercase tracking-wider">{t.minPrice}</label>
+                        <label className="text-[10px] text-gray-400 mb-1 block font-bold uppercase tracking-wider">{t.minPrice}</label>
                         <input
                           type="number"
                           placeholder="0"
-                          className="w-full h-12 px-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm font-semibold outline-none focus:border-gray-300 transition-colors"
+                          className="w-full h-11 px-3.5 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-sm font-semibold outline-none focus:border-purple-400 transition-colors"
                           value={minPrice}
                           onChange={(e) => setMinPrice(e.target.value)}
                         />
                       </div>
-                      <div className="w-5 h-[2px] bg-gray-200 mt-5 shrink-0" />
+                      <div className="w-4 h-[2px] bg-gray-200 dark:bg-slate-700 mt-4 shrink-0" />
                       <div className="flex-1">
-                        <label className="text-xs text-gray-400 mb-1.5 block font-bold uppercase tracking-wider">{t.maxPrice}</label>
+                        <label className="text-[10px] text-gray-400 mb-1 block font-bold uppercase tracking-wider">{t.maxPrice}</label>
                         <input
                           type="number"
                           placeholder="500"
-                          className="w-full h-12 px-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm font-semibold outline-none focus:border-gray-300 transition-colors"
+                          className="w-full h-11 px-3.5 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-sm font-semibold outline-none focus:border-purple-400 transition-colors"
                           value={maxPrice}
                           onChange={(e) => setMaxPrice(e.target.value)}
                         />
@@ -352,22 +454,19 @@ export default function ProductList() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-2.5">
                     <button
                       onClick={handleApplyFilters}
-                      className="w-full h-13 rounded-2xl text-base font-black text-white transition-all active:scale-[0.98]"
+                      className="w-full h-12 rounded-xl text-sm font-black text-white transition-all active:scale-[0.98] shadow-md"
                       style={{
-                        background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)`,
-                        boxShadow: `0 4px 20px ${primaryColor}40`,
-                        height: 52,
+                        background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`,
                       }}
                     >
                       {t.apply}
                     </button>
                     <button
                       onClick={handleClearFilters}
-                      className="w-full h-13 rounded-2xl text-base font-bold text-gray-600 bg-gray-100 transition-all active:scale-[0.98]"
-                      style={{ height: 52 }}
+                      className="w-full h-11 rounded-xl text-xs font-bold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-slate-800 transition-all active:scale-[0.98]"
                     >
                       {t.clearFilters}
                     </button>
@@ -381,3 +480,4 @@ export default function ProductList() {
     </StoreLayout>
   );
 }
+

@@ -14,13 +14,13 @@ import {
   ShieldCheck,
   Zap,
 } from "lucide-react";
-import BastahLogo from "@/components/ui/BastahLogo";
+import DukkaniLogo from "@/components/ui/DukkaniLogo";
 
 /* ── الميزات الظاهرة على يسار الصفحة ── */
 const FEATURES = [
-  { icon: Zap, text: "أنشئ متجرك في أقل من 5 دقائق" },
+  { icon: Zap, text: "أنشئ دكانك في أقل من 3 دقائق" },
   { icon: ShieldCheck, text: "بيانات محمية وآمنة 100%" },
-  { icon: Store, text: "تحكم كامل في مظهر متجرك" },
+  { icon: Store, text: "تحكم كامل في مظهر دكانك" },
   { icon: Sparkles, text: "إشعارات واتساب فورية للطلبات" },
 ];
 
@@ -86,14 +86,14 @@ export default function Register() {
         {/* Logo */}
         <div className="w-full max-w-md">
           <div onClick={() => setLocation("/")} className="cursor-pointer mb-10 inline-block">
-            <BastahLogo />
+            <DukkaniLogo variant="crimson" size="md" />
           </div>
 
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            أنشئ متجرك الآن
+            أنشئ دكانك الآن
           </h1>
           <p className="text-gray-500 mb-8">
-            انضم إلى آلاف التجار العرب على منصة بسطة
+            انضم إلى آلاف التجار على منصة دُكّـانـي
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -140,7 +140,7 @@ export default function Register() {
                 required
                 value={form.phone}
                 onChange={handleChange}
-                placeholder="966501234567+"
+                placeholder="967771234567+"
                 className="mt-1 h-11"
                 dir="ltr"
               />
@@ -177,12 +177,7 @@ export default function Register() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-12 text-base font-semibold mt-2"
-              style={{
-                background: loading
-                  ? "#9CA3AF"
-                  : "linear-gradient(135deg, #7C3AED, #6D28D9)",
-              }}
+              className="w-full h-12 text-base font-semibold mt-2 text-white shadow-lg shadow-red-600/25 bg-[#E4122C] hover:bg-[#CC0A22]"
             >
               {loading ? (
                 <span className="flex items-center gap-2">
@@ -205,7 +200,7 @@ export default function Register() {
               <button
                 type="button"
                 onClick={() => setLocation("/login")}
-                className="text-purple-600 font-semibold hover:underline"
+                className="text-[#E4122C] font-semibold hover:underline"
               >
                 سجّل الدخول
               </button>
@@ -213,11 +208,11 @@ export default function Register() {
 
             <p className="text-center text-xs text-gray-400">
               بالتسجيل، أنت توافق على{" "}
-              <span className="text-purple-500 cursor-pointer hover:underline">
+              <span className="text-[#E4122C] cursor-pointer hover:underline">
                 شروط الاستخدام
               </span>{" "}
               و{" "}
-              <span className="text-purple-500 cursor-pointer hover:underline">
+              <span className="text-[#E4122C] cursor-pointer hover:underline">
                 سياسة الخصوصية
               </span>
             </p>
@@ -230,23 +225,23 @@ export default function Register() {
         className="hidden lg:flex flex-col justify-center p-12 text-white"
         style={{
           background:
-            "linear-gradient(135deg, #4C1D95 0%, #7C3AED 50%, #8B5CF6 100%)",
+            "linear-gradient(135deg, #8E0010 0%, #CC0A22 50%, #E4122C 100%)",
         }}
       >
         <div className="max-w-md">
           <div onClick={() => setLocation("/")} className="cursor-pointer mb-12 inline-block">
-            <BastahLogo variant="light" />
+            <DukkaniLogo variant="light" size="lg" />
           </div>
 
           <h2 className="text-4xl font-bold leading-tight mb-6">
-            متجرك الإلكتروني
+            دُكّـانك الرقمي في جيبك
             <br />
-            <span className="text-yellow-300">في دقائق</span>
+            <span className="text-amber-300">في 3 دقائق</span>
           </h2>
 
-          <p className="text-purple-100 text-lg mb-10 leading-relaxed">
-            أنشئ متجرك الاحترافي وابدأ البيع اليوم. بدون خبرة تقنية،
-            بدون تعقيدات.
+          <p className="text-rose-100 text-lg mb-10 leading-relaxed">
+            أنشئ دكانك الاحترافي وابدأ البيع اليوم بكل سهولة. بدون خبرة تقنية،
+            وداعم للمحافظ والعملات اليمنية.
           </p>
 
           <div className="space-y-4">
@@ -255,7 +250,7 @@ export default function Register() {
                 <div className="w-8 h-8 bg-white/15 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Icon size={16} />
                 </div>
-                <span className="text-purple-100">{text}</span>
+                <span className="text-emerald-100">{text}</span>
               </div>
             ))}
           </div>
@@ -263,14 +258,14 @@ export default function Register() {
           {/* Testimonial */}
           <div className="mt-12 bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 flex items-center justify-center font-bold text-white text-sm flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center font-bold text-white text-sm flex-shrink-0">
                 س
               </div>
               <div>
-                <p className="text-sm text-purple-100 leading-relaxed">
-                  "أنشأت متجري في أقل من 10 دقائق وبدأت أستقبل طلبات في نفس اليوم!"
+                <p className="text-sm text-emerald-50 leading-relaxed">
+                  "أنشأت متجري في أقل من 10 دقائق وبدأت أستقبل طلبات في نفس اليوم عبر الواتساب!"
                 </p>
-                <p className="text-purple-300 text-xs mt-2">سارة محمد — صاحبة متجر عبايات</p>
+                <p className="text-emerald-200 text-xs mt-2">سارة محمد — صاحبة متجر عبايات وأزياء</p>
               </div>
             </div>
           </div>
@@ -278,13 +273,13 @@ export default function Register() {
           {/* Stats */}
           <div className="mt-6 grid grid-cols-3 gap-4">
             {[
-              { value: "+2,500", label: "تاجر نشط" },
-              { value: "+50K", label: "طلب مكتمل" },
-              { value: "4.9★", label: "تقييم المتجر" },
+              { value: "+3,500", label: "دكان نشط" },
+              { value: "+80K", label: "طلب مكتمل" },
+              { value: "4.9★", label: "تقييم التجار" },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
                 <p className="text-2xl font-bold">{stat.value}</p>
-                <p className="text-purple-300 text-xs">{stat.label}</p>
+                <p className="text-emerald-200 text-xs">{stat.label}</p>
               </div>
             ))}
           </div>

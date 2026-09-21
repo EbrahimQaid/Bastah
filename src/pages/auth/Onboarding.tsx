@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Check, Store, Palette, Package, ArrowRight, ArrowLeft } from "lucide-react";
-import BastahLogo from "@/components/ui/BastahLogo";
+import DukkaniLogo from "@/components/ui/DukkaniLogo";
 
 const STEPS = [
   { id: 1, title: "معلومات المتجر", icon: Store },
@@ -95,7 +95,7 @@ export default function Onboarding() {
       {/* Header */}
       <header className="bg-white border-b px-6 py-4 flex items-center justify-between">
         <div onClick={() => setLocation("/")} className="cursor-pointer">
-          <BastahLogo />
+          <DukkaniLogo variant="crimson" size="md" />
         </div>
         <span className="text-gray-600 text-sm font-semibold">إعداد المتجر الجديد</span>
       </header>
@@ -220,7 +220,7 @@ export default function Onboarding() {
                         ${data.fontFamily === f
                           ? "border-purple-500 bg-purple-50 text-purple-700"
                           : "border-gray-200 text-gray-600 hover:border-gray-300"}`}>
-                      {f} — أهلاً بك في بسطة
+                      {f} — أهلاً بك في دُكّـانـي
                     </button>
                   ))}
                 </div>

@@ -63,7 +63,6 @@ export interface OrderItem {
 
 export interface Order {
   id: number;
-  orderNumber?: string;
   storeId: number;
   customerName: string;
   customerPhone: string;
@@ -89,13 +88,17 @@ export type UpdateOrderStatusBodyStatus = "new" | "contacted" | "completed";
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const token = localStorage.getItem("bastah_token");
-  const headers = new Headers(options?.headers);
-  headers.set("Content-Type", "application/json");
-  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options?.headers as Record<string, string> || {}),
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
 
   const res = await fetch(`/api${path}`, {
-    headers,
     ...options,
+    headers,
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
@@ -108,8 +111,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 
 export const queryKeys = {
   store: () => ["store"] as const,
-  storeProducts: (filters?: Record<string, any>) =>
-    ["storeProducts", filters] as const,
+  storeProducts: (filters?: Record<string, any>) => ["storeProducts", filters] as const,
   storeProduct: (id: number) => ["storeProduct", id] as const,
   storeCategories: () => ["storeCategories"] as const,
   dashboardStore: () => ["dashboardStore"] as const,
@@ -129,7 +131,7 @@ export function useGetStore(_slug?: string, options?: { query?: any }) {
   return useQuery<Store>({
     queryKey: queryKeys.store(),
     queryFn: () => apiFetch<Store>(`/store`),
-    ...options?.query,
+    ...(options?.query || {}),
   });
 }
 
@@ -138,17 +140,13 @@ export function getGetStoreQueryKey() {
 }
 
 /** GET /api/store/products */
-export function useListStoreProducts(
-  _slug?: string,
-  filters?: { search?: string; categoryId?: number },
-) {
+export function useListStoreProducts(_slug?: string, filters?: { search?: string; categoryId?: number }) {
   return useQuery<Product[]>({
     queryKey: queryKeys.storeProducts(filters),
     queryFn: () => {
       const params = new URLSearchParams();
       if (filters?.search) params.set("search", filters.search);
-      if (filters?.categoryId)
-        params.set("categoryId", String(filters.categoryId));
+      if (filters?.categoryId) params.set("categoryId", String(filters.categoryId));
       const qs = params.toString();
       return apiFetch<Product[]>(`/store/products${qs ? `?${qs}` : ""}`);
     },
@@ -156,10 +154,7 @@ export function useListStoreProducts(
 }
 
 /** GET /api/store/products/:id */
-export function useGetStoreProduct(
-  _slug: string | undefined,
-  productId: number,
-) {
+export function useGetStoreProduct(_slug: string | undefined, productId: number) {
   return useQuery<Product>({
     queryKey: queryKeys.storeProduct(productId),
     queryFn: () => apiFetch<Product>(`/store/products/${productId}`),
@@ -169,7 +164,7 @@ export function useGetStoreProduct(
 
 /** GET /api/store/categories */
 export function useListStoreCategories(_slug?: string) {
-  return useQuery({
+  return useQuery<Category[]>({
     queryKey: queryKeys.storeCategories(),
     queryFn: () => apiFetch<Category[]>(`/store/categories`),
   });
@@ -177,7 +172,7 @@ export function useListStoreCategories(_slug?: string) {
 
 /** POST /api/store/orders */
 export function useCreateOrder() {
-  return useMutation({
+  return useMutation<Order, Error, { data: any }>({
     mutationFn: ({ data }: { data: any }) => {
       return apiFetch<Order>(`/store/orders`, {
         method: "POST",
@@ -193,7 +188,7 @@ export function useCreateOrder() {
 
 /** GET /api/dashboard/store */
 export function useGetDashboardStore() {
-  return useQuery({
+  return useQuery<Store>({
     queryKey: queryKeys.dashboardStore(),
     queryFn: () => apiFetch<Store>("/dashboard/store"),
   });
@@ -205,7 +200,7 @@ export function getGetDashboardStoreQueryKey() {
 
 /** PUT /api/dashboard/store */
 export function useUpdateDashboardStore() {
-  return useMutation({
+  return useMutation<Store, Error, { data: any }>({
     mutationFn: ({ data }: { data: any }) =>
       apiFetch<Store>("/dashboard/store", {
         method: "PUT",
@@ -216,7 +211,7 @@ export function useUpdateDashboardStore() {
 
 /** POST /api/dashboard/store/init */
 export function useInitDashboardStore() {
-  return useMutation({
+  return useMutation<Store, Error, { data: any }>({
     mutationFn: ({ data }: { data: any }) =>
       apiFetch<Store>("/dashboard/store/init", {
         method: "POST",
@@ -230,7 +225,7 @@ export function useListDashboardProducts(options?: { query?: any }) {
   return useQuery<Product[]>({
     queryKey: queryKeys.dashboardProducts(),
     queryFn: () => apiFetch<Product[]>("/dashboard/products"),
-    ...options?.query,
+    ...(options?.query || {}),
   });
 }
 
@@ -240,7 +235,7 @@ export function getListDashboardProductsQueryKey() {
 
 /** POST /api/dashboard/products */
 export function useCreateDashboardProduct() {
-  return useMutation({
+  return useMutation<Product, Error, { data: any }>({
     mutationFn: ({ data }: { data: any }) =>
       apiFetch<Product>("/dashboard/products", {
         method: "POST",
@@ -251,7 +246,7 @@ export function useCreateDashboardProduct() {
 
 /** PUT /api/dashboard/products/:id */
 export function useUpdateDashboardProduct() {
-  return useMutation({
+  return useMutation<Product, Error, { productId: number; data: any }>({
     mutationFn: ({ productId, data }: { productId: number; data: any }) =>
       apiFetch<Product>(`/dashboard/products/${productId}`, {
         method: "PUT",
@@ -262,17 +257,15 @@ export function useUpdateDashboardProduct() {
 
 /** DELETE /api/dashboard/products/:id */
 export function useDeleteDashboardProduct() {
-  return useMutation({
+  return useMutation<void, Error, { productId: number }>({
     mutationFn: ({ productId }: { productId: number }) =>
-      apiFetch<void>(`/dashboard/products/${productId}`, {
-        method: "DELETE",
-      }).then(() => undefined),
+      fetch(`/api/dashboard/products/${productId}`, { method: "DELETE" }).then(() => undefined),
   });
 }
 
 /** GET /api/dashboard/categories */
 export function useListDashboardCategories() {
-  return useQuery({
+  return useQuery<Category[]>({
     queryKey: queryKeys.dashboardCategories(),
     queryFn: () => apiFetch<Category[]>("/dashboard/categories"),
   });
@@ -284,7 +277,7 @@ export function getListDashboardCategoriesQueryKey() {
 
 /** POST /api/dashboard/categories */
 export function useCreateDashboardCategory() {
-  return useMutation({
+  return useMutation<Category, Error, { data: { name: string } }>({
     mutationFn: ({ data }: { data: { name: string } }) =>
       apiFetch<Category>("/dashboard/categories", {
         method: "POST",
@@ -295,17 +288,15 @@ export function useCreateDashboardCategory() {
 
 /** DELETE /api/dashboard/categories/:id */
 export function useDeleteDashboardCategory() {
-  return useMutation({
+  return useMutation<void, Error, { categoryId: number }>({
     mutationFn: ({ categoryId }: { categoryId: number }) =>
-      apiFetch<void>(`/dashboard/categories/${categoryId}`, {
-        method: "DELETE",
-      }).then(() => undefined),
+      fetch(`/api/dashboard/categories/${categoryId}`, { method: "DELETE" }).then(() => undefined),
   });
 }
 
 /** GET /api/dashboard/orders */
 export function useListDashboardOrders() {
-  return useQuery({
+  return useQuery<Order[]>({
     queryKey: queryKeys.dashboardOrders(),
     queryFn: () => apiFetch<Order[]>("/dashboard/orders"),
   });
@@ -316,15 +307,12 @@ export function getListDashboardOrdersQueryKey() {
 }
 
 /** GET /api/dashboard/orders/:id */
-export function useGetDashboardOrder(
-  orderId: number,
-  options?: { query?: any },
-) {
+export function useGetDashboardOrder(orderId: number, options?: { query?: any }) {
   return useQuery<Order>({
     queryKey: queryKeys.dashboardOrder(orderId),
     queryFn: () => apiFetch<Order>(`/dashboard/orders/${orderId}`),
     enabled: orderId > 0,
-    ...options?.query,
+    ...(options?.query || {}),
   });
 }
 
@@ -334,14 +322,8 @@ export function getGetDashboardOrderQueryKey(orderId: number) {
 
 /** PUT /api/dashboard/orders/:id */
 export function useUpdateDashboardOrderStatus() {
-  return useMutation({
-    mutationFn: ({
-      orderId,
-      data,
-    }: {
-      orderId: number;
-      data: { status: string };
-    }) =>
+  return useMutation<Order, Error, { orderId: number; data: { status: string } }>({
+    mutationFn: ({ orderId, data }: { orderId: number; data: { status: string } }) =>
       apiFetch<Order>(`/dashboard/orders/${orderId}`, {
         method: "PUT",
         body: JSON.stringify(data),
@@ -351,7 +333,7 @@ export function useUpdateDashboardOrderStatus() {
 
 /** GET /api/dashboard/stats */
 export function useGetDashboardStats() {
-  return useQuery({
+  return useQuery<DashboardStats>({
     queryKey: queryKeys.dashboardStats(),
     queryFn: () => apiFetch<DashboardStats>("/dashboard/stats"),
   });

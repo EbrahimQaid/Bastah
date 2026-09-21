@@ -1,3 +1,23 @@
-<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="180" height="180" rx="36" fill="#FF3C00"/>
+<svg width="180" height="180" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="favCrimson" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FA1E38" />
+      <stop offset="100%" stop-color="#CC0A22" />
+    </linearGradient>
+  </defs>
+
+  <!-- Squircle Base in Jaib Crimson Red -->
+  <rect width="100" height="100" rx="26" fill="url(#favCrimson)" />
+
+  <!-- Bag Handle in Pure White -->
+  <path d="M 37 32 C 37 19, 63 19, 63 32" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" fill="none" />
+
+  <!-- Bag Silhouette in Pure White -->
+  <path d="M 27 35 L 73 35 C 75.8 35, 77.6 37.4, 77.1 40.1 L 71.8 72.8 C 71.2 76.9, 67.6 80, 63.4 80 L 36.6 80 C 32.4 80, 28.8 76.9, 28.2 72.8 L 22.9 40.1 C 22.4 37.4, 24.2 35, 27 35 Z" fill="#FFFFFF" />
+
+  <!-- Smiling Pocket Cutout in Crimson Red -->
+  <path d="M 39 49 C 39 60, 61 60, 61 49" stroke="#E4122C" stroke-width="5.5" stroke-linecap="round" fill="none" />
+
+  <!-- Point Spark -->
+  <circle cx="62" cy="42" r="3.5" fill="#E4122C" />
 </svg>

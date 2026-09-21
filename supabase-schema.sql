@@ -62,8 +62,8 @@ CREATE TABLE IF NOT EXISTS stores (
   logo_image        TEXT,
   cover_image       TEXT,
   -- Theme / Appearance
-  primary_color     TEXT DEFAULT '#7C3AED',
-  secondary_color   TEXT DEFAULT '#A78BFA',
+  primary_color     TEXT DEFAULT '#991B1B',
+  secondary_color   TEXT DEFAULT '#DC2626',
   font_family       TEXT DEFAULT 'Tajawal',
   theme_config      JSONB DEFAULT '{}',
   -- Contact
@@ -529,7 +529,7 @@ ON CONFLICT (id) DO NOTHING;
 
 -- Stores
 INSERT INTO stores (id, owner_id, plan_id, slug, name, name_ar, description, primary_color, secondary_color, font_family, whatsapp_number, default_currency, currencies)
-VALUES (1, 1, 1, 'bastah', 'بَسطة', 'بسطة الكتب', 'أجود الكتب والروايات العربية والعالمية', '#7C3AED', '#A78BFA', 'Tajawal', '966501234567', 'SAR', ARRAY['SAR', 'USD'])
+VALUES (1, 1, 1, 'bastah', 'دكاني - Dukkani', 'متجر دكاني', 'منصة المتاجر الذكية بهوية محفظة جيب الإلكترونية', '#991B1B', '#DC2626', 'Tajawal', '967770000000', 'YER', ARRAY['YER', 'SAR', 'USD'])
 ON CONFLICT (id) DO NOTHING;
 
 -- Categories

@@ -3,7 +3,7 @@ import { LayoutDashboard, Package, Tag, ShoppingCart, Settings, ExternalLink, St
 import { useGetDashboardStore } from "@/services/api";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import BastahLogo from "@/components/ui/BastahLogo";
+import DukkaniLogo from "@/components/ui/DukkaniLogo";
 
 const links = [
   { href: "/dashboard",            label: "نظرة عامة",    enLabel: "Overview",    icon: LayoutDashboard },
@@ -59,7 +59,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <div className="px-8 py-10 flex flex-col items-center border-b border-gray-50 w-full">
           <Link href="/">
             <div className="cursor-pointer">
-              <BastahLogo />
+              <DukkaniLogo variant="crimson" size="md" />
             </div>
           </Link>
           {store && (
@@ -124,7 +124,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <header className="lg:hidden bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
           <Link href="/">
             <div className="cursor-pointer">
-              <BastahLogo />
+              <DukkaniLogo variant="crimson" size="sm" />
             </div>
           </Link>
           <button 
@@ -163,7 +163,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               <div className="p-8 border-b border-gray-50 flex items-center justify-between">
                 <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
                   <div className="cursor-pointer">
-                    <BastahLogo />
+                    <DukkaniLogo variant="crimson" size="md" />
                   </div>
                 </Link>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 rounded-lg bg-gray-50">
