@@ -7,15 +7,47 @@ import { query } from "../lib/db.js";
 export class StoreModel {
   static mapStore(row) {
     if (!row) return null;
+
+    let name = row.name || "دكاني - Dukkani";
+    let logoImage = row.logo_image || "";
+    let primaryColor = row.primary_color || "#991B1B";
+    let secondaryColor = row.secondary_color || "#DC2626";
+    let description = row.description || "منصة المتاجر الذكية بهوية محفظة جيب الإلكترونية";
+
+    // Clean up any old Bastah naming / logo artifact from previous database seeds
+    const isOldBastah =
+      name.includes("بسطة") ||
+      name.includes("بَسطة") ||
+      name.toLowerCase().includes("bastah") ||
+      (typeof logoImage === "string" && logoImage.toLowerCase().includes("bastah"));
+
+    if (isOldBastah) {
+      name = "دكاني - Dukkani";
+      logoImage = ""; // Clear old Bastah sticker logo to use clean Dukkani vector icon
+      description = "منصة المتاجر الذكية بهوية محفظة جيب الإلكترونية";
+      primaryColor = "#991B1B";
+      secondaryColor = "#DC2626";
+    }
+
+    // Replace the legacy Bastah purple default with Dukkani Crimson Red
+    if (
+      primaryColor === "#7C3AED" ||
+      primaryColor === "#6366F1" ||
+      primaryColor?.toLowerCase() === "#7c3aed"
+    ) {
+      primaryColor = "#991B1B";
+      secondaryColor = "#DC2626";
+    }
+
     return {
       id: row.id,
-      slug: row.slug,
-      name: row.name,
-      description: row.description || "",
+      slug: row.slug === "bastah" ? "dukkani" : (row.slug || "dukkani"),
+      name,
+      description,
       coverImage: row.cover_image || "",
-      logoImage: row.logo_image || "",
-      primaryColor: row.primary_color || "#991B1B",
-      secondaryColor: row.secondary_color || "#DC2626",
+      logoImage,
+      primaryColor,
+      secondaryColor,
       fontFamily: row.font_family || "Tajawal",
       currencies: JSON.stringify(row.currencies || ["YER", "SAR", "USD"]),
       defaultCurrency: row.default_currency || "YER",

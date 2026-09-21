@@ -38,7 +38,13 @@ export default function ProductDetail() {
   const { format } = useCurrency();
   const { toast } = useToast();
 
-  const primaryColor = store?.primaryColor || "#7C3AED";
+  const primaryColor =
+    store?.primaryColor &&
+    store.primaryColor !== "#7C3AED" &&
+    store.primaryColor !== "#6366F1" &&
+    store.primaryColor?.toLowerCase() !== "#7c3aed"
+      ? store.primaryColor
+      : "#991B1B";
 
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);

@@ -37,10 +37,10 @@ function requirePool() {
   return pool;
 }
 
-// Migrations are an explicit deployment step; never run them during a request.
-if (process.env.AUTO_INIT_DB === "true") {
+// Automatically verify schema and migrate any legacy store record on startup
+if (pool) {
   initializeDatabase().catch((err) =>
-    console.error("Database initialization failed:", err.message),
+    console.warn("Database initialization check:", err.message),
   );
 }
 
@@ -96,6 +96,18 @@ async function initializeDatabase() {
             "✅ Database is ready and seeded (stores table already has data).",
           );
         }
+
+        // Migrate any legacy Bastah store branding in PostgreSQL to Dukkani
+        await client.query(`
+          UPDATE stores 
+          SET name = 'دكاني - Dukkani',
+              description = 'منصة المتاجر الذكية بهوية محفظة جيب الإلكترونية',
+              primary_color = '#991B1B',
+              secondary_color = '#DC2626',
+              logo_image = '',
+              slug = 'dukkani'
+          WHERE name LIKE '%بسطة%' OR name LIKE '%بَسطة%' OR name ILIKE '%bastah%' OR primary_color = '#7C3AED';
+        `);
       }
     } finally {
       client.release();

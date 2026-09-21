@@ -14,12 +14,12 @@ const STEPS = [
 ];
 
 const THEMES = [
-  { name: "بنفسجي", primary: "#7C3AED", secondary: "#A78BFA" },
-  { name: "أزرق", primary: "#1D4ED8", secondary: "#60A5FA" },
-  { name: "أخضر", primary: "#059669", secondary: "#34D399" },
-  { name: "برتقالي", primary: "#D97706", secondary: "#FCD34D" },
-  { name: "وردي", primary: "#BE185D", secondary: "#F472B6" },
-  { name: "رمادي", primary: "#374151", secondary: "#9CA3AF" },
+  { name: "أحمر دكاني", primary: "#991B1B", secondary: "#DC2626" },
+  { name: "أزرق كحلي", primary: "#1D4ED8", secondary: "#60A5FA" },
+  { name: "أخضر زمردي", primary: "#059669", secondary: "#34D399" },
+  { name: "عنبري دافئ", primary: "#D97706", secondary: "#FCD34D" },
+  { name: "وردي أنيق", primary: "#BE185D", secondary: "#F472B6" },
+  { name: "رمادي فاخر", primary: "#374151", secondary: "#9CA3AF" },
 ];
 
 const FONTS = ["Tajawal", "Cairo", "Almarai", "IBM Plex Arabic"];

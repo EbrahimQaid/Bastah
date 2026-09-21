@@ -106,7 +106,7 @@ function ProductCard({
 
           {/* Info */}
           <div className="p-3.5 flex flex-col justify-between flex-1">
-            <h3 className="font-bold text-[13px] text-gray-900 dark:text-gray-100 leading-snug line-clamp-2 mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+            <h3 className="font-bold text-[13px] text-gray-900 dark:text-gray-100 leading-snug line-clamp-2 mb-2 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
               {product.name}
             </h3>
             <div className="flex items-center justify-between pt-1 border-t border-gray-50 dark:border-slate-800">
@@ -157,7 +157,13 @@ export default function ProductList() {
   const { format, activeCurrency } = useCurrency();
 
   const { data: store } = useGetStore();
-  const primaryColor = store?.primaryColor || "#7C3AED";
+  const primaryColor =
+    store?.primaryColor &&
+    store.primaryColor !== "#7C3AED" &&
+    store.primaryColor !== "#6366F1" &&
+    store.primaryColor?.toLowerCase() !== "#7c3aed"
+      ? store.primaryColor
+      : "#991B1B";
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
@@ -232,7 +238,7 @@ export default function ProductList() {
               />
               <input
                 type="text"
-                className={`w-full h-11 ${isRTL ? "pr-10 pl-9" : "pl-10 pr-9"} rounded-2xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-sm font-medium text-gray-800 dark:text-gray-200 placeholder:text-gray-400 outline-none focus:border-purple-300 dark:focus:border-purple-600 transition-all`}
+                className={`w-full h-11 ${isRTL ? "pr-10 pl-9" : "pl-10 pr-9"} rounded-2xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-sm font-medium text-gray-800 dark:text-gray-200 placeholder:text-gray-400 outline-none focus:border-red-400 dark:focus:border-red-500 transition-all`}
                 placeholder={t.searchProducts}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -434,7 +440,7 @@ export default function ProductList() {
                         <input
                           type="number"
                           placeholder="0"
-                          className="w-full h-11 px-3.5 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-sm font-semibold outline-none focus:border-purple-400 transition-colors"
+                          className="w-full h-11 px-3.5 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-sm font-semibold outline-none focus:border-red-400 transition-colors"
                           value={minPrice}
                           onChange={(e) => setMinPrice(e.target.value)}
                         />
@@ -445,7 +451,7 @@ export default function ProductList() {
                         <input
                           type="number"
                           placeholder="500"
-                          className="w-full h-11 px-3.5 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-sm font-semibold outline-none focus:border-purple-400 transition-colors"
+                          className="w-full h-11 px-3.5 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-sm font-semibold outline-none focus:border-red-400 transition-colors"
                           value={maxPrice}
                           onChange={(e) => setMaxPrice(e.target.value)}
                         />

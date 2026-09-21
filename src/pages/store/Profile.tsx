@@ -5,6 +5,7 @@ import { useLanguage } from "@/context/language-context";
 import { useCurrency, CURRENCIES, CurrencyCode } from "@/context/currency-context";
 import { motion } from "framer-motion";
 import { useStoreUI } from "@/context/store-ui-context";
+import DukkaniLogo from "@/components/ui/DukkaniLogo";
 import {
   Instagram, MessageCircle, Globe, ChevronRight, ShoppingBag,
   Phone, Mail, MapPin, Star, Package, Heart, Moon, Sun,
@@ -17,7 +18,27 @@ function ProfileContent() {
   const { activeCurrency, setActiveCurrency, availableCurrencies } = useCurrency();
   const { darkMode, toggleDarkMode } = useStoreUI();
 
-  const primaryColor = store?.primaryColor || "#7C3AED";
+  const primaryColor =
+    store?.primaryColor &&
+    store.primaryColor !== "#7C3AED" &&
+    store.primaryColor !== "#6366F1" &&
+    store.primaryColor?.toLowerCase() !== "#7c3aed"
+      ? store.primaryColor
+      : "#991B1B";
+
+  const isOldBastahLogo =
+    !store?.logoImage ||
+    (typeof store.logoImage === "string" && store.logoImage.toLowerCase().includes("bastah")) ||
+    store?.name?.includes("بسطة") ||
+    store?.name?.includes("بَسطة");
+
+  const storeDisplayName =
+    store?.name &&
+    !store.name.includes("بسطة") &&
+    !store.name.includes("بَسطة") &&
+    !store.name.toLowerCase().includes("bastah")
+      ? store.name
+      : "دكاني - Dukkani";
 
   const itemVar = {
     hidden: { opacity: 0, y: 16 },
@@ -44,17 +65,12 @@ function ProfileContent() {
         {/* Store Avatar */}
         <div className="relative z-10 mb-[-34px] flex flex-col items-center">
           <div
-            className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-3xl font-black shadow-xl border-4 border-white dark:border-slate-900 overflow-hidden"
-            style={{
-              background: store?.logoImage
-                ? "transparent"
-                : `linear-gradient(135deg, ${primaryColor}, ${primaryColor}bb)`,
-            }}
+            className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-3xl font-black shadow-xl border-4 border-white dark:border-slate-900 overflow-hidden bg-white dark:bg-slate-900"
           >
-            {store?.logoImage ? (
-              <img src={store.logoImage} alt={store.name} className="w-full h-full object-cover" />
+            {!isOldBastahLogo && store?.logoImage ? (
+              <img src={store.logoImage} alt={storeDisplayName} className="w-full h-full object-cover" />
             ) : (
-              store?.name?.charAt(0).toUpperCase()
+              <DukkaniLogo size="md" iconOnly />
             )}
           </div>
         </div>
@@ -70,7 +86,7 @@ function ProfileContent() {
           custom={0} variants={itemVar}
           className="text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight"
         >
-          {store?.name || "المتجر"}
+          {storeDisplayName}
         </motion.h1>
         {store?.description && (
           <motion.p custom={1} variants={itemVar} className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed max-w-xs mx-auto">

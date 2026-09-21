@@ -15,7 +15,13 @@ export default function Cart() {
   const { t, isRTL } = useLanguage();
   const { toast } = useToast();
   const { data: store } = useGetStore();
-  const primaryColor = store?.primaryColor || "#7C3AED";
+  const primaryColor =
+    store?.primaryColor &&
+    store.primaryColor !== "#7C3AED" &&
+    store.primaryColor !== "#6366F1" &&
+    store.primaryColor?.toLowerCase() !== "#7c3aed"
+      ? store.primaryColor
+      : "#991B1B";
 
   const [couponCode, setCouponCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState<number | null>(null);
@@ -26,7 +32,8 @@ export default function Cart() {
   const handleApplyCoupon = (e: React.FormEvent) => {
     e.preventDefault();
     if (!couponCode.trim()) return;
-    if (couponCode.trim().toUpperCase() === "SAVE10" || couponCode.trim().toUpperCase() === "WELCOME") {
+    const cleanCode = couponCode.trim().toUpperCase();
+    if (cleanCode === "SAVE10" || cleanCode === "WELCOME" || cleanCode === "DUKKANI10" || cleanCode === "DUKKANI") {
       setAppliedDiscount(totalPrice * 0.1);
       toast({
         title: "تم تطبيق كود الخصم! 🎉",
@@ -210,7 +217,7 @@ export default function Cart() {
                     placeholder="كود الخصم (مثال: SAVE10)"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
-                    className={`w-full h-10 ${isRTL ? "pr-9 pl-3" : "pl-9 pr-3"} rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-xs font-bold uppercase outline-none focus:border-purple-400 transition-colors`}
+                    className={`w-full h-10 ${isRTL ? "pr-9 pl-3" : "pl-9 pr-3"} rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-xs font-bold uppercase outline-none focus:border-red-400 transition-colors`}
                   />
                 </div>
                 <button

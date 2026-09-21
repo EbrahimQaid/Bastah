@@ -104,7 +104,7 @@ function ProductCard({ product, primaryColor }: { product: any; primaryColor: st
           {/* Info */}
           <div className={`flex flex-col justify-between flex-1 ${theme.gridCols === 3 ? "p-2.5" : "p-3.5"}`}>
             <div>
-              <h3 className={`font-bold text-gray-900 dark:text-gray-100 leading-snug line-clamp-2 mb-1.5 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors ${theme.gridCols === 3 ? "text-[11px]" : "text-[13px]"}`}>
+              <h3 className={`font-bold text-gray-900 dark:text-gray-100 leading-snug line-clamp-2 mb-1.5 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors ${theme.gridCols === 3 ? "text-[11px]" : "text-[13px]"}`}>
                 {product.name}
               </h3>
             </div>
@@ -164,7 +164,13 @@ export default function Home() {
   const queryParams = new URLSearchParams(window.location.search);
   const categoryId = queryParams.get("categoryId");
 
-  const primaryColor = store?.primaryColor || "#7C3AED";
+  const primaryColor =
+    store?.primaryColor &&
+    store.primaryColor !== "#7C3AED" &&
+    store.primaryColor !== "#6366F1" &&
+    store.primaryColor?.toLowerCase() !== "#7c3aed"
+      ? store.primaryColor
+      : "#991B1B";
   const overlayOpacity = (theme.heroOverlayOpacity ?? 35) / 100;
 
   const featuredProducts = products?.filter(p => p.featured).slice(0, theme.gridCols === 3 ? 6 : 4) || [];
@@ -243,7 +249,7 @@ export default function Home() {
             <h2 className="text-sm sm:text-base font-black tracking-tight text-gray-900 dark:text-gray-100">
               {localizedFeaturedTitle}
             </h2>
-            <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300">
+            <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-300">
               {featuredProducts.length}
             </span>
           </div>
@@ -315,24 +321,24 @@ export default function Home() {
         {/* ── HERO SECTION ─────────────────────────────────── */}
         <div
           className="relative w-full flex items-center justify-center overflow-hidden min-h-[145px] py-4"
-          style={{ background: "#0b0716" }}
+          style={{ background: "#180303" }}
         >
           {/* Background image */}
           {store?.coverImage ? (
-            <img src={store.coverImage} alt="Cover" className="absolute inset-0 w-full h-full object-cover opacity-50" />
+            <img src={store.coverImage} alt="Cover" className="absolute inset-0 w-full h-full object-cover opacity-40" />
           ) : (
             <div
               className="absolute inset-0"
-              style={{ background: `linear-gradient(140deg, ${primaryColor}cc 0%, #0b0716 75%)` }}
+              style={{ background: `linear-gradient(140deg, #3d0707 0%, #1a0303 60%, #0d0101 100%)` }}
             />
           )}
 
           {/* Clean dark gradient overlay for optimal text contrast */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0b0716]/95 via-[#0b0716]/75 to-[#0b0716]/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#140202]/95 via-[#140202]/70 to-[#140202]/40" />
 
           {/* Subtle glow accent */}
           <div
-            className="absolute -top-10 -right-10 w-44 h-44 rounded-full opacity-20 blur-3xl pointer-events-none"
+            className="absolute -top-10 -right-10 w-44 h-44 rounded-full opacity-25 blur-3xl pointer-events-none"
             style={{ background: primaryColor }}
           />
 
@@ -345,7 +351,7 @@ export default function Home() {
               className="mb-1.5 px-2.5 py-0.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-bold flex items-center gap-1 shadow-2xs"
             >
               <Sparkles className="w-2.5 h-2.5 text-amber-300" />
-              <span>{isRTL ? "مجموعة الموسم الجديدة 2026" : "New Season Collection 2026"}</span>
+              <span>{isRTL ? "✨ تشكيلة مختارة 2026" : "✨ Curated Collection 2026"}</span>
             </motion.div>
 
             {/* Campaign Title */}
@@ -355,9 +361,11 @@ export default function Home() {
               transition={{ duration: 0.4, delay: 0.05 }}
               className="text-lg sm:text-xl font-black text-white tracking-tight mb-1 leading-snug drop-shadow-md"
             >
-              {theme.heroTitle && theme.heroTitle !== store?.name && theme.heroTitle.toLowerCase() !== "featured"
+              {theme.heroTitle && theme.heroTitle !== store?.name && !theme.heroTitle.includes("صيحات")
                 ? theme.heroTitle
-                : (isRTL ? "تألق بأحدث صيحات الموسم" : "Shine with the Latest Trends")}
+                : (store?.name && !store.name.includes("بسطة") && !store.name.includes("بَسطة") && !store.name.toLowerCase().includes("bastah")
+                    ? store.name
+                    : (isRTL ? "دكاني - متجرك الذكي" : "Dukkani - Smart Store"))}
             </motion.h1>
 
             {/* Short punchy subtitle */}
@@ -365,9 +373,11 @@ export default function Home() {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.35 }}
-              className="text-white/85 text-[11px] mb-3 max-w-[260px] leading-tight line-clamp-1"
+              className="text-white/85 text-[11px] mb-3 max-w-[280px] leading-tight line-clamp-1"
             >
-              {isRTL ? "أحدث صيحات الموضة والعطور بجودة استثنائية" : "Curated fashion & fragrances with exceptional quality"}
+              {store?.description && !store.description.includes("صيحات")
+                ? store.description
+                : (isRTL ? "تسوق أفضل المنتجات المختارة بأعلى جودة وأسرع توصيل" : "Shop the best curated products with fast delivery")}
             </motion.p>
 
             {/* CTA Button */}
@@ -380,7 +390,7 @@ export default function Home() {
                 <button
                   className={`group flex items-center gap-1.5 px-4 py-1.5 text-[11px] font-black text-white transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm ${btnRadius}`}
                   style={{
-                    background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`,
+                    background: `linear-gradient(135deg, ${primaryColor}, #DC2626)`,
                     boxShadow: `0 3px 14px ${primaryColor}50`,
                   }}
                 >
@@ -409,7 +419,7 @@ export default function Home() {
                 <span className="text-[9.5px] font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">{isRTL ? "دفع عند الاستلام" : "Cash on Delivery"}</span>
               </div>
               <div className="flex items-center justify-center gap-1 flex-1 min-w-[70px] py-0.5 px-0.5">
-                <Headphones className="w-3 h-3 text-purple-600 shrink-0" />
+                <Headphones className="w-3 h-3 text-red-600 shrink-0" />
                 <span className="text-[9.5px] font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">{isRTL ? "دعم فوري" : "24/7 Support"}</span>
               </div>
             </div>

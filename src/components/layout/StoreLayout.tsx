@@ -8,6 +8,7 @@ import { MiniCart } from "@/components/store/MiniCart";
 import { useEffect, useRef, useState } from "react";
 import { ThemeContext, parseThemeConfig } from "@/context/theme-context";
 import { StoreUIContext } from "@/context/store-ui-context";
+import DukkaniLogo from "@/components/ui/DukkaniLogo";
 
 export function StoreLayout({ children, hideBottomNav = false }: { children: React.ReactNode; hideBottomNav?: boolean }) {
   const { totalItems } = useCart();
@@ -106,7 +107,28 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
   }
 
   const navbarStyle = theme.navbarStyle;
-  const primaryColor = store.primaryColor || "#7C3AED";
+  const primaryColor =
+    store.primaryColor &&
+    store.primaryColor !== "#7C3AED" &&
+    store.primaryColor !== "#6366F1" &&
+    store.primaryColor?.toLowerCase() !== "#7c3aed"
+      ? store.primaryColor
+      : "#991B1B";
+
+  const isOldBastahLogo =
+    !store.logoImage ||
+    (typeof store.logoImage === "string" && store.logoImage.toLowerCase().includes("bastah")) ||
+    store.name?.includes("بسطة") ||
+    store.name?.includes("بَسطة");
+
+  const storeDisplayName =
+    store.name &&
+    !store.name.includes("بسطة") &&
+    !store.name.includes("بَسطة") &&
+    !store.name.toLowerCase().includes("bastah")
+      ? store.name
+      : "دكاني - Dukkani";
+
   const isColored = navbarStyle === "colored";
   const isTransparent = navbarStyle === "transparent";
   const isDark = darkMode;
@@ -172,22 +194,17 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
             >
               {/* Brand Logo & Name */}
               <Link href="/store" className="flex items-center gap-2 group select-none">
-                {store.logoImage ? (
+                {!isOldBastahLogo && store.logoImage ? (
                   <img
                     src={store.logoImage}
-                    alt={store.name}
+                    alt={storeDisplayName}
                     className="w-8 h-8 rounded-xl object-cover shadow-2xs group-hover:scale-105 transition-transform"
                   />
                 ) : (
-                  <div
-                    className="w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black text-white shadow-2xs group-hover:scale-105 transition-transform"
-                    style={{ background: isColored ? "rgba(255,255,255,0.25)" : `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)` }}
-                  >
-                    {store.name.charAt(0)}
-                  </div>
+                  <DukkaniLogo iconOnly size="xs" />
                 )}
                 <span className="font-sans text-[17px] font-black tracking-tight" style={{ color: navbarTextColor }}>
-                  {store.name}
+                  {storeDisplayName}
                 </span>
               </Link>
 
@@ -234,7 +251,7 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
                     >
                       <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-slate-800 mb-3">
                         <div className="flex items-center gap-1.5">
-                          <Globe className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                          <Globe className="w-4 h-4 text-red-600 dark:text-red-400" />
                           <h3 className="text-xs font-black text-gray-900 dark:text-white">
                             {isRTL ? "التفضيلات واللغة" : "Preferences"}
                           </h3>
@@ -257,7 +274,7 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
                             onClick={() => setLanguage("ar")}
                             className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                               language === "ar"
-                                ? "bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-xs font-black"
+                                ? "bg-white dark:bg-slate-700 text-red-700 dark:text-red-300 shadow-xs font-black"
                                 : "text-gray-600 dark:text-gray-400 hover:text-gray-900"
                             }`}
                           >
@@ -268,7 +285,7 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
                             onClick={() => setLanguage("en")}
                             className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                               language === "en"
-                                ? "bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-xs font-black"
+                                ? "bg-white dark:bg-slate-700 text-red-700 dark:text-red-300 shadow-xs font-black"
                                 : "text-gray-600 dark:text-gray-400 hover:text-gray-900"
                             }`}
                           >
@@ -294,7 +311,7 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
                                 }}
                                 className={`w-full py-1.5 px-2.5 rounded-lg text-xs flex items-center justify-between transition-all ${
                                   isSelected
-                                    ? "bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-black border border-purple-200 dark:border-purple-800"
+                                    ? "bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 font-black border border-red-200 dark:border-red-800"
                                     : "hover:bg-gray-50 dark:hover:bg-slate-800/60 text-gray-700 dark:text-gray-300 font-medium"
                                 }`}
                               >
@@ -302,7 +319,7 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
                                   <span className="w-6 text-center font-black text-[11px] opacity-75">{c.symbol}</span>
                                   <span>{isRTL ? c.nameAr : c.name}</span>
                                 </div>
-                                {isSelected && <Check className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />}
+                                {isSelected && <Check className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />}
                               </button>
                             );
                           })}
@@ -318,7 +335,7 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
                         <button
                           onClick={toggleDarkMode}
                           className={`w-10 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out relative ${
-                            darkMode ? "bg-purple-600" : "bg-gray-200 dark:bg-slate-700"
+                            darkMode ? "bg-red-600" : "bg-gray-200 dark:bg-slate-700"
                           }`}
                         >
                           <div

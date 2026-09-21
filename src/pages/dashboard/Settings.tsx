@@ -38,12 +38,12 @@ const ALL_CURRENCIES = [
   { code: "GBP", name: "British Pound", symbol: "£" },
 ];
 
-const COLOR_PRESETS = ["#C1121F","#7c3aed","#0891b2","#059669","#d97706","#db2777","#1d4ed8","#0f172a","#f97316","#84cc16"];
+const COLOR_PRESETS = ["#991B1B","#DC2626","#0891b2","#059669","#d97706","#db2777","#1d4ed8","#0f172a","#f97316","#84cc16"];
 
 const THEME_PRESETS = [
   {
-    name: "بنفسجي عصري",
-    primary: "#7C3AED",
+    name: "أحمر دكاني (جيب)",
+    primary: "#991B1B",
     theme: { ...DEFAULT_THEME, navbarStyle: "white" as const, cardStyle: "shadow" as const, buttonRadius: "full" as const }
   },
   {
@@ -516,7 +516,7 @@ export default function Settings() {
                   <SectionCard icon={Footprints} title="تذييل الصفحة (Footer)" description="تحكم في النصوص التي تظهر أسفل كل صفحة.">
                     <div className="space-y-2">
                       <Label className="text-sm font-black text-gray-700">نص التذييل (Footer Text)</Label>
-                      <Textarea value={theme.footerText} onChange={e => setT({ footerText: e.target.value })} placeholder="جميع الحقوق محفوظة © 2024 بَسطة" className="bg-gray-50 border-none rounded-2xl font-bold" rows={3} />
+                      <Textarea value={theme.footerText} onChange={e => setT({ footerText: e.target.value })} placeholder="جميع الحقوق محفوظة © 2026 دكاني" className="bg-gray-50 border-none rounded-2xl font-bold" rows={3} />
                     </div>
                   </SectionCard>
                 </div>

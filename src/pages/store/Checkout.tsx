@@ -18,7 +18,13 @@ export default function Checkout() {
   const { toast } = useToast();
   const createOrder = useCreateOrder();
   const { data: store } = useGetStore();
-  const primaryColor = store?.primaryColor || "#7C3AED";
+  const primaryColor =
+    store?.primaryColor &&
+    store.primaryColor !== "#7C3AED" &&
+    store.primaryColor !== "#6366F1" &&
+    store.primaryColor?.toLowerCase() !== "#7c3aed"
+      ? store.primaryColor
+      : "#991B1B";
 
   const shippingRate = Number(store?.shippingRate || 0);
 
@@ -147,7 +153,7 @@ export default function Checkout() {
     );
   }
 
-  const inputCls = "w-full px-4 py-3 text-xs sm:text-sm bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl outline-none transition-all font-medium text-gray-800 dark:text-gray-200 placeholder:text-gray-400 focus:border-purple-400";
+  const inputCls = "w-full px-4 py-3 text-xs sm:text-sm bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl outline-none transition-all font-medium text-gray-800 dark:text-gray-200 placeholder:text-gray-400 focus:border-red-400";
 
   return (
     <StoreLayout>
