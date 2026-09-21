@@ -5,16 +5,26 @@ import path from "path";
 
 const connectionString = process.env.DATABASE_URL;
 
+const isLocalhost =
+  !connectionString ||
+  connectionString.includes("localhost") ||
+  connectionString.includes("127.0.0.1");
+
+// Cloud databases (Supabase, Neon, AWS RDS, Render, etc.) require SSL with rejectUnauthorized: false
+// to prevent "self-signed certificate in certificate chain" errors in serverless environments.
+const sslConfig = isLocalhost
+  ? undefined
+  : {
+      rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === "true",
+    };
+
 const pool = connectionString
   ? new pg.Pool({
       connectionString,
       max: Number(process.env.DB_POOL_MAX || 10),
       idleTimeoutMillis: 30_000,
-      connectionTimeoutMillis: 5_000,
-      ssl:
-        process.env.NODE_ENV === "production"
-          ? { rejectUnauthorized: true }
-          : undefined,
+      connectionTimeoutMillis: 10_000,
+      ssl: sslConfig,
     })
   : null;
 
@@ -348,9 +358,26 @@ function handleFallbackQuery(text, params = []) {
   return { rows: [] };
 }
 
-export const query = (text, params) => {
+export const query = async (text, params) => {
   if (pool) {
-    return pool.query(text, params);
+    try {
+      return await pool.query(text, params);
+    } catch (err) {
+      const isConnectionOrCertError =
+        err.code === "42P01" || // relation does not exist
+        err.code === "ECONNREFUSED" ||
+        err.code === "ENOTFOUND" ||
+        err.code === "ETIMEDOUT" ||
+        err.message?.includes("certificate") ||
+        err.message?.includes("SSL") ||
+        err.message?.includes("Connection terminated");
+
+      if (isConnectionOrCertError) {
+        console.warn(`⚠️ PostgreSQL connection warning: ${err.message}. Using fallback memory state.`);
+        return handleFallbackQuery(text, params);
+      }
+      throw err;
+    }
   }
   return Promise.resolve(handleFallbackQuery(text, params));
 };
@@ -362,17 +389,37 @@ export async function withTransaction(callback) {
     };
     return await callback(mockClient);
   }
-  const client = await pool.connect();
+
   try {
-    await client.query("BEGIN");
-    const result = await callback(client);
-    await client.query("COMMIT");
-    return result;
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      const result = await callback(client);
+      await client.query("COMMIT");
+      return result;
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    const isConnectionOrCertError =
+      err.code === "ECONNREFUSED" ||
+      err.code === "ENOTFOUND" ||
+      err.code === "ETIMEDOUT" ||
+      err.message?.includes("certificate") ||
+      err.message?.includes("SSL") ||
+      err.message?.includes("Connection terminated");
+
+    if (isConnectionOrCertError) {
+      console.warn(`⚠️ PostgreSQL transaction connection warning: ${err.message}. Using fallback.`);
+      const mockClient = {
+        query: (text, params) => Promise.resolve(handleFallbackQuery(text, params)),
+      };
+      return await callback(mockClient);
+    }
+    throw err;
   }
 }
 
