@@ -247,7 +247,6 @@ export default function ProductDetail() {
               {product.name}
             </h1>
 
-            <StarRating />
 
             <div className="flex items-baseline gap-2 pt-1">
               <p className="text-2xl sm:text-3xl font-black" style={{ color: primaryColor }}>
@@ -383,7 +382,7 @@ export default function ProductDetail() {
 
         {/* Sticky Add to Cart — Glassmorphism Bottom Bar */}
         <div
-          className="fixed left-1/2 -translate-x-1/2 w-full max-w-md bottom-0 z-50 p-4"
+          className="fixed left-1/2 -translate-x-1/2 w-full max-w-md md:max-w-3xl lg:max-w-6xl bottom-0 z-50 p-4"
         >
           <div
             className="rounded-3xl p-3 px-4 flex items-center gap-4 border bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border-black/8 dark:border-white/10 shadow-[0_10px_35px_-5px_rgba(0,0,0,0.18)]"
