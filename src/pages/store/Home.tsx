@@ -85,11 +85,6 @@ function ProductCard({ product, primaryColor }: { product: any; primaryColor: st
               )}
             </div>
 
-            {/* Rating pill overlay */}
-            <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-2 py-0.5 rounded-full shadow-sm text-[10px] font-bold text-gray-800 dark:text-gray-200">
-              <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-              <span>4.9</span>
-            </div>
 
             {/* Sold Out Overlay */}
             {!product.inStock && (
@@ -263,7 +258,7 @@ export default function Home() {
         </div>
 
         <motion.div variants={container} initial="hidden" animate="show"
-          className={`grid gap-3 ${theme.gridCols === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
+          className={`grid gap-3 ${theme.gridCols === 3 ? "grid-cols-3 lg:grid-cols-4" : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"}`}>
           {featuredProducts.map(product => (
             <motion.div variants={itemVar} key={product.id}>
               <ProductCard product={product} primaryColor={primaryColor} />
@@ -288,7 +283,7 @@ export default function Home() {
             </div>
 
             <motion.div variants={container} initial="hidden" animate="show"
-              className={`grid gap-3 ${theme.gridCols === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
+              className={`grid gap-3 ${theme.gridCols === 3 ? "grid-cols-3 lg:grid-cols-4" : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"}`}>
               {allProducts.map(product => (
                 <motion.div variants={itemVar} key={product.id}>
                   <ProductCard product={product} primaryColor={primaryColor} />
