@@ -30,11 +30,11 @@ export function MiniCart() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: isRTL ? "-100%" : "100%", opacity: 0 }}
             transition={{ type: "spring", stiffness: 320, damping: 32 }}
-            className="fixed top-0 bottom-0 w-[88%] max-w-sm bg-white shadow-2xl z-[70] flex flex-col"
+            className="fixed top-0 bottom-0 w-[88%] max-w-sm bg-white dark:bg-zinc-900 shadow-2xl z-[70] flex flex-col border-s border-gray-100 dark:border-zinc-800"
             style={isRTL ? { left: 0, right: "auto" } : { right: 0, left: "auto" }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border/50">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-zinc-800">
               <div className="flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-primary" />
                 <h2 className="font-bold text-foreground text-base">{t.miniCartTitle}</h2>
@@ -55,9 +55,9 @@ export function MiniCart() {
             {/* Items */}
             <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
               {items.map((item, idx) => (
-                <div key={idx} className="flex gap-3 items-start p-2 rounded-xl hover:bg-surface transition-colors">
+                <div key={idx} className="flex gap-3 items-start p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-800/60 transition-colors">
                   {/* Image */}
-                  <div className="w-[60px] h-[72px] bg-surface rounded-lg overflow-hidden flex-shrink-0 border border-border/40">
+                  <div className="w-[60px] h-[72px] bg-gray-50 dark:bg-zinc-800 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100 dark:border-zinc-700">
                     {item.imageUrl ? (
                       <img src={item.imageUrl} alt={item.productName} className="w-full h-full object-cover" />
                     ) : (
@@ -91,7 +91,7 @@ export function MiniCart() {
                   {/* Remove */}
                   <button
                     onClick={() => removeItem(item.productId, item.selectedSize, item.selectedColor)}
-                    className="text-muted-foreground hover:text-destructive transition-colors mt-0.5 flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-50"
+                    className="text-muted-foreground hover:text-destructive transition-colors mt-0.5 flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-50 dark:hover:bg-red-950/40"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -108,7 +108,7 @@ export function MiniCart() {
 
             {/* Footer */}
             {totalItems > 0 && (
-              <div className="px-5 py-4 border-t border-border/50 space-y-3 bg-surface/50">
+              <div className="px-5 py-4 border-t border-gray-100 dark:border-zinc-800 space-y-3 bg-gray-50/60 dark:bg-zinc-900/80">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground font-medium">{t.total}</span>
                   <span className="text-xl font-bold text-foreground">{format(totalPrice)}</span>

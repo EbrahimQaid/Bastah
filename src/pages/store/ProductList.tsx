@@ -121,18 +121,18 @@ function ProductCard({
                 onClick={handleQuickAdd}
                 disabled={!product.inStock}
                 aria-label="Add to cart"
-                className="w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-105 shadow-sm"
+                className="w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-105 shadow-xs disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-zinc-800 disabled:text-gray-400"
                 style={{
                   background: justAdded
                     ? "#22c55e"
                     : product.inStock
                     ? `${primaryColor}15`
-                    : "#f3f4f6",
+                    : undefined,
                   color: justAdded
                     ? "#ffffff"
                     : product.inStock
                     ? primaryColor
-                    : "#9ca3af",
+                    : undefined,
                 }}
               >
                 {justAdded ? (
@@ -257,12 +257,20 @@ export default function ProductList() {
             {/* Filter Button */}
             <button
               onClick={() => setFilterOpen(true)}
-              className="h-11 px-3 rounded-2xl shrink-0 flex items-center gap-1.5 text-xs font-bold relative transition-all active:scale-95 shadow-sm"
-              style={{
-                background: hasActiveFilters ? `${primaryColor}15` : "#f3f4f6",
-                color: hasActiveFilters ? primaryColor : "#4b5563",
-                border: hasActiveFilters ? `1.5px solid ${primaryColor}40` : "1.5px solid transparent",
-              }}
+              className={`h-11 px-3 rounded-2xl shrink-0 flex items-center gap-1.5 text-xs font-bold relative transition-all active:scale-95 shadow-xs ${
+                hasActiveFilters
+                  ? ""
+                  : "bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300"
+              }`}
+              style={
+                hasActiveFilters
+                  ? {
+                      background: `${primaryColor}15`,
+                      color: primaryColor,
+                      border: `1.5px solid ${primaryColor}40`,
+                    }
+                  : undefined
+              }
             >
               <SlidersHorizontal className="w-4 h-4" />
               <span>{isRTL ? "تصفية" : "Filter"}</span>
@@ -279,11 +287,15 @@ export default function ProductList() {
           <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-0.5 -mx-5 px-5">
             <button
               onClick={() => setSelectedCategory("")}
-              className="px-4 py-1.5 rounded-full text-xs font-black whitespace-nowrap transition-all border shrink-0"
+              className={`px-4 py-1.5 rounded-full text-xs font-black whitespace-nowrap transition-all border shrink-0 ${
+                !selectedCategory
+                  ? ""
+                  : "bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border-transparent hover:bg-gray-200 dark:hover:bg-zinc-700"
+              }`}
               style={
                 !selectedCategory
                   ? { background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`, color: "#fff", borderColor: "transparent", boxShadow: `0 3px 10px ${primaryColor}30` }
-                  : { background: "#f3f4f6", color: "#4b5563", borderColor: "transparent" }
+                  : undefined
               }
             >
               الكل ({products?.length || 0})
@@ -292,11 +304,15 @@ export default function ProductList() {
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id.toString())}
-                className="px-4 py-1.5 rounded-full text-xs font-black whitespace-nowrap transition-all border shrink-0"
+                className={`px-4 py-1.5 rounded-full text-xs font-black whitespace-nowrap transition-all border shrink-0 ${
+                  selectedCategory === cat.id.toString()
+                    ? ""
+                    : "bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border-transparent hover:bg-gray-200 dark:hover:bg-zinc-700"
+                }`}
                 style={
                   selectedCategory === cat.id.toString()
                     ? { background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`, color: "#fff", borderColor: "transparent", boxShadow: `0 3px 10px ${primaryColor}30` }
-                    : { background: "#f3f4f6", color: "#4b5563", borderColor: "transparent" }
+                    : undefined
                 }
               >
                 {cat.name}

@@ -4,11 +4,11 @@ import { useGetStore } from "@/services/api";
 import { useLanguage } from "@/context/language-context";
 import { useCurrency, CURRENCIES, CurrencyCode } from "@/context/currency-context";
 import { motion } from "framer-motion";
-import { useStoreUI } from "@/context/store-ui-context";
+import { useStoreUI, ThemeMode } from "@/context/store-ui-context";
 import DukkaniLogo from "@/components/ui/DukkaniLogo";
 import {
   Instagram, MessageCircle, Globe, ChevronRight, ShoppingBag,
-  Phone, Mail, MapPin, Star, Package, Heart, Moon, Sun,
+  Phone, Mail, MapPin, Star, Package, Heart, Moon, Sun, Check, Laptop,
 } from "lucide-react";
 
 // ── Inner component: runs INSIDE StoreLayout so StoreUIContext is available ──
@@ -16,7 +16,7 @@ function ProfileContent() {
   const { data: store } = useGetStore();
   const { language, setLanguage, isRTL } = useLanguage();
   const { activeCurrency, setActiveCurrency, availableCurrencies } = useCurrency();
-  const { darkMode, toggleDarkMode } = useStoreUI();
+  const { themeMode, setThemeMode, isDark } = useStoreUI();
 
   const primaryColor =
     store?.primaryColor &&
@@ -199,34 +199,93 @@ function ProfileContent() {
             </div>
           )}
 
-          {/* Dark Mode Toggle */}
-          <div className="flex items-center justify-between px-4 py-3.5">
-            <div className="flex items-center gap-3">
-              <div
-                className="w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300"
-                style={{ background: darkMode ? `${primaryColor}18` : "#f3f4f6" }}
-              >
-                {darkMode
-                  ? <Moon className="w-4 h-4" style={{ color: primaryColor }} />
-                  : <Sun className="w-4 h-4 text-gray-400" />}
-              </div>
-              <div>
-                <p className="font-bold text-gray-900 dark:text-gray-100 text-xs sm:text-sm">المظهر</p>
-                <p className="text-[11px] text-gray-400">{darkMode ? "الوضع الليلي 🌙" : "الوضع النهاري ☀️"}</p>
+          {/* Theme Mode Selection */}
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300"
+                  style={{ background: `${primaryColor}14` }}
+                >
+                  {isDark ? (
+                    <Moon className="w-4 h-4" style={{ color: primaryColor }} />
+                  ) : (
+                    <Sun className="w-4 h-4" style={{ color: primaryColor }} />
+                  )}
+                </div>
+                <div>
+                  <p className="font-bold text-gray-900 dark:text-zinc-100 text-xs sm:text-sm">
+                    {isRTL ? "مظهر المتجر" : "Theme Mode"}
+                  </p>
+                  <p className="text-[11px] text-gray-400 dark:text-zinc-400">
+                    {themeMode === "light"
+                      ? (isRTL ? "الوضع الفاتح (نهاري) ☀️" : "Light mode active")
+                      : themeMode === "dark"
+                      ? (isRTL ? "الوضع الداكن (ليلي مريح) 🌙" : "Dark mode active")
+                      : (isRTL ? "تلقائي (حسب إعدادات جهازك) 💻" : "Auto (matches device settings)")}
+                  </p>
+                </div>
               </div>
             </div>
-            {/* Toggle Switch */}
-            <button
-              onClick={toggleDarkMode}
-              className="relative w-12 h-6 rounded-full transition-all duration-300 focus:outline-none"
-              style={{ background: darkMode ? primaryColor : "#e5e7eb" }}
-              aria-label="Toggle dark mode"
-            >
-              <div
-                className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-all duration-300"
-                style={{ [isRTL ? (darkMode ? "left" : "right") : (darkMode ? "right" : "left")]: "2px" }}
-              />
-            </button>
+
+            {/* 3 Theme Options */}
+            <div className="grid grid-cols-3 gap-2 pt-1">
+              {[
+                {
+                  id: "light",
+                  label: isRTL ? "فاتح" : "Light",
+                  sub: isRTL ? "نهاري" : "Day",
+                  icon: Sun,
+                  iconColor: "text-amber-500",
+                },
+                {
+                  id: "dark",
+                  label: isRTL ? "داكن" : "Dark",
+                  sub: isRTL ? "ليلي" : "Night",
+                  icon: Moon,
+                  iconColor: "text-indigo-400",
+                },
+                {
+                  id: "system",
+                  label: isRTL ? "تلقائي" : "System",
+                  sub: isRTL ? "النظام" : "Auto",
+                  icon: Laptop,
+                  iconColor: "text-sky-500",
+                },
+              ].map((tOption) => {
+                const isSelected = themeMode === tOption.id;
+                const Icon = tOption.icon;
+                return (
+                  <button
+                    key={tOption.id}
+                    type="button"
+                    onClick={() => setThemeMode(tOption.id as ThemeMode)}
+                    className={`relative p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center transition-all duration-200 border ${
+                      isSelected
+                        ? "bg-red-50/70 dark:bg-red-950/30 border-red-500/60 dark:border-red-500/50 shadow-xs"
+                        : "bg-gray-50/80 dark:bg-zinc-800/50 hover:bg-gray-100/80 dark:hover:bg-zinc-800 border-gray-100 dark:border-zinc-800"
+                    }`}
+                    style={isSelected ? { borderColor: `${primaryColor}60` } : undefined}
+                  >
+                    {isSelected && (
+                      <span
+                        className="absolute top-1.5 end-1.5 w-4 h-4 rounded-full flex items-center justify-center text-white shadow-xs"
+                        style={{ background: primaryColor }}
+                      >
+                        <Check className="w-2.5 h-2.5 stroke-[3]" />
+                      </span>
+                    )}
+                    <Icon className={`w-5 h-5 ${tOption.iconColor}`} />
+                    <span className={`text-xs font-black ${isSelected ? "text-gray-900 dark:text-white" : "text-gray-700 dark:text-zinc-300"}`}>
+                      {tOption.label}
+                    </span>
+                    <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-medium">
+                      {tOption.sub}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>

@@ -2,12 +2,12 @@ import { Link, useLocation } from "wouter";
 import { useCart } from "@/hooks/use-cart";
 import { useLanguage } from "@/context/language-context";
 import { useCurrency, CURRENCIES, CurrencyCode } from "@/context/currency-context";
-import { ShoppingBag, Home, Search, ChevronDown, X, Sparkles, User, BadgePercent, Globe, Moon, Sun, Check } from "lucide-react";
+import { ShoppingBag, Home, Search, ChevronDown, X, Sparkles, User, BadgePercent, Globe, Moon, Sun, Check, Laptop } from "lucide-react";
 import { useGetStore, getGetStoreQueryKey } from "@/services/api";
 import { MiniCart } from "@/components/store/MiniCart";
 import { useEffect, useRef, useState } from "react";
 import { ThemeContext, parseThemeConfig } from "@/context/theme-context";
-import { StoreUIContext } from "@/context/store-ui-context";
+import { StoreUIContext, ThemeMode } from "@/context/store-ui-context";
 import DukkaniLogo from "@/components/ui/DukkaniLogo";
 
 export function StoreLayout({ children, hideBottomNav = false }: { children: React.ReactNode; hideBottomNav?: boolean }) {
@@ -18,20 +18,61 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
   const { activeCurrency, setActiveCurrency, availableCurrencies, setAvailableCurrencies } = useCurrency();
   const [prefModalOpen, setPrefModalOpen] = useState(false);
   const [announcementVisible, setAnnouncementVisible] = useState(true);
-  const [darkMode, setDarkMode] = useState(() => {
-    try { return localStorage.getItem(`darkMode`) === "true"; } catch { return false; }
-  });
   const prefRef = useRef<HTMLDivElement>(null);
-
   const theme = parseThemeConfig(store?.themeConfig);
 
-  const toggleDarkMode = () => {
-    setDarkMode(prev => {
-      const next = !prev;
-      try { localStorage.setItem(`darkMode`, String(next)); } catch {}
-      return next;
-    });
+  const [themeMode, setThemeModeState] = useState<ThemeMode>(() => {
+    try {
+      const saved = localStorage.getItem("store_theme_mode") as ThemeMode | null;
+      if (saved && ["light", "dark", "system"].includes(saved)) {
+        return saved;
+      }
+      const legacy = localStorage.getItem("darkMode");
+      if (legacy === "true") return "dark";
+      if (legacy === "false") return "light";
+    } catch {}
+    return "system";
+  });
+
+  const [systemDark, setSystemDark] = useState(() => {
+    if (typeof window !== "undefined" && window.matchMedia) {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = (e: MediaQueryListEvent) => {
+      setSystemDark(e.matches);
+    };
+    media.addEventListener("change", handler);
+    return () => media.removeEventListener("change", handler);
+  }, []);
+
+  const isDark = themeMode === "dark" || (themeMode === "system" && systemDark);
+
+  const setThemeMode = (mode: ThemeMode) => {
+    setThemeModeState(mode);
+    try {
+      localStorage.setItem("store_theme_mode", mode);
+      const computedDark = mode === "dark" || (mode === "system" && systemDark);
+      localStorage.setItem("darkMode", String(computedDark));
+    } catch {}
   };
+
+  const toggleDarkMode = () => {
+    setThemeMode(isDark ? "light" : "dark");
+  };
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [isDark]);
 
   useEffect(() => {
     if (!store) return;
@@ -139,31 +180,30 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
 
   const isColored = navbarStyle === "colored";
   const isTransparent = navbarStyle === "transparent";
-  const isDark = darkMode;
   const isWhite = !isColored && !isTransparent;
   const navbarTextColor = (isColored || isTransparent || isDark) ? "#ffffff" : "#111827";
-  const navbarBg = isColored ? primaryColor : isTransparent ? "transparent" : isDark ? "rgba(13,27,42,0.97)" : "rgba(255,255,255,0.94)";
+  const navbarBg = isColored ? primaryColor : isTransparent ? "transparent" : isDark ? "rgba(16,16,20,0.92)" : "rgba(255,255,255,0.94)";
 
   const dm = {
-    bg: isDark ? "#0d1b2a" : "#f8f8f8",
-    surface: isDark ? "#16253a" : "#ffffff",
-    surfaceMid: isDark ? "#1c2f45" : "#f8f8f8",
-    card: isDark ? "#1e3349" : "#ffffff",
-    border: isDark ? "rgba(120,180,255,0.08)" : "rgba(0,0,0,0.06)",
-    navbarBorder: isDark ? "rgba(120,180,255,0.07)" : "rgba(0,0,0,0.05)",
-    bottomNavBg: isDark ? "rgba(13,27,42,0.92)" : "rgba(255,255,255,0.72)",
-    bottomNavBorder: isDark ? "rgba(120,180,255,0.12)" : "rgba(255,255,255,0.85)",
-    iconColor: isDark ? "#a8c8f0" : "#1c1c2e",
-    text: isDark ? "#e2eefc" : "#111827",
-    textMuted: isDark ? "#7aaacf" : "#6b7280",
+    bg: isDark ? "#09090b" : "#f8f8f8",
+    surface: isDark ? "#111114" : "#ffffff",
+    surfaceMid: isDark ? "#17171c" : "#f8f8f8",
+    card: isDark ? "#1a1a20" : "#ffffff",
+    border: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+    navbarBorder: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
+    bottomNavBg: isDark ? "rgba(18,18,22,0.88)" : "rgba(255,255,255,0.82)",
+    bottomNavBorder: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)",
+    iconColor: isDark ? "#a1a1aa" : "#4b5563",
+    text: isDark ? "#f4f4f5" : "#111827",
+    textMuted: isDark ? "#a1a1aa" : "#6b7280",
   };
 
   const cartActive = location.includes("/cart") || location.includes("/checkout");
 
   return (
-    <StoreUIContext.Provider value={{ darkMode, toggleDarkMode }}>
+    <StoreUIContext.Provider value={{ themeMode, setThemeMode, isDark, darkMode: isDark, toggleDarkMode }}>
       <ThemeContext.Provider value={theme}>
-        <div className="min-h-screen bg-neutral-100/80 dark:bg-[#070e17] flex justify-center sm:py-4 transition-colors duration-300">
+        <div className="min-h-screen bg-neutral-100/90 dark:bg-[#070709] flex justify-center sm:py-4 transition-colors duration-300">
           <div
             dir={isRTL ? "rtl" : "ltr"}
             className="min-h-[100dvh] sm:min-h-[92vh] w-full max-w-md flex flex-col relative shadow-[0_12px_45px_-10px_rgba(0,0,0,0.15)] overflow-hidden sm:rounded-[32px] border sm:border-neutral-200/80 dark:sm:border-neutral-800/80"
@@ -334,24 +374,65 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
                         </div>
                       </div>
 
-                      {/* Dark Mode Toggle */}
-                      <div className="pt-2 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between">
-                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-                          {darkMode ? <Moon className="w-3.5 h-3.5 text-amber-400" /> : <Sun className="w-3.5 h-3.5 text-amber-500" />}
-                          {isRTL ? "المظهر الداكن" : "Dark Mode"}
-                        </span>
-                        <button
-                          onClick={toggleDarkMode}
-                          className={`w-10 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out relative ${
-                            darkMode ? "bg-red-600" : "bg-gray-200 dark:bg-slate-700"
-                          }`}
-                        >
-                          <div
-                            className={`w-4 h-4 rounded-full bg-white shadow-xs transform transition-transform duration-200 ease-in-out ${
-                              darkMode ? (isRTL ? "-translate-x-5" : "translate-x-5") : "translate-x-0"
+                      {/* Theme Selector: Light / Dark / System */}
+                      <div className="pt-3 border-t border-gray-100 dark:border-zinc-800">
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-[10px] font-bold text-gray-400 dark:text-zinc-400 uppercase tracking-wider block">
+                            {isRTL ? "مظهر المتجر" : "Theme"}
+                          </label>
+                          <span className="text-[10px] font-semibold text-gray-500 dark:text-zinc-400 flex items-center gap-1">
+                            {isDark ? (
+                              <Moon className="w-3 h-3 text-indigo-400" />
+                            ) : (
+                              <Sun className="w-3 h-3 text-amber-500" />
+                            )}
+                            <span>
+                              {themeMode === "light"
+                                ? (isRTL ? "فاتح" : "Light")
+                                : themeMode === "dark"
+                                ? (isRTL ? "داكن" : "Dark")
+                                : (isRTL ? "تلقائي" : "System")}
+                            </span>
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1.5 bg-gray-100 dark:bg-zinc-800/90 p-1 rounded-xl">
+                          <button
+                            type="button"
+                            onClick={() => setThemeMode("light")}
+                            className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                              themeMode === "light"
+                                ? "bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-xs font-black"
+                                : "text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
                             }`}
-                          />
-                        </button>
+                          >
+                            <Sun className="w-3.5 h-3.5 text-amber-500" />
+                            <span className="text-[11px]">{isRTL ? "فاتح" : "Light"}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setThemeMode("dark")}
+                            className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                              themeMode === "dark"
+                                ? "bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-xs font-black"
+                                : "text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+                            }`}
+                          >
+                            <Moon className="w-3.5 h-3.5 text-indigo-400" />
+                            <span className="text-[11px]">{isRTL ? "داكن" : "Dark"}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setThemeMode("system")}
+                            className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                              themeMode === "system"
+                                ? "bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-xs font-black"
+                                : "text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+                            }`}
+                          >
+                            <Laptop className="w-3.5 h-3.5 text-sky-500" />
+                            <span className="text-[11px]">{isRTL ? "تلقائي" : "Auto"}</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}

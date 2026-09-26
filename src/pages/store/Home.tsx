@@ -122,18 +122,18 @@ function ProductCard({ product, primaryColor }: { product: any; primaryColor: st
                 onClick={handleQuickAdd}
                 disabled={!product.inStock}
                 aria-label="Add to cart"
-                className="w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-105 shadow-sm"
+                className="w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-105 shadow-xs disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-zinc-800 disabled:text-gray-400"
                 style={{
                   background: justAdded
                     ? "#22c55e"
                     : product.inStock
                     ? `${primaryColor}15`
-                    : "#f3f4f6",
+                    : undefined,
                   color: justAdded
                     ? "#ffffff"
                     : product.inStock
                     ? primaryColor
-                    : "#9ca3af",
+                    : undefined,
                 }}
               >
                 {justAdded ? (

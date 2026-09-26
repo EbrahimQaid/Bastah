@@ -288,11 +288,15 @@ export default function ProductDetail() {
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
-                    className="h-10 px-4 rounded-xl text-xs font-bold transition-all border relative"
+                    className={`h-10 px-4 rounded-xl text-xs font-bold transition-all border relative ${
+                      selectedSize === size
+                        ? ""
+                        : "bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600"
+                    }`}
                     style={
                       selectedSize === size
                         ? { background: primaryColor, color: "#fff", borderColor: primaryColor, boxShadow: `0 4px 14px ${primaryColor}40` }
-                        : { background: "#f9fafb", color: "#374151", borderColor: "#e5e7eb" }
+                        : undefined
                     }
                   >
                     {selectedSize === size && <Check className="w-3 h-3 absolute top-1 right-1" />}
@@ -317,11 +321,15 @@ export default function ProductDetail() {
                   <button
                     key={color}
                     onClick={() => setSelectedColor(color)}
-                    className="h-10 px-4 rounded-xl text-xs font-bold transition-all border"
+                    className={`h-10 px-4 rounded-xl text-xs font-bold transition-all border ${
+                      selectedColor === color
+                        ? ""
+                        : "bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600"
+                    }`}
                     style={
                       selectedColor === color
                         ? { background: primaryColor, color: "#fff", borderColor: primaryColor, boxShadow: `0 4px 14px ${primaryColor}40` }
-                        : { background: "#f9fafb", color: "#374151", borderColor: "#e5e7eb" }
+                        : undefined
                     }
                   >
                     {color}
@@ -378,14 +386,7 @@ export default function ProductDetail() {
           className="fixed left-1/2 -translate-x-1/2 w-full max-w-md bottom-0 z-50 p-4"
         >
           <div
-            className="rounded-3xl p-3 px-4 flex items-center gap-4 border"
-            style={{
-              background: "rgba(255, 255, 255, 0.92)",
-              backdropFilter: "blur(24px) saturate(200%)",
-              WebkitBackdropFilter: "blur(24px) saturate(200%)",
-              borderColor: "rgba(0,0,0,0.08)",
-              boxShadow: "0 10px 35px -5px rgba(0,0,0,0.18)",
-            }}
+            className="rounded-3xl p-3 px-4 flex items-center gap-4 border bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border-black/8 dark:border-white/10 shadow-[0_10px_35px_-5px_rgba(0,0,0,0.18)]"
           >
             <div className="shrink-0">
               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{t.totalPrice}</p>
