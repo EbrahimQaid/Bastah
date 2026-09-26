@@ -88,12 +88,6 @@ function ProductCard({
               </div>
             )}
 
-            {/* Rating pill */}
-            <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-2 py-0.5 rounded-full shadow-sm text-[10px] font-bold text-gray-800 dark:text-gray-200">
-              <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-              <span>4.9</span>
-            </div>
-
             {/* Sold Out */}
             {!product.inStock && (
               <div className="absolute inset-0 bg-black/55 backdrop-blur-[2px] flex items-center justify-center">
@@ -366,7 +360,7 @@ export default function ProductList() {
         {/* Product Grid */}
         <div className="px-5 flex-1 flex flex-col pt-1">
           {isLoading ? (
-            <div className="grid grid-cols-2 gap-3.5">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="flex flex-col gap-3">
                   <Skeleton className="h-[190px] w-full rounded-2xl" />
@@ -398,7 +392,7 @@ export default function ProductList() {
               </button>
             </div>
           ) : (
-            <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3.5">
+            <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
               {filteredProducts?.map(product => (
                 <motion.div variants={item} key={product.id}>
                   <ProductCard product={product} primaryColor={primaryColor} />
@@ -428,7 +422,7 @@ export default function ProductList() {
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", stiffness: 350, damping: 35 }}
-                className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white dark:bg-slate-900 rounded-t-3xl z-[51] pb-8 max-h-[85%] overflow-y-auto border-t border-gray-100 dark:border-slate-800"
+                className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md md:max-w-xl bg-white dark:bg-slate-900 rounded-t-3xl z-[51] pb-8 max-h-[85%] overflow-y-auto border-t border-gray-100 dark:border-slate-800"
                 style={{ boxShadow: "0 -8px 40px rgba(0,0,0,0.2)" }}
               >
                 {/* Handle */}
