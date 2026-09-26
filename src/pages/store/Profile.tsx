@@ -98,7 +98,6 @@ function ProfileContent() {
         <motion.div custom={2} variants={itemVar} className="flex justify-center gap-6 mt-4">
           {[
             { icon: Package, label: "منتجات حصرية", value: "50+" },
-            { icon: Star, label: "تقييم المتجر", value: "4.9 ★" },
             { icon: Heart, label: "عميل سعيد", value: "2k+" },
           ].map(({ label, value }) => (
             <div key={label} className="flex flex-col items-center px-3 py-1.5 rounded-xl bg-gray-50 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-800">
