@@ -206,7 +206,7 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
         <div className="min-h-screen bg-neutral-100/90 dark:bg-[#070709] flex justify-center sm:py-4 transition-colors duration-300">
           <div
             dir={isRTL ? "rtl" : "ltr"}
-            className="min-h-[100dvh] sm:min-h-[92vh] w-full max-w-md flex flex-col relative shadow-[0_12px_45px_-10px_rgba(0,0,0,0.15)] overflow-hidden sm:rounded-[32px] border sm:border-neutral-200/80 dark:sm:border-neutral-800/80"
+            className="min-h-[100dvh] sm:min-h-[92vh] w-full max-w-md md:max-w-3xl lg:max-w-6xl flex flex-col relative shadow-[0_12px_45px_-10px_rgba(0,0,0,0.15)] overflow-hidden sm:rounded-[32px] lg:rounded-3xl border sm:border-neutral-200/80 dark:sm:border-neutral-800/80"
             style={{ background: dm.bg, borderColor: dm.border, transition: "background 0.35s ease" }}
           >
             {/* Announcement Bar */}
