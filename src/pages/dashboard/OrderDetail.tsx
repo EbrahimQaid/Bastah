@@ -3,36 +3,30 @@ import { useRoute, Link } from "wouter";
 import {
   useGetDashboardOrder,
   useUpdateDashboardOrderStatus,
+  useGetDashboardStore,
   getGetDashboardOrderQueryKey,
   getListDashboardOrdersQueryKey,
   type UpdateOrderStatusBodyStatus,
 } from "@/services/api";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, MessageCircle, Phone, MapPin, FileText, Package, User, CheckCircle2, Clock, MessageSquare } from "lucide-react";
-import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  Phone,
+  MapPin,
+  Package,
+  User,
+  CheckCircle2,
+  Clock,
+  MessageCircle,
+  FileText,
+} from "lucide-react";
 
 const STATUS_CONFIG = {
-  new:       { label: "New",       color: "bg-blue-100 text-blue-700",   dot: "bg-blue-500",   ring: "ring-blue-200" },
-  contacted: { label: "Contacted", color: "bg-amber-100 text-amber-700", dot: "bg-amber-500",  ring: "ring-amber-200" },
-  completed: { label: "Completed", color: "bg-green-100 text-green-700", dot: "bg-green-500",  ring: "ring-green-200" },
+  new:       { label: "جديد (بانتظار المراجعة)", color: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 border-blue-200 dark:border-blue-800" },
+  contacted: { label: "تم التواصل مع العميل",   color: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border-amber-200 dark:border-amber-800" },
+  completed: { label: "مكتمل وتم التسليم",       color: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800" },
 } as const;
-
-function StatusBadge({ status }: { status: string }) {
-  const cfg = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] ?? { label: status, color: "bg-gray-100 text-gray-700", dot: "bg-gray-400", ring: "ring-gray-200" };
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${cfg.color}`}>
-      <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
-      {cfg.label}
-    </span>
-  );
-}
-
-const STATUS_STEPS = [
-  { key: "new",       label: "Order Placed",    icon: Package },
-  { key: "contacted", label: "Seller Contacted", icon: MessageSquare },
-  { key: "completed", label: "Completed",        icon: CheckCircle2 },
-];
 
 export default function OrderDetail() {
   const [, params] = useRoute("/dashboard/orders/:orderId");
@@ -40,28 +34,34 @@ export default function OrderDetail() {
   const { data: order, isLoading } = useGetDashboardOrder(orderId, {
     query: { queryKey: getGetDashboardOrderQueryKey(orderId), enabled: !!orderId },
   });
+  const { data: store } = useGetDashboardStore();
   const updateStatus = useUpdateDashboardOrderStatus();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  const currency = store?.defaultCurrency || "ر.س";
+
   const handleStatusChange = (status: UpdateOrderStatusBodyStatus) => {
-    updateStatus.mutate({ orderId, data: { status } }, {
-      onSuccess: () => {
-        toast({ title: "Status updated successfully" });
-        queryClient.invalidateQueries({ queryKey: getGetDashboardOrderQueryKey(orderId) });
-        queryClient.invalidateQueries({ queryKey: getListDashboardOrdersQueryKey() });
-      }
-    });
+    updateStatus.mutate(
+      { orderId, data: { status } },
+      {
+        onSuccess: () => {
+          toast({ title: "تم تحديث حالة الطلب بنجاح" });
+          queryClient.invalidateQueries({ queryKey: getGetDashboardOrderQueryKey(orderId) });
+          queryClient.invalidateQueries({ queryKey: getListDashboardOrdersQueryKey() });
+        },
+      },
+    );
   };
 
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="space-y-6 max-w-4xl animate-pulse">
-          <div className="w-48 h-8 bg-gray-200 rounded-xl" />
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="h-64 bg-gray-100 rounded-2xl" />
-            <div className="h-64 bg-gray-100 rounded-2xl" />
+        <div className="max-w-4xl space-y-4 animate-pulse" dir="rtl">
+          <div className="w-48 h-8 bg-neutral-200 dark:bg-zinc-800 rounded-xl" />
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="h-64 bg-neutral-100 dark:bg-zinc-900 rounded-2xl" />
+            <div className="h-64 bg-neutral-100 dark:bg-zinc-900 rounded-2xl" />
           </div>
         </div>
       </DashboardLayout>
@@ -71,193 +71,225 @@ export default function OrderDetail() {
   if (!order) {
     return (
       <DashboardLayout>
-        <div className="py-20 text-center text-gray-400">
-          <Package className="w-10 h-10 mx-auto mb-3 opacity-30" />
-          <p className="font-medium">Order not found</p>
+        <div className="py-20 text-center text-neutral-400 space-y-3" dir="rtl">
+          <Package className="w-12 h-12 mx-auto opacity-30" />
+          <h2 className="text-base font-bold text-neutral-900 dark:text-white">لم يتم العثور على الطلب</h2>
+          <p className="text-xs">قد يكون الطلب غير موجود أو تم حذفه.</p>
+          <Link href="/dashboard/orders">
+            <button className="px-4 py-2 bg-red-600 text-white rounded-xl text-xs font-bold">
+              العودة لقائمة الطلبات
+            </button>
+          </Link>
         </div>
       </DashboardLayout>
     );
   }
 
-  const currentStepIdx = STATUS_STEPS.findIndex(s => s.key === order.status);
+  const cleanPhone = order.customerPhone.replace(/\D/g, "");
+  const whatsappUrl = `https://wa.me/${cleanPhone}`;
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-4xl">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard/orders">
-            <button className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-200 hover:border-primary hover:text-primary transition-all shadow-sm">
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-          </Link>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-black text-gray-900 tracking-tight">Order #{order.id}</h1>
-              <StatusBadge status={order.status} />
+      <div className="max-w-4xl space-y-6" dir="rtl">
+        {/* Top Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-neutral-200/80 dark:border-zinc-800">
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard/orders">
+              <button
+                className="p-2 rounded-xl bg-white dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 hover:bg-neutral-100 transition-colors"
+                aria-label="الرجوع"
+              >
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </Link>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+                  طلب رقم #{order.id}
+                </h1>
+                <span
+                  className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                    STATUS_CONFIG[order.status as keyof typeof STATUS_CONFIG]?.color || ""
+                  }`}
+                >
+                  {STATUS_CONFIG[order.status as keyof typeof STATUS_CONFIG]?.label || order.status}
+                </span>
+              </div>
+              <p className="text-xs text-neutral-500 dark:text-zinc-400 mt-0.5">
+                تاريخ الطلب:{" "}
+                {new Date(order.createdAt).toLocaleDateString("ar-SA", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
             </div>
-            <p className="text-xs text-gray-400 mt-0.5">
-              Placed {new Date(order.createdAt).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
-            </p>
           </div>
-        </div>
 
-        {/* Progress Steps */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
-          <div className="flex items-center justify-between relative">
-            <div className="absolute left-0 right-0 top-5 h-0.5 bg-gray-100 z-0" />
-            <div
-              className="absolute left-0 top-5 h-0.5 bg-primary z-0 transition-all duration-500"
-              style={{ width: `${(currentStepIdx / (STATUS_STEPS.length - 1)) * 100}%` }}
-            />
-            {STATUS_STEPS.map((step, i) => {
-              const done = i <= currentStepIdx;
-              const Icon = step.icon;
-              return (
-                <div key={step.key} className="flex flex-col items-center gap-2 z-10">
-                  <button
-                    onClick={() => handleStatusChange(step.key as UpdateOrderStatusBodyStatus)}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
-                      done
-                        ? "bg-primary border-primary text-white shadow-md"
-                        : "bg-white border-gray-200 text-gray-400 hover:border-primary hover:text-primary"
-                    }`}
-                    title={`Set to ${step.label}`}
-                    disabled={updateStatus.isPending}
-                  >
-                    <Icon className="w-4 h-4" />
-                  </button>
-                  <span className={`text-xs font-bold ${done ? "text-primary" : "text-gray-400"}`}>{step.label}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-5">
-          {/* Customer Info */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6"
-          >
-            <div className="flex items-center gap-2 mb-5">
-              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                <User className="w-4 h-4 text-primary" />
-              </div>
-              <h2 className="font-black text-gray-900 text-base">Customer Details</h2>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <User className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-gray-400 font-medium">Name</p>
-                  <p className="font-bold text-gray-900 text-sm">{order.customerName}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Phone className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-gray-400 font-medium">Phone</p>
-                  <p className="font-bold text-gray-900 text-sm">{order.customerPhone}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-gray-400 font-medium">Address</p>
-                  <p className="font-bold text-gray-900 text-sm">{order.customerAddress}</p>
-                </div>
-              </div>
-              {order.notes && (
-                <div className="flex items-start gap-3">
-                  <FileText className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-xs text-gray-400 font-medium">Notes</p>
-                    <p className="text-sm text-gray-600 italic">"{order.notes}"</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* WhatsApp CTA */}
-            <a
-              href={`https://wa.me/${order.customerPhone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(order.whatsappMessage)}`}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-6 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-white text-sm transition-all hover:opacity-90 active:scale-[0.98] shadow-sm"
-              style={{ backgroundColor: "#25D366" }}
+          {/* Quick Status Action */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-neutral-500">تغيير الحالة:</span>
+            <select
+              value={order.status}
+              disabled={updateStatus.isPending}
+              onChange={(e) => handleStatusChange(e.target.value as UpdateOrderStatusBodyStatus)}
+              className="px-3 py-2 text-xs bg-white dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 rounded-xl font-bold text-neutral-800 dark:text-zinc-200 cursor-pointer focus:outline-hidden"
             >
-              <MessageCircle className="w-4 h-4" />
-              Open in WhatsApp
-            </a>
-          </motion.div>
+              <option value="new">جديد (بانتظار المراجعة)</option>
+              <option value="contacted">تم التواصل مع العميل</option>
+              <option value="completed">مكتمل وتم التسليم</option>
+            </select>
+          </div>
+        </div>
 
-          {/* Order Items */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 }}
-            className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6"
-          >
-            <div className="flex items-center gap-2 mb-5">
-              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Package className="w-4 h-4 text-primary" />
-              </div>
-              <h2 className="font-black text-gray-900 text-base">Order Items</h2>
-            </div>
+        {/* 2-Column Info Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+          {/* Purchased Items Card */}
+          <div className="md:col-span-8 bg-white dark:bg-zinc-900 border border-neutral-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-xs space-y-4">
+            <h2 className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider">
+              المنتجات المطلوبة ({order.items?.length || 0})
+            </h2>
 
-            <div className="space-y-3">
-              {order.items.map((item, i) => (
-                <div key={i} className="flex items-start justify-between p-3 rounded-xl bg-gray-50">
-                  <div>
-                    <p className="font-bold text-gray-900 text-sm">{item.productName}</p>
-                    <div className="flex gap-2 mt-1 flex-wrap">
-                      <span className="text-xs text-gray-400">Qty: {item.quantity}</span>
-                      {item.selectedSize && (
-                        <span className="text-xs bg-white text-gray-600 px-1.5 py-0.5 rounded font-medium border border-gray-200">
-                          {item.selectedSize}
-                        </span>
-                      )}
-                      {item.selectedColor && (
-                        <span className="text-xs bg-white text-gray-600 px-1.5 py-0.5 rounded font-medium border border-gray-200">
-                          {item.selectedColor}
-                        </span>
+            <div className="divide-y divide-neutral-100 dark:divide-zinc-800">
+              {order.items?.map((item, idx) => (
+                <div key={idx} className="py-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-12 h-12 rounded-lg bg-neutral-100 dark:bg-zinc-800 overflow-hidden shrink-0 border border-neutral-200 dark:border-zinc-700">
+                      {item.imageUrl ? (
+                        <img
+                          src={item.imageUrl}
+                          alt={item.productName}
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-neutral-400">
+                          <Package className="w-5 h-5" />
+                        </div>
                       )}
                     </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-neutral-900 dark:text-white truncate">
+                        {item.productName}
+                      </p>
+                      <div className="flex items-center gap-2 text-[11px] text-neutral-400 mt-0.5">
+                        {item.selectedSize && (
+                          <span className="px-1.5 py-0.2 rounded bg-neutral-100 dark:bg-zinc-800 font-mono">
+                            مقاس: {item.selectedSize}
+                          </span>
+                        )}
+                        {item.selectedColor && (
+                          <span className="px-1.5 py-0.2 rounded bg-neutral-100 dark:bg-zinc-800 font-mono">
+                            لون: {item.selectedColor}
+                          </span>
+                        )}
+                        <span>·</span>
+                        <span className="font-mono">الكمية: {item.quantity}</span>
+                      </div>
+                    </div>
                   </div>
-                  <p className="font-black text-gray-900 text-sm">${(item.price * item.quantity).toFixed(2)}</p>
+
+                  <p className="text-xs font-mono font-bold text-neutral-900 dark:text-white whitespace-nowrap">
+                    {(item.price * item.quantity).toLocaleString("ar-SA", {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    <span className="text-[10px] font-sans font-normal text-neutral-400">
+                      {currency}
+                    </span>
+                  </p>
                 </div>
               ))}
             </div>
 
-            <div className="border-t border-gray-100 mt-4 pt-4 flex items-center justify-between">
-              <span className="font-black text-gray-900">Total</span>
-              <span className="font-black text-xl text-primary">${order.total.toFixed(2)}</span>
+            {/* Total Summary */}
+            <div className="pt-4 border-t border-neutral-200/80 dark:border-zinc-800 flex items-center justify-between text-xs">
+              <span className="font-bold text-neutral-500">إجمالي قيمة الطلب</span>
+              <span className="text-base font-black font-mono text-neutral-900 dark:text-white">
+                {order.total.toLocaleString("ar-SA", {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 2,
+                })}{" "}
+                <span className="text-xs font-sans font-normal text-neutral-400">{currency}</span>
+              </span>
             </div>
+          </div>
 
-            {/* Status quick update */}
-            <div className="mt-5 pt-4 border-t border-gray-100">
-              <p className="text-xs text-gray-400 font-bold uppercase tracking-wide mb-3">Update Status</p>
-              <div className="flex gap-2">
-                {STATUS_STEPS.map(s => (
-                  <button
-                    key={s.key}
-                    onClick={() => handleStatusChange(s.key as UpdateOrderStatusBodyStatus)}
-                    disabled={order.status === s.key || updateStatus.isPending}
-                    className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all border ${
-                      order.status === s.key
-                        ? "bg-primary text-white border-primary"
-                        : "bg-gray-50 text-gray-500 border-gray-200 hover:border-primary hover:text-primary"
-                    }`}
-                  >
-                    {s.label}
-                  </button>
-                ))}
+          {/* Customer Details & Actions */}
+          <div className="md:col-span-4 space-y-4">
+            {/* Customer Contact Card */}
+            <div className="bg-white dark:bg-zinc-900 border border-neutral-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-xs space-y-4">
+              <h3 className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider">
+                بيانات العميل والتوصيل
+              </h3>
+
+              <div className="space-y-3 text-xs">
+                <div className="flex items-start gap-2.5">
+                  <User className="w-4 h-4 text-neutral-400 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-neutral-400 text-[11px] block">اسم العميل</span>
+                    <span className="font-bold text-neutral-900 dark:text-white">
+                      {order.customerName}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2.5">
+                  <Phone className="w-4 h-4 text-neutral-400 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-neutral-400 text-[11px] block">رقم الهاتف</span>
+                    <span className="font-mono font-bold text-neutral-900 dark:text-white dir-ltr block text-right">
+                      {order.customerPhone}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2.5">
+                  <MapPin className="w-4 h-4 text-neutral-400 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-neutral-400 text-[11px] block">عنوان التوصيل</span>
+                    <span className="text-neutral-700 dark:text-zinc-300 leading-relaxed">
+                      {order.customerAddress || "لم يتم تحديد عنوان تفصيلي"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Direct Contact Actions */}
+              <div className="pt-2 border-t border-neutral-100 dark:border-zinc-800 space-y-2">
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-xs"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>تواصل عبر واتساب</span>
+                </a>
+                <a
+                  href={`tel:${order.customerPhone}`}
+                  className="w-full py-2 px-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-neutral-800 dark:text-zinc-200 font-bold text-xs flex items-center justify-center gap-2 transition-colors"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  <span>اتصال هاتفي</span>
+                </a>
               </div>
             </div>
-          </motion.div>
+
+            {/* Merchant Note */}
+            <div className="p-4 rounded-xl bg-neutral-50 dark:bg-zinc-800/40 border border-neutral-200/60 dark:border-zinc-800 text-[11px] text-neutral-500 leading-relaxed space-y-1">
+              <p className="font-bold text-neutral-700 dark:text-zinc-300 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>إجراءات استكمال الطلب</span>
+              </p>
+              <p>
+                يُنصح بالتواصل مع العميل عبر واتساب لتأكيد موعد التوصيل وطريقة الدفع قبل تغيير الحالة إلى "مكتمل".
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </DashboardLayout>

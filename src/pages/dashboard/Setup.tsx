@@ -1,15 +1,13 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { 
-  useInitDashboardStore,
-  getGetDashboardStoreQueryKey
-} from "@/services/api";
+import { useInitDashboardStore, getGetDashboardStoreQueryKey } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { Package } from "lucide-react";
+import { Store, ArrowLeft } from "lucide-react";
+import DukkaniLogo from "@/components/ui/DukkaniLogo";
 
 export default function Setup() {
   const [, setLocation] = useLocation();
@@ -21,62 +19,114 @@ export default function Setup() {
     name: "",
     slug: "",
     whatsappNumber: "",
-    primaryColor: "#000000"
+    primaryColor: "#991B1B",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    initStore.mutate({ data: form }, {
-      onSuccess: () => {
-        toast({ title: "Store created successfully!" });
-        queryClient.invalidateQueries({ queryKey: getGetDashboardStoreQueryKey() });
-        setLocation("/dashboard");
+
+    initStore.mutate(
+      { data: form },
+      {
+        onSuccess: () => {
+          toast({ title: "تم إنشاء وتجهيز متجرك بنجاح!" });
+          queryClient.invalidateQueries({ queryKey: getGetDashboardStoreQueryKey() });
+          setLocation("/dashboard");
+        },
+        onError: () => {
+          toast({ title: "تعذر إعداد المتجر، يرجى المحاولة مرة أخرى", variant: "destructive" });
+        },
       },
-      onError: () => {
-        toast({ title: "Failed to create store", variant: "destructive" });
-      }
-    });
+    );
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/20 p-4">
-      <div className="max-w-md w-full bg-card p-8 rounded-xl shadow-lg border space-y-6">
+    <div
+      className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-zinc-950 p-4"
+      dir="rtl"
+    >
+      <div className="max-w-md w-full bg-white dark:bg-zinc-900 p-6 sm:p-8 rounded-2xl shadow-xs border border-neutral-200/80 dark:border-zinc-800 space-y-6">
         <div className="text-center space-y-2">
-          <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-            <Package className="w-6 h-6 text-primary" />
+          <div className="mx-auto flex justify-center mb-2">
+            <DukkaniLogo size="md" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Create Your Store</h1>
-          <p className="text-muted-foreground text-sm">Set up your marketplace presence in seconds.</p>
+          <h1 className="text-xl font-black text-neutral-900 dark:text-white tracking-tight">
+            تهيئة متجرك الرقمي
+          </h1>
+          <p className="text-xs text-neutral-500 dark:text-zinc-400">
+            أدخل البيانات الأساسية لإطلاق واجهة متجرك الإلكتروني واستقبال الطلبات.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Store Name</Label>
-            <Input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="My Awesome Store" />
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold text-neutral-700 dark:text-zinc-300">اسم المتجر</Label>
+            <Input
+              required
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="مثال: متجر النخبة"
+              className="h-10 text-xs bg-neutral-50 dark:bg-zinc-800/60 border-neutral-200 dark:border-zinc-700 rounded-xl"
+            />
           </div>
 
-          <div className="space-y-2">
-            <Label>Store URL Slug</Label>
-            <Input required value={form.slug} onChange={e => setForm({ ...form, slug: e.target.value })} placeholder="my-awesome-store" />
-            <p className="text-[10px] text-muted-foreground">This will be your store link: /store/<b>{form.slug || 'slug'}</b></p>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold text-neutral-700 dark:text-zinc-300">معرّف الرابط (Slug)</Label>
+            <Input
+              required
+              dir="ltr"
+              value={form.slug}
+              onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase().replace(/\s+/g, "-") })}
+              placeholder="elite-store"
+              className="h-10 text-xs font-mono bg-neutral-50 dark:bg-zinc-800/60 border-neutral-200 dark:border-zinc-700 rounded-xl"
+            />
+            <p className="text-[11px] text-neutral-400">
+              سيكون رابط متجرك: <span className="font-mono text-neutral-600 dark:text-zinc-300">/store/{form.slug || "slug"}</span>
+            </p>
           </div>
 
-          <div className="space-y-2">
-            <Label>WhatsApp Number</Label>
-            <Input required value={form.whatsappNumber} onChange={e => setForm({ ...form, whatsappNumber: e.target.value })} placeholder="+1234567890" />
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold text-neutral-700 dark:text-zinc-300">رقم الواتساب للتواصل</Label>
+            <Input
+              required
+              dir="ltr"
+              value={form.whatsappNumber}
+              onChange={(e) => setForm({ ...form, whatsappNumber: e.target.value })}
+              placeholder="+967771234567"
+              className="h-10 text-xs font-mono bg-neutral-50 dark:bg-zinc-800/60 border-neutral-200 dark:border-zinc-700 rounded-xl"
+            />
           </div>
 
-          <div className="space-y-2 pb-4">
-            <Label>Brand Color (Hex)</Label>
-            <div className="flex gap-4">
-              <Input type="color" className="w-16 h-10 p-1" value={form.primaryColor} onChange={e => setForm({ ...form, primaryColor: e.target.value })} />
-              <Input value={form.primaryColor} onChange={e => setForm({ ...form, primaryColor: e.target.value })} className="flex-1" />
+          <div className="space-y-1.5 pb-2">
+            <Label className="text-xs font-bold text-neutral-700 dark:text-zinc-300">اللون الأساسي للهوية</Label>
+            <div className="flex gap-3 items-center">
+              <input
+                type="color"
+                className="w-10 h-10 p-0 border border-neutral-200 dark:border-zinc-700 rounded-lg cursor-pointer"
+                value={form.primaryColor}
+                onChange={(e) => setForm({ ...form, primaryColor: e.target.value })}
+              />
+              <Input
+                value={form.primaryColor}
+                onChange={(e) => setForm({ ...form, primaryColor: e.target.value })}
+                className="flex-1 font-mono text-xs h-10 bg-neutral-50 dark:bg-zinc-800/60 border-neutral-200 dark:border-zinc-700 rounded-xl"
+              />
             </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={initStore.isPending}>
-            {initStore.isPending ? "Creating..." : "Complete Setup"}
+          <Button
+            type="submit"
+            className="w-full h-11 text-xs font-bold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-xs"
+            disabled={initStore.isPending}
+          >
+            {initStore.isPending ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <span className="flex items-center justify-center gap-2">
+                <span>إتمام التهيئة والانتقال للوحة التحكم</span>
+                <ArrowLeft className="w-4 h-4" />
+              </span>
+            )}
           </Button>
         </form>
       </div>

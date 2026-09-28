@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import DukkaniLogo from "@/components/ui/DukkaniLogo";
 
 export default function Login() {
@@ -23,7 +23,7 @@ export default function Login() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      if (!res.ok) throw new Error((await res.json()).error || "بيانات خاطئة");
+      if (!res.ok) throw new Error((await res.json()).error || "البريد الإلكتروني أو كلمة المرور غير صحيحة");
       const data = await res.json();
       localStorage.setItem("dukkani_token", data.token);
       localStorage.setItem("dukkani_user", JSON.stringify(data.user));
@@ -38,56 +38,99 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] p-4 relative overflow-hidden" dir="rtl" style={{ fontFamily: "'Alexandria', 'Tajawal', sans-serif" }}>
-      {/* Decorative Soft Glow Elements */}
-      <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-rose-400/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="w-full max-w-md bg-white border border-slate-200/90 rounded-3xl shadow-[0_10px_35px_rgba(0,0,0,0.05)] p-8 relative z-10">
-        {/* Logo */}
+    <div
+      className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-zinc-950 p-4"
+      dir="rtl"
+    >
+      <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-neutral-200/80 dark:border-zinc-800 rounded-2xl shadow-xs p-6 sm:p-8">
+        {/* Brand & Return */}
         <div className="flex items-center justify-between mb-8">
-          <div onClick={() => setLocation("/")} className="cursor-pointer">
-            <DukkaniLogo variant="crimson" size="md" />
+          <div onClick={() => setLocation("/store")} className="cursor-pointer">
+            <DukkaniLogo size="md" />
           </div>
-          <button onClick={() => setLocation("/")} className="text-xs font-bold text-slate-500 hover:text-[#E4122C] transition-colors">
-            العودة للرئيسية
+          <button
+            onClick={() => setLocation("/store")}
+            className="text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors"
+          >
+            العودة للمتجر
           </button>
         </div>
 
-        <h1 className="text-2xl font-black text-slate-900 mb-1">مرحباً بعودتك</h1>
-        <p className="text-slate-500 text-sm mb-6">سجّل دخولك للوصول إلى لوحة تحكم دكانك</p>
+        <h1 className="text-xl font-black text-neutral-900 dark:text-white mb-1">
+          تسجيل دخول التاجر
+        </h1>
+        <p className="text-xs text-neutral-500 dark:text-zinc-400 mb-6">
+          أدخل بيانات حسابك للوصول إلى لوحة إدارة متجرك والطلبات.
+        </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="email" className="text-slate-700 font-bold text-xs">البريد الإلكتروني</Label>
-            <Input id="email" type="email" required dir="ltr" placeholder="you@example.com"
-              className="mt-1.5 h-11 bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:border-[#E4122C] focus:ring-[#E4122C] rounded-xl" value={form.email}
-              onChange={e => setForm({ ...form, email: e.target.value })} />
+          <div className="space-y-1.5">
+            <Label htmlFor="email" className="text-neutral-700 dark:text-zinc-300 font-bold text-xs">
+              البريد الإلكتروني
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              required
+              dir="ltr"
+              placeholder="name@domain.com"
+              className="h-10 text-xs bg-neutral-50 dark:bg-zinc-800/60 border-neutral-200 dark:border-zinc-700 text-neutral-900 dark:text-white rounded-xl focus:border-red-600 focus:ring-red-600"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
           </div>
-          <div>
+
+          <div className="space-y-1.5">
             <div className="flex justify-between items-center">
-              <Label htmlFor="password" className="text-slate-700 font-bold text-xs">كلمة المرور</Label>
-              <button type="button" className="text-xs font-bold text-[#E4122C] hover:text-[#CC0A22] transition-colors">نسيت كلمة المرور؟</button>
+              <Label htmlFor="password" className="text-neutral-700 dark:text-zinc-300 font-bold text-xs">
+                كلمة المرور
+              </Label>
             </div>
-            <div className="relative mt-1.5">
-              <Input id="password" type={showPass ? "text" : "password"} required
-                placeholder="••••••••" className="h-11 pl-10 bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:border-[#E4122C] focus:ring-[#E4122C] rounded-xl" value={form.password}
-                onChange={e => setForm({ ...form, password: e.target.value })} />
-              <button type="button" onClick={() => setShowPass(!showPass)}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
-                {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPass ? "text" : "password"}
+                required
+                dir="ltr"
+                placeholder="••••••••"
+                className="h-10 pl-10 text-xs bg-neutral-50 dark:bg-zinc-800/60 border-neutral-200 dark:border-zinc-700 text-neutral-900 dark:text-white rounded-xl focus:border-red-600 focus:ring-red-600"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPass(!showPass)}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-zinc-200 transition-colors p-1"
+                aria-label={showPass ? "إخفاء كلمة المرور" : "عرض كلمة المرور"}
+              >
+                {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
 
-          <Button type="submit" disabled={loading} className="w-full h-12 text-base font-bold mt-6 text-white bg-[#E4122C] hover:bg-[#CC0A22] transition-all border-none rounded-2xl shadow-lg shadow-red-600/25">
-            {loading ? "جارٍ الدخول..." : <span className="flex items-center justify-center gap-2">دخول لوحة التحكم <ArrowRight size={18} /></span>}
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full h-11 text-xs font-bold mt-4 text-white bg-red-600 hover:bg-red-700 transition-colors rounded-xl shadow-xs"
+          >
+            {loading ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <span className="flex items-center justify-center gap-2">
+                <span>دخول لوحة التحكم</span>
+                <ArrowLeft size={16} />
+              </span>
+            )}
           </Button>
 
-          <p className="text-center text-sm text-slate-500 mt-6 font-medium">
-            ليس لديك حساب؟{" "}
-            <button type="button" onClick={() => setLocation("/register")} className="text-[#E4122C] font-bold hover:underline">
-              أنشئ دكانك مجاناً
+          <p className="text-center text-xs text-neutral-500 dark:text-zinc-400 mt-6">
+            ليس لديك متجر بعد؟{" "}
+            <button
+              type="button"
+              onClick={() => setLocation("/register")}
+              className="text-red-600 font-bold hover:underline"
+            >
+              سجّل متجرك الجديد
             </button>
           </p>
         </form>

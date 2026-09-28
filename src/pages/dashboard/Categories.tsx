@@ -4,164 +4,172 @@ import {
   useListDashboardCategories,
   useCreateDashboardCategory,
   useDeleteDashboardCategory,
-  getListDashboardCategoriesQueryKey
+  useListDashboardProducts,
+  getListDashboardCategoriesQueryKey,
 } from "@/services/api";
-import { Trash2, Plus, Tag, Search, MoreVertical } from "lucide-react";
+import { Trash2, Plus, Tag, Search, Folder } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { motion, AnimatePresence } from "framer-motion";
-
-const PALETTE = [
-  "bg-rose-50 text-rose-600 border-rose-100", 
-  "bg-blue-50 text-blue-600 border-blue-100", 
-  "bg-emerald-50 text-emerald-600 border-emerald-100",
-  "bg-violet-50 text-violet-600 border-violet-100", 
-  "bg-amber-50 text-amber-600 border-amber-100", 
-  "bg-pink-50 text-pink-600 border-pink-100",
-  "bg-teal-50 text-teal-600 border-teal-100", 
-  "bg-orange-50 text-orange-600 border-orange-100",
-];
 
 export default function Categories() {
   const { data: categories, isLoading } = useListDashboardCategories();
+  const { data: products } = useListDashboardProducts();
   const createCategory = useCreateDashboardCategory();
   const deleteCategory = useDeleteDashboardCategory();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
   const [newCatName, setNewCatName] = useState("");
+  const [search, setSearch] = useState("");
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCatName.trim()) return;
-    createCategory.mutate({ data: { name: newCatName.trim() } }, {
-      onSuccess: () => {
-        setNewCatName("");
-        toast({ title: "تمت إضافة القسم بنجاح" });
-        queryClient.invalidateQueries({ queryKey: getListDashboardCategoriesQueryKey() });
-      }
-    });
+    createCategory.mutate(
+      { data: { name: newCatName.trim() } },
+      {
+        onSuccess: () => {
+          setNewCatName("");
+          toast({ title: "تمت إضافة القسم بنجاح" });
+          queryClient.invalidateQueries({ queryKey: getListDashboardCategoriesQueryKey() });
+        },
+      },
+    );
   };
 
   const handleDelete = (id: number, name: string) => {
     if (confirm(`هل أنت متأكد من حذف قسم "${name}"؟`)) {
-      deleteCategory.mutate({ categoryId: id }, {
-        onSuccess: () => {
-          toast({ title: "تم حذف القسم" });
-          queryClient.invalidateQueries({ queryKey: getListDashboardCategoriesQueryKey() });
-        }
-      });
+      deleteCategory.mutate(
+        { categoryId: id },
+        {
+          onSuccess: () => {
+            toast({ title: "تم حذف القسم" });
+            queryClient.invalidateQueries({ queryKey: getListDashboardCategoriesQueryKey() });
+          },
+        },
+      );
     }
   };
 
+  const filteredCategories =
+    categories?.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())) ?? [];
+
   return (
     <DashboardLayout>
-      <div className="space-y-10 max-w-4xl mx-auto" dir="rtl">
+      <div className="max-w-4xl space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-neutral-200/80 dark:border-zinc-800">
           <div>
-            <h1 className="text-3xl font-black text-gray-900 tracking-tight">الأقسام</h1>
-            <p className="text-gray-400 font-medium mt-2">نظم منتجاتك في أقسام ليسهل على عملائك العثور عليها.</p>
+            <h1 className="text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+              أقسام المتجر
+            </h1>
+            <p className="text-xs text-neutral-500 dark:text-zinc-400 mt-1">
+              تنظيم وتصنيف المنتجات لتسهيل تجربة التصفح والبحث على العملاء.
+            </p>
           </div>
-          <div className="bg-primary/5 px-4 py-2 rounded-2xl border border-primary/10">
-             <p className="text-primary text-xs font-black">إجمالي الأقسام: {categories?.length ?? 0}</p>
+          <div className="px-3 py-1.5 rounded-xl bg-neutral-100 dark:bg-zinc-800 text-[11px] font-bold text-neutral-600 dark:text-zinc-400 self-start sm:self-auto">
+            إجمالي الأقسام: {categories?.length ?? 0}
           </div>
         </div>
 
-        {/* Add Form Card */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm"
-        >
-          <h3 className="font-black text-gray-900 mb-6">إضافة قسم جديد</h3>
-          <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1 group">
-              <Tag className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 group-focus-within:text-primary transition-colors" />
+        {/* Add Category Form Card */}
+        <div className="bg-white dark:bg-zinc-900 border border-neutral-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-xs">
+          <h2 className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider mb-3">
+            إضافة قسم جديد
+          </h2>
+          <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Tag className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
               <input
-                placeholder="اسم القسم (مثلاً: ملابس رجالية، أحذية...)"
+                type="text"
+                placeholder="اسم القسم (مثال: أزياء رجالية، عطور ملكية، إكسسوارات...)"
                 value={newCatName}
-                onChange={e => setNewCatName(e.target.value)}
-                className="w-full pr-14 pl-6 py-4 text-sm bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-primary/20 transition-all font-bold text-gray-900 placeholder:text-gray-300"
+                onChange={(e) => setNewCatName(e.target.value)}
+                className="w-full pr-10 pl-4 py-2.5 text-xs bg-neutral-50 dark:bg-zinc-800/60 border border-neutral-200 dark:border-zinc-700 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-red-600/20 focus:border-red-600 transition-all font-medium text-neutral-900 dark:text-white placeholder:text-neutral-400"
               />
             </div>
             <button
               type="submit"
               disabled={createCategory.isPending || !newCatName.trim()}
-              className="flex items-center justify-center gap-3 px-8 py-4 bg-primary text-white text-sm font-black rounded-2xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary/20"
+              className="px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-xs"
             >
               {createCategory.isPending ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                <Plus className="w-5 h-5" />
+                <Plus className="w-4 h-4" />
               )}
-              إضافة القسم
+              <span>إضافة القسم</span>
             </button>
           </form>
-        </motion.div>
+        </div>
 
-        {/* List Section */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between px-2">
-             <h3 className="font-black text-gray-900">الأقسام الحالية</h3>
-             <div className="flex items-center gap-2 text-xs font-bold text-gray-400 bg-white px-3 py-1.5 rounded-full border border-gray-100">
-               <Search className="w-3.5 h-3.5" />
-               بحث…
-             </div>
+        {/* Search & List */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-xs font-bold text-neutral-900 dark:text-white">الأقسام الحالية</h3>
+            <div className="relative w-48 sm:w-64">
+              <Search className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="تصفية الأقسام..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pr-8 pl-3 py-1.5 text-xs bg-white dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-800 rounded-xl focus:outline-hidden font-medium text-neutral-900 dark:text-white placeholder:text-neutral-400"
+              />
+            </div>
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-24 bg-white border border-gray-50 rounded-3xl animate-pulse" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-20 bg-neutral-100 dark:bg-zinc-800/60 rounded-xl animate-pulse" />
               ))}
             </div>
-          ) : categories && categories.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <AnimatePresence mode="popLayout">
-                {categories.map((cat, i) => (
-                  <motion.div
-                    key={cat.id}
-                    layout
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ delay: i * 0.05 }}
-                    className="group bg-white border border-gray-100 rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 relative overflow-hidden"
-                  >
-                    <div className="flex items-center gap-5 relative z-10">
-                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black border-2 ${PALETTE[i % PALETTE.length]} transition-transform group-hover:scale-110 duration-500`}>
-                        {cat.name.charAt(0)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="block font-black text-gray-900 text-base truncate group-hover:text-primary transition-colors">{cat.name}</span>
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1 block">رقم القسم: #{cat.id}</span>
-                      </div>
-                      <button
-                        onClick={() => handleDelete(cat.id, cat.name)}
-                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100 transition-all opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                    
-                    {/* Decorative Background Element */}
-                    <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-gray-50/50 rounded-full group-hover:bg-primary/5 transition-colors duration-500" />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+          ) : filteredCategories.length === 0 ? (
+            <div className="bg-white dark:bg-zinc-900 border border-neutral-200/80 dark:border-zinc-800 rounded-2xl py-12 text-center text-xs text-neutral-400">
+              {categories && categories.length > 0
+                ? "لا توجد أقسام تطابق البحث."
+                : "لم يتم إنشاء أقسام بعد. استخدم النموذج أعلاه لإضافة قسمك الأول."}
             </div>
           ) : (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="bg-white border-2 border-dashed border-gray-100 rounded-[3rem] py-24 text-center"
-            >
-              <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Tag className="w-10 h-10 text-gray-200" />
-              </div>
-              <h3 className="font-black text-gray-900 text-lg">لا توجد أقسام حالياً</h3>
-              <p className="text-sm text-gray-400 mt-2 max-w-[250px] mx-auto font-medium">ابدأ بتنظيم متجرك عن طريق إضافة أول قسم لك في النموذج أعلاه.</p>
-            </motion.div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {filteredCategories.map((cat) => {
+                const count =
+                  products?.filter(
+                    (p) => p.categoryId === cat.id || (p as any).category_id === cat.id,
+                  ).length ?? 0;
+
+                return (
+                  <div
+                    key={cat.id}
+                    className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-neutral-200/80 dark:border-zinc-800 hover:border-neutral-300 dark:hover:border-zinc-700 transition-colors flex items-center justify-between gap-3 shadow-xs"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-lg bg-neutral-100 dark:bg-zinc-800 flex items-center justify-center text-neutral-700 dark:text-zinc-300 shrink-0">
+                        <Folder className="w-4 h-4 text-red-600" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-neutral-900 dark:text-white truncate">
+                          {cat.name}
+                        </p>
+                        <p className="text-[11px] text-neutral-400 mt-0.5">
+                          {count} {count === 1 ? "منتج" : count === 2 ? "منتجان" : "منتجات"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleDelete(cat.id, cat.name)}
+                      className="p-2 text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+                      title="حذف القسم"
+                      aria-label="حذف"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
       </div>

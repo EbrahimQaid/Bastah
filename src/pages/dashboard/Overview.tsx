@@ -1,20 +1,32 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useGetDashboardStats, useListDashboardOrders, useGetDashboardStore } from "@/services/api";
 import { Link } from "wouter";
-import { Package, ShoppingCart, DollarSign, TrendingUp, ArrowLeft, Clock, CheckCircle2, MessageCircle, ExternalLink, Users } from "lucide-react";
-import { motion } from "framer-motion";
+import {
+  Package,
+  ShoppingCart,
+  DollarSign,
+  ArrowLeft,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  ExternalLink,
+  Plus,
+  Settings,
+} from "lucide-react";
 
 const STATUS_CONFIG = {
-  new:       { label: "جديد",       color: "bg-blue-50 text-blue-600 border-blue-100",   dot: "bg-blue-500" },
-  contacted: { label: "تم التواصل", color: "bg-amber-50 text-amber-600 border-amber-100", dot: "bg-amber-500" },
-  completed: { label: "مكتمل",       color: "bg-emerald-50 text-emerald-600 border-emerald-100", dot: "bg-emerald-500" },
+  new:       { label: "جديد",       color: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 border-blue-200 dark:border-blue-800" },
+  contacted: { label: "تم التواصل", color: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border-amber-200 dark:border-amber-800" },
+  completed: { label: "مكتمل",       color: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800" },
 } as const;
 
 function StatusBadge({ status }: { status: string }) {
-  const cfg = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] ?? { label: status, color: "bg-gray-50 text-gray-600 border-gray-100", dot: "bg-gray-400" };
+  const cfg = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] ?? {
+    label: status,
+    color: "bg-neutral-100 text-neutral-700 dark:bg-zinc-800 dark:text-zinc-300 border-neutral-200 dark:border-zinc-700",
+  };
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${cfg.color}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${cfg.color}`}>
       {cfg.label}
     </span>
   );
@@ -26,268 +38,228 @@ export default function Overview() {
   const { data: store } = useGetDashboardStore();
 
   const isLoading = statsLoading || ordersLoading;
-
-  const newOrders = orders?.filter(o => o.status === "new") ?? [];
   const recentOrders = orders?.slice(0, 6) ?? [];
-
-  const statCards = [
-    {
-      title: "إجمالي المبيعات",
-      value: `${(stats?.totalRevenue || 0).toLocaleString("ar-SA", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ${store?.defaultCurrency || "ر.س"}`,
-      icon: DollarSign,
-      color: "bg-violet-50 text-violet-600",
-      trend: "إجمالي الأرباح المحققة للمتجر",
-    },
-    {
-      title: "إجمالي الطلبات",
-      value: stats?.totalOrders ?? 0,
-      icon: ShoppingCart,
-      color: "bg-blue-50 text-blue-600",
-      trend: `${stats?.newOrders ?? 0} طلبات جديدة قيد الانتظار`,
-    },
-    {
-      title: "طلبات جديدة",
-      value: stats?.newOrders ?? 0,
-      icon: TrendingUp,
-      color: "bg-amber-50 text-amber-600",
-      trend: "تحتاج إلى مراجعة وتجهيز",
-    },
-    {
-      title: "المنتجات",
-      value: stats?.totalProducts ?? 0,
-      icon: Package,
-      color: "bg-emerald-50 text-emerald-600",
-      trend: "منتجات مسجلة في المتجر",
-    },
-  ];
+  const pendingOrders = orders?.filter((o) => o.status === "new") ?? [];
+  const currency = store?.defaultCurrency || "ر.س";
 
   return (
     <DashboardLayout>
-      <div className="space-y-10" dir="rtl">
+      <div className="space-y-8" dir="rtl">
         {/* Welcome Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-neutral-200/80 dark:border-zinc-800">
           <div>
-            <h1 className="text-3xl font-black text-gray-900 tracking-tight">
-               مرحباً{store?.name ? `، ${store.name}` : ""} 👋
+            <h1 className="text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+              لوحة التحكم
             </h1>
-            <p className="text-gray-400 font-medium mt-2">إليك ملخص سريع لأداء متجرك اليوم.</p>
+            <p className="text-xs text-neutral-500 dark:text-zinc-400 mt-1">
+              متابعة مباشرة لأداء المبيعات والمخزون والطلبات الواردة لمتجر {store?.name || ""}.
+            </p>
           </div>
-          <div className="flex items-center gap-3">
-             <div className="flex -space-x-3 rtl:space-x-reverse items-center ml-4">
-                {[1,2,3].map(i => (
-                  <div key={i} className="w-10 h-10 rounded-full border-4 border-white bg-gray-100 flex items-center justify-center overflow-hidden shadow-sm">
-                    <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="User" />
-                  </div>
-                ))}
-                <div className="w-10 h-10 rounded-full border-4 border-white bg-primary text-white text-[10px] font-black flex items-center justify-center shadow-sm">
-                  +12
-                </div>
-             </div>
-             <p className="text-xs font-bold text-gray-400">عملاء نشطون الآن</p>
+          <div className="flex items-center gap-2">
+            <Link href="/dashboard/products/new">
+              <button className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center gap-2 transition-transform active:scale-95 shadow-xs">
+                <Plus className="w-4 h-4" />
+                <span>إضافة منتج</span>
+              </button>
+            </Link>
+            <a
+              href="/store"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3.5 py-2 rounded-xl bg-white dark:bg-zinc-800 hover:bg-neutral-100 dark:hover:bg-zinc-700 text-neutral-800 dark:text-zinc-200 font-bold text-xs border border-neutral-200 dark:border-zinc-700 flex items-center gap-1.5 transition-colors"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>المتجر</span>
+            </a>
           </div>
         </div>
 
-        {/* Statistics Grid */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {isLoading ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-40 rounded-3xl bg-white border border-gray-100 animate-pulse" />
-            ))
-          ) : (
-            statCards.map((card, i) => (
-              <motion.div
-                key={card.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className="group bg-white rounded-3xl border border-gray-100 p-6 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-500"
-              >
-                <div className="flex items-start justify-between mb-6">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-500 ${card.color}`}>
-                    <card.icon className="w-6 h-6" />
-                  </div>
-                  <div className="px-2.5 py-1 bg-gray-50 rounded-lg border border-gray-100">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">مباشر</p>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-gray-400 mb-1">{card.title}</p>
-                  <p className="text-3xl font-black text-gray-900 tracking-tight">{card.value}</p>
-                  <div className="mt-4 flex items-center gap-2">
-                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-green-50 text-green-600">
-                      <TrendingUp className="w-3 h-3" />
-                    </span>
-                    <p className="text-[11px] text-gray-400 font-bold">{card.trend}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))
-          )}
-        </div>
-
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Recent Orders List */}
-          <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-8 py-6 border-b border-gray-50 bg-gray-50/30">
-              <div>
-                <h2 className="font-black text-gray-900 text-lg">أحدث الطلبات</h2>
-                <p className="text-xs font-bold text-gray-400 mt-0.5">آخر المبيعات التي تمت في متجرك</p>
+        {/* Real KPI Metrics Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-neutral-200/80 dark:border-zinc-800 shadow-xs">
+            <div className="flex items-center justify-between text-neutral-500 mb-3">
+              <span className="text-xs font-bold">إجمالي المبيعات</span>
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center">
+                <DollarSign className="w-4 h-4" />
               </div>
-              <Link href="/dashboard/orders" className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-gray-200 text-xs font-black text-gray-600 hover:border-primary hover:text-primary transition-all">
-                عرض الكل <ArrowLeft className="w-3 h-3" />
+            </div>
+            <p className="text-2xl font-black font-mono tabular-nums text-neutral-900 dark:text-white">
+              {(stats?.totalRevenue || 0).toLocaleString("ar-SA", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}{" "}
+              <span className="text-xs font-sans text-neutral-500">{currency}</span>
+            </p>
+            <p className="text-[11px] text-neutral-400 mt-1">إجمالي قيمة الطلبات المسجلة</p>
+          </div>
+
+          <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-neutral-200/80 dark:border-zinc-800 shadow-xs">
+            <div className="flex items-center justify-between text-neutral-500 mb-3">
+              <span className="text-xs font-bold">إجمالي الطلبات</span>
+              <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center">
+                <ShoppingCart className="w-4 h-4" />
+              </div>
+            </div>
+            <p className="text-2xl font-black font-mono tabular-nums text-neutral-900 dark:text-white">
+              {stats?.totalOrders ?? 0}
+            </p>
+            <p className="text-[11px] text-neutral-400 mt-1">كافة الطلبات منذ إنشاء المتجر</p>
+          </div>
+
+          <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-neutral-200/80 dark:border-zinc-800 shadow-xs">
+            <div className="flex items-center justify-between text-neutral-500 mb-3">
+              <span className="text-xs font-bold">بانتظار المراجعة</span>
+              <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center">
+                <AlertCircle className="w-4 h-4" />
+              </div>
+            </div>
+            <p className="text-2xl font-black font-mono tabular-nums text-amber-600">
+              {pendingOrders.length}
+            </p>
+            <p className="text-[11px] text-neutral-400 mt-1">طلبات جديدة تحتاج تواصل وتأكيد</p>
+          </div>
+
+          <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-neutral-200/80 dark:border-zinc-800 shadow-xs">
+            <div className="flex items-center justify-between text-neutral-500 mb-3">
+              <span className="text-xs font-bold">المنتجات في الكتالوج</span>
+              <div className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-zinc-800 text-neutral-700 dark:text-zinc-300 flex items-center justify-center">
+                <Package className="w-4 h-4" />
+              </div>
+            </div>
+            <p className="text-2xl font-black font-mono tabular-nums text-neutral-900 dark:text-white">
+              {stats?.totalProducts ?? 0}
+            </p>
+            <p className="text-[11px] text-neutral-400 mt-1">منتجات معروضة ومخزنة</p>
+          </div>
+        </div>
+
+        {/* Content Layout: Recent Orders & Quick Controls */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Recent Orders List */}
+          <div className="lg:col-span-8 bg-white dark:bg-zinc-900 rounded-2xl border border-neutral-200/80 dark:border-zinc-800 shadow-xs overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-neutral-100 dark:border-zinc-800 flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-bold text-neutral-900 dark:text-white">أحدث الطلبات الواردة</h2>
+                <p className="text-[11px] text-neutral-400">قائمة بأحدث عمليات الشراء المكتملة أو قيد الانتظار</p>
+              </div>
+              <Link href="/dashboard/orders">
+                <button className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1 transition-colors">
+                  <span>عرض الكل</span>
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                </button>
               </Link>
             </div>
-            
-            <div className="divide-y divide-gray-50">
-              {isLoading ? (
-                Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="px-8 py-6 flex items-center justify-between animate-pulse">
-                    <div className="flex items-center gap-4">
-                       <div className="w-12 h-12 rounded-2xl bg-gray-50" />
-                       <div className="space-y-2">
-                        <div className="w-32 h-4 bg-gray-50 rounded" />
-                        <div className="w-20 h-3 bg-gray-50 rounded" />
+
+            {isLoading ? (
+              <div className="p-6 space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-14 bg-neutral-100 dark:bg-zinc-800/60 rounded-xl animate-pulse" />
+                ))}
+              </div>
+            ) : recentOrders.length === 0 ? (
+              <div className="py-16 text-center text-neutral-400 space-y-2">
+                <ShoppingCart className="w-8 h-8 mx-auto opacity-30" />
+                <p className="text-xs font-bold">لا توجد طلبات واردة حتى الآن</p>
+                <p className="text-[11px]">ستظهر طلبات العملاء فور إتمام الشراء عبر واجهة المتجر.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-neutral-100 dark:divide-zinc-800">
+                {recentOrders.map((order) => (
+                  <Link key={order.id} href={`/dashboard/orders/${order.id}`}>
+                    <div className="p-4 sm:px-5 flex items-center justify-between hover:bg-neutral-50 dark:hover:bg-zinc-800/40 transition-colors cursor-pointer group">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-neutral-100 dark:bg-zinc-800 flex items-center justify-center text-xs font-mono font-bold text-neutral-700 dark:text-zinc-300">
+                          #{order.id}
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-neutral-900 dark:text-white group-hover:text-red-600 transition-colors">
+                            {order.customerName}
+                          </p>
+                          <div className="flex items-center gap-2 text-[11px] text-neutral-400 mt-0.5">
+                            <Clock className="w-3 h-3" />
+                            <span>
+                              {new Date(order.createdAt).toLocaleDateString("ar-SA", {
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </span>
+                            <span>·</span>
+                            <span>{order.customerPhone}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <StatusBadge status={order.status} />
+                        <p className="text-xs font-mono font-black text-neutral-900 dark:text-white text-left">
+                          {order.total.toLocaleString("ar-SA", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}{" "}
+                          <span className="text-[10px] font-sans font-normal text-neutral-400">{currency}</span>
+                        </p>
                       </div>
                     </div>
-                    <div className="w-24 h-8 bg-gray-50 rounded-full" />
-                  </div>
-                ))
-              ) : recentOrders.length === 0 ? (
-                <div className="px-8 py-20 text-center flex flex-col items-center">
-                  <div className="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center mb-4">
-                    <ShoppingCart className="w-8 h-8 text-gray-200" />
-                  </div>
-                  <h3 className="font-black text-gray-900">لا توجد طلبات بعد</h3>
-                  <p className="text-sm text-gray-400 mt-1 max-w-[200px]">ستظهر الطلبات الجديدة هنا بمجرد وصولها.</p>
-                </div>
-              ) : (
-                recentOrders.map((order, idx) => (
-                  <motion.div
-                    key={order.id}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                  >
-                    <Link href={`/dashboard/orders/${order.id}`}>
-                      <div className="px-8 py-5 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer group">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center text-sm font-black text-gray-500 border border-gray-200 group-hover:scale-110 transition-transform">
-                            {order.customerName.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <p className="font-black text-sm text-gray-900">{order.customerName}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                               <Clock className="w-3 h-3 text-gray-300" />
-                               <p className="text-[11px] text-gray-400 font-bold">{new Date(order.createdAt).toLocaleDateString("ar-SA", { month: "short", day: "numeric", year: "numeric" })}</p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-6">
-                          <StatusBadge status={order.status} />
-                          <p className="font-black text-base text-gray-900 min-w-[80px] text-left">
-                            {order.total.toLocaleString("ar-SA", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} {store?.defaultCurrency || "ر.س"}
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-                  </motion.div>
-                ))
-              )}
-            </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Side Panel: Actions & Quick Stats */}
-          <div className="space-y-6">
-            {/* Action Needed Card */}
-            {newOrders.length > 0 && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-3xl p-6 shadow-lg shadow-amber-200 text-white relative overflow-hidden group"
-              >
-                <div className="absolute top-0 right-0 p-8 opacity-10 transform translate-x-1/4 -translate-y-1/4 group-hover:scale-125 transition-transform duration-700">
-                   <Clock className="w-32 h-32" />
-                </div>
-                <div className="relative z-10">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-white" />
-                    </div>
-                    <h3 className="font-black text-sm">تنبيه بالطلبات</h3>
-                  </div>
-                  <p className="text-amber-50 text-sm font-bold mb-6">
-                    لديك <span className="text-white text-lg">{newOrders.length}</span> طلبات جديدة تحتاج لمراجعتك الآن.
-                  </p>
-                  <Link href="/dashboard/orders">
-                    <button className="w-full py-3.5 bg-white text-amber-600 text-sm font-black rounded-2xl hover:bg-amber-50 transition-all shadow-md">
-                      مراجعة الطلبات
-                    </button>
-                  </Link>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Quick Actions Panel */}
-            <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm">
-              <h3 className="font-black text-gray-900 text-lg mb-6 flex items-center gap-2">
+          {/* Quick Shortcuts & Store Summary */}
+          <div className="lg:col-span-4 space-y-4">
+            {/* Quick Actions */}
+            <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-neutral-200/80 dark:border-zinc-800 shadow-xs space-y-3">
+              <h3 className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider">
                 إجراءات سريعة
               </h3>
-              <div className="grid grid-cols-1 gap-3">
+              <div className="space-y-2">
                 <Link href="/dashboard/products/new">
-                  <button className="w-full flex items-center justify-between px-5 py-4 rounded-2xl bg-gray-50 hover:bg-primary hover:text-white group transition-all duration-300">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm group-hover:bg-white/20 transition-colors">
-                        <Package className="w-5 h-5 text-gray-600 group-hover:text-white" />
-                      </div>
-                      <span className="text-sm font-black">إضافة منتج جديد</span>
+                  <div className="p-3 rounded-xl bg-neutral-50 dark:bg-zinc-800/60 hover:bg-neutral-100 dark:hover:bg-zinc-800 flex items-center justify-between text-xs font-bold text-neutral-800 dark:text-zinc-200 transition-colors cursor-pointer">
+                    <div className="flex items-center gap-2.5">
+                      <Plus className="w-4 h-4 text-red-600" />
+                      <span>إضافة منتج جديد للكتالوج</span>
                     </div>
-                    <ArrowLeft className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </button>
+                    <ArrowLeft className="w-3.5 h-3.5 text-neutral-400" />
+                  </div>
                 </Link>
                 <Link href="/dashboard/orders">
-                  <button className="w-full flex items-center justify-between px-5 py-4 rounded-2xl bg-gray-50 hover:bg-primary hover:text-white group transition-all duration-300">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm group-hover:bg-white/20 transition-colors">
-                        <ShoppingCart className="w-5 h-5 text-gray-600 group-hover:text-white" />
-                      </div>
-                      <span className="text-sm font-black">إدارة الطلبات</span>
+                  <div className="p-3 rounded-xl bg-neutral-50 dark:bg-zinc-800/60 hover:bg-neutral-100 dark:hover:bg-zinc-800 flex items-center justify-between text-xs font-bold text-neutral-800 dark:text-zinc-200 transition-colors cursor-pointer">
+                    <div className="flex items-center gap-2.5">
+                      <ShoppingCart className="w-4 h-4 text-blue-600" />
+                      <span>معالجة طلبات العملاء</span>
                     </div>
-                    <ArrowLeft className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </button>
+                    <ArrowLeft className="w-3.5 h-3.5 text-neutral-400" />
+                  </div>
                 </Link>
                 <Link href="/dashboard/settings">
-                  <button className="w-full flex items-center justify-between px-5 py-4 rounded-2xl bg-gray-50 hover:bg-primary hover:text-white group transition-all duration-300">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm group-hover:bg-white/20 transition-colors">
-                        <MessageCircle className="w-5 h-5 text-gray-600 group-hover:text-white" />
-                      </div>
-                      <span className="text-sm font-black">إعدادات المتجر</span>
+                  <div className="p-3 rounded-xl bg-neutral-50 dark:bg-zinc-800/60 hover:bg-neutral-100 dark:hover:bg-zinc-800 flex items-center justify-between text-xs font-bold text-neutral-800 dark:text-zinc-200 transition-colors cursor-pointer">
+                    <div className="flex items-center gap-2.5">
+                      <Settings className="w-4 h-4 text-neutral-600" />
+                      <span>تعديل إعدادات المتجر والهوية</span>
                     </div>
-                    <ArrowLeft className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </button>
+                    <ArrowLeft className="w-3.5 h-3.5 text-neutral-400" />
+                  </div>
                 </Link>
               </div>
             </div>
 
-            {/* Secondary Stats Card */}
-            <div className="bg-[#1e293b] rounded-3xl p-8 text-white relative overflow-hidden">
-               <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-white/5 rounded-full blur-2xl" />
-               <div className="absolute -top-4 -right-4 w-32 h-32 bg-primary/20 rounded-full blur-3xl" />
-               <div className="relative z-10 flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                       <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                       <h3 className="font-bold text-xs text-slate-400 uppercase tracking-widest">طلبات مكتملة</h3>
-                    </div>
-                    <p className="text-5xl font-black text-white leading-tight">
-                      {orders?.filter(o => o.status === "completed").length ?? 0}
-                    </p>
-                    <p className="text-xs text-slate-500 font-bold mt-2">تم تسليمها بنجاح</p>
-                  </div>
-                  <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
-                    <TrendingUp className="w-8 h-8 text-primary" />
-                  </div>
-               </div>
+            {/* Store Information Card */}
+            <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-neutral-200/80 dark:border-zinc-800 shadow-xs space-y-3">
+              <h3 className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider">
+                بيانات المتجر
+              </h3>
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center justify-between py-1 border-b border-neutral-100 dark:border-zinc-800">
+                  <span className="text-neutral-500">اسم المتجر</span>
+                  <span className="font-bold text-neutral-900 dark:text-white">{store?.name || "دكاني"}</span>
+                </div>
+                <div className="flex items-center justify-between py-1 border-b border-neutral-100 dark:border-zinc-800">
+                  <span className="text-neutral-500">العملة الافتراضية</span>
+                  <span className="font-mono font-bold text-neutral-900 dark:text-white">{currency}</span>
+                </div>
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-neutral-500">حالة المتجر</span>
+                  <span className="text-emerald-600 font-bold flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>متاح للعملاء</span>
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
