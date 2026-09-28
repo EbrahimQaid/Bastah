@@ -9,19 +9,18 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
-  Check,
-  Sparkles,
   ShieldCheck,
   Zap,
+  Coins,
+  MessageSquare,
 } from "lucide-react";
 import DukkaniLogo from "@/components/ui/DukkaniLogo";
 
-/* ── الميزات الظاهرة على يسار الصفحة ── */
 const FEATURES = [
-  { icon: Zap, text: "أنشئ دكانك في أقل من 3 دقائق" },
-  { icon: ShieldCheck, text: "بيانات محمية وآمنة 100%" },
-  { icon: Store, text: "تحكم كامل في مظهر دكانك" },
-  { icon: Sparkles, text: "إشعارات واتساب فورية للطلبات" },
+  { icon: Zap, title: "إنشاء المتجر في دقائق", desc: "خطوات بسيطة لإعداد كتالوجك الرقمي وإطلاقه مباشرة للعملاء." },
+  { icon: ShieldCheck, title: "أمان متكامل", desc: "لوحة تحكم محمية ونظام إدارة صلاحيات وتتبع موثوق." },
+  { icon: Store, title: "تحكم كامل في المتجر", desc: "إدارة المخزون، والأسعار، والأقسام، وخيارات الشحن." },
+  { icon: MessageSquare, title: "إشعارات الطلبات الفورية", desc: "تصلك تفاصيل الطلبات فوراً مع بيانات العميل لتسهيل التواصل." },
 ];
 
 export default function Register() {
@@ -67,7 +66,7 @@ export default function Register() {
       localStorage.setItem("bastah_token", data.token);
       localStorage.setItem("bastah_user", JSON.stringify(data.user));
 
-      toast({ title: "تم إنشاء حسابك بنجاح 🎉" });
+      toast({ title: "تم إنشاء حسابك بنجاح" });
       setLocation("/onboarding");
     } catch (err: any) {
       toast({ title: err.message, variant: "destructive" });
@@ -77,30 +76,35 @@ export default function Register() {
   };
 
   return (
-    <div
-      className="min-h-screen grid lg:grid-cols-2"
-      dir="rtl"
-      style={{ fontFamily: "Tajawal, sans-serif" }}
-    >
+    <div className="min-h-screen grid lg:grid-cols-12 bg-neutral-50 dark:bg-zinc-950" dir="rtl">
       {/* ── الجانب الأيمن: النموذج ── */}
-      <div className="flex flex-col justify-center items-center p-8 bg-white">
-        {/* Logo */}
-        <div className="w-full max-w-md">
-          <div onClick={() => setLocation("/")} className="cursor-pointer mb-10 inline-block">
-            <DukkaniLogo variant="crimson" size="md" />
+      <div className="lg:col-span-6 flex flex-col justify-center items-center p-6 sm:p-12 bg-white dark:bg-zinc-900 border-l border-neutral-200/80 dark:border-zinc-800">
+        <div className="w-full max-w-md space-y-6">
+          <div className="flex items-center justify-between">
+            <div onClick={() => setLocation("/store")} className="cursor-pointer">
+              <DukkaniLogo variant="crimson" size="sm" />
+            </div>
+            <button
+              onClick={() => setLocation("/store")}
+              className="text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors"
+            >
+              العودة للمتجر
+            </button>
           </div>
 
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            أنشئ دكانك الآن
-          </h1>
-          <p className="text-gray-500 mb-8">
-            انضم إلى آلاف التجار على منصة دُكّـانـي
-          </p>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">
+              إنشاء حساب تاجر جديد
+            </h1>
+            <p className="text-xs sm:text-sm text-neutral-500 dark:text-zinc-400 mt-1">
+              سجل بياناتك لإدارة متجرك، وتتبع الطلبات وإضافة منتجاتك بكل سهولة.
+            </p>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="fullName" className="text-gray-700 font-medium">
-                الاسم الكامل
+              <Label htmlFor="fullName" className="text-xs font-bold text-neutral-700 dark:text-zinc-300">
+                الاسم الكامل *
               </Label>
               <Input
                 id="fullName"
@@ -108,14 +112,14 @@ export default function Register() {
                 required
                 value={form.fullName}
                 onChange={handleChange}
-                placeholder="محمد أحمد"
-                className="mt-1 h-11 text-right"
+                placeholder="مثال: يحيى القاسمي"
+                className="mt-1 h-11 bg-neutral-50 dark:bg-zinc-800 border-neutral-200 dark:border-zinc-700 text-xs sm:text-sm rounded-xl focus:border-red-600"
               />
             </div>
 
             <div>
-              <Label htmlFor="email" className="text-gray-700 font-medium">
-                البريد الإلكتروني
+              <Label htmlFor="email" className="text-xs font-bold text-neutral-700 dark:text-zinc-300">
+                البريد الإلكتروني *
               </Label>
               <Input
                 id="email"
@@ -124,15 +128,15 @@ export default function Register() {
                 required
                 value={form.email}
                 onChange={handleChange}
-                placeholder="you@example.com"
-                className="mt-1 h-11"
+                placeholder="merchant@example.com"
+                className="mt-1 h-11 bg-neutral-50 dark:bg-zinc-800 border-neutral-200 dark:border-zinc-700 text-xs sm:text-sm rounded-xl focus:border-red-600 font-mono"
                 dir="ltr"
               />
             </div>
 
             <div>
-              <Label htmlFor="phone" className="text-gray-700 font-medium">
-                رقم الجوال (واتساب)
+              <Label htmlFor="phone" className="text-xs font-bold text-neutral-700 dark:text-zinc-300">
+                رقم الهاتف / الواتساب *
               </Label>
               <Input
                 id="phone"
@@ -141,18 +145,18 @@ export default function Register() {
                 required
                 value={form.phone}
                 onChange={handleChange}
-                placeholder="967771234567+"
-                className="mt-1 h-11"
+                placeholder="+967 7X XXX XXXX"
+                className="mt-1 h-11 bg-neutral-50 dark:bg-zinc-800 border-neutral-200 dark:border-zinc-700 text-xs sm:text-sm rounded-xl focus:border-red-600 font-mono"
                 dir="ltr"
               />
-              <p className="text-xs text-gray-400 mt-1">
-                ستصلك إشعارات الطلبات الجديدة على هذا الرقم
+              <p className="text-[10px] text-neutral-400 mt-1">
+                تُرسل إشعارات وتأكيدات الطلبات لهذا الرقم
               </p>
             </div>
 
             <div>
-              <Label htmlFor="password" className="text-gray-700 font-medium">
-                كلمة المرور
+              <Label htmlFor="password" className="text-xs font-bold text-neutral-700 dark:text-zinc-300">
+                كلمة المرور * (8 أحرف على الأقل)
               </Label>
               <div className="relative mt-1">
                 <Input
@@ -162,15 +166,16 @@ export default function Register() {
                   required
                   value={form.password}
                   onChange={handleChange}
-                  placeholder="8 أحرف على الأقل"
-                  className="h-11 pl-10"
+                  placeholder="••••••••"
+                  className="h-11 pl-10 bg-neutral-50 dark:bg-zinc-800 border-neutral-200 dark:border-zinc-700 text-xs sm:text-sm rounded-xl focus:border-red-600 font-mono"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
@@ -178,109 +183,50 @@ export default function Register() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-12 text-base font-semibold mt-2 text-white shadow-lg shadow-red-600/25 bg-[#E4122C] hover:bg-[#CC0A22]"
+              className="w-full h-12 text-sm font-bold mt-2 text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-md transition-transform active:scale-95"
             >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                  </svg>
-                  جارٍ إنشاء الحساب...
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  إنشاء الحساب
-                  <ArrowRight size={18} />
-                </span>
-              )}
+              {loading ? "جارٍ تسجيل الحساب..." : "إنشاء حساب التاجر"}
             </Button>
 
-            <p className="text-center text-sm text-gray-500">
-              لديك حساب بالفعل؟{" "}
+            <div className="text-center text-xs text-neutral-500 pt-2">
+              <span>لديك حساب بالفعل؟ </span>
               <button
                 type="button"
                 onClick={() => setLocation("/login")}
-                className="text-[#E4122C] font-semibold hover:underline"
+                className="text-red-600 font-bold hover:underline"
               >
-                سجّل الدخول
+                تسجيل الدخول
               </button>
-            </p>
-
-            <p className="text-center text-xs text-gray-400">
-              بالتسجيل، أنت توافق على{" "}
-              <span className="text-[#E4122C] cursor-pointer hover:underline">
-                شروط الاستخدام
-              </span>{" "}
-              و{" "}
-              <span className="text-[#E4122C] cursor-pointer hover:underline">
-                سياسة الخصوصية
-              </span>
-            </p>
+            </div>
           </form>
         </div>
       </div>
 
-      {/* ── الجانب الأيسر: Hero ── */}
-      <div
-        className="hidden lg:flex flex-col justify-center p-12 text-white"
-        style={{
-          background:
-            "linear-gradient(135deg, #8E0010 0%, #CC0A22 50%, #E4122C 100%)",
-        }}
-      >
-        <div className="max-w-md">
-          <div onClick={() => setLocation("/")} className="cursor-pointer mb-12 inline-block">
-            <DukkaniLogo variant="light" size="lg" />
-          </div>
+      {/* ── الجانب الأيسر: ميزات المنصة ── */}
+      <div className="hidden lg:col-span-6 lg:flex flex-col justify-center p-12 bg-neutral-900 text-white space-y-8">
+        <div className="max-w-md space-y-6">
+          <span className="text-xs font-mono uppercase tracking-widest text-red-400">
+            منصة التجارة الذكية
+          </span>
 
-          <h2 className="text-4xl font-bold leading-tight mb-6">
-            دُكّـانك الرقمي بين يديك
-            <br />
-            <span className="text-amber-300">في 3 دقائق</span>
+          <h2 className="text-3xl font-black tracking-tight leading-tight">
+            حلول متكاملة لبناء وإدارة متجرك الرقمي باحترافية
           </h2>
 
-          <p className="text-rose-100 text-lg mb-10 leading-relaxed">
-            أنشئ دكانك الاحترافي وابدأ البيع اليوم بكل سهولة. بدون خبرة تقنية،
-            وداعم للمحافظ والعملات اليمنية.
+          <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
+            أنشئ واجهة متجرك، واستقبل طلبات عملائك، وتتبع عمليات البيع والمخزون في بيئة عمل متكاملة مصممة خصيصاً للتجارة السريعة.
           </p>
 
-          <div className="space-y-4">
-            {FEATURES.map(({ icon: Icon, text }, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-white/15 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Icon size={16} />
+          <div className="space-y-4 pt-2">
+            {FEATURES.map(({ icon: Icon, title, desc }, i) => (
+              <div key={i} className="flex items-start gap-3.5 p-3 rounded-2xl bg-white/5 border border-white/10">
+                <div className="w-9 h-9 bg-red-600/20 text-red-400 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+                  <Icon size={18} />
                 </div>
-                <span className="text-emerald-100">{text}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Testimonial */}
-          <div className="mt-12 bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center font-bold text-white text-sm flex-shrink-0">
-                س
-              </div>
-              <div>
-                <p className="text-sm text-emerald-50 leading-relaxed">
-                  "أنشأت متجري في أقل من 10 دقائق وبدأت أستقبل طلبات في نفس اليوم عبر الواتساب!"
-                </p>
-                <p className="text-emerald-200 text-xs mt-2">سارة محمد — صاحبة متجر عبايات وأزياء</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="mt-6 grid grid-cols-3 gap-4">
-            {[
-              { value: "+3,500", label: "دكان نشط" },
-              { value: "+80K", label: "طلب مكتمل" },
-              { value: "4.9★", label: "تقييم التجار" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <p className="text-2xl font-bold">{stat.value}</p>
-                <p className="text-emerald-200 text-xs">{stat.label}</p>
+                <div>
+                  <h3 className="text-xs font-bold text-white">{title}</h3>
+                  <p className="text-[11px] text-neutral-400 mt-0.5 leading-relaxed">{desc}</p>
+                </div>
               </div>
             ))}
           </div>
