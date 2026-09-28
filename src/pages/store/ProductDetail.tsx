@@ -4,28 +4,21 @@ import { useGetStoreProduct, useGetStore } from "@/services/api";
 import { useCart } from "@/hooks/use-cart";
 import { useLanguage } from "@/context/language-context";
 import { useCurrency } from "@/context/currency-context";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import useEmblaCarousel from "embla-carousel-react";
-import { ShoppingBag, ChevronLeft, ChevronRight, Star, Check, Package, ShieldCheck, Truck, RotateCcw, Plus, Minus, Share2 } from "lucide-react";
-import { motion } from "framer-motion";
-
-function StarRating({ rating = 4.9, count = 48 }: { rating?: number; count?: number }) {
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex items-center gap-0.5">
-        {[1, 2, 3, 4, 5].map(star => (
-          <Star
-            key={star}
-            className={`w-3.5 h-3.5 ${star <= Math.round(rating) ? "text-amber-400 fill-amber-400" : "text-gray-200 fill-gray-200"}`}
-          />
-        ))}
-      </div>
-      <span className="text-xs font-bold text-gray-800 dark:text-gray-200">{rating.toFixed(1)}</span>
-      <span className="text-xs text-gray-400">({count} تقييم موثق)</span>
-    </div>
-  );
-}
+import {
+  ShoppingBag,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  Package,
+  ShieldCheck,
+  Truck,
+  RotateCcw,
+  Plus,
+  Minus,
+  Share2,
+} from "lucide-react";
 
 export default function ProductDetail() {
   const [, params] = useRoute("/store/products/:productId");
@@ -33,7 +26,7 @@ export default function ProductDetail() {
 
   const { data: store } = useGetStore();
   const { data: product, isLoading } = useGetStoreProduct(undefined, productId);
-  const { addItem } = useCart();
+  const { addItem, openMiniCart } = useCart();
   const { t, isRTL } = useLanguage();
   const { format } = useCurrency();
   const { toast } = useToast();
@@ -50,26 +43,20 @@ export default function ProductDetail() {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
-
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
-  const [selectedIndex, setSelectedIndex] = useState(0);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    const onSelect = () => setSelectedIndex(emblaApi.selectedScrollSnap());
-    emblaApi.on("select", onSelect);
-    onSelect();
-  }, [emblaApi]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   if (isLoading) {
     return (
-      <StoreLayout hideBottomNav>
-        <div className="animate-pulse">
-          <div className="w-full aspect-[4/5] bg-gray-100 dark:bg-slate-800" />
-          <div className="p-6 space-y-4">
-            <div className="h-6 bg-gray-100 dark:bg-slate-800 rounded-full w-3/4" />
-            <div className="h-4 bg-gray-100 dark:bg-slate-800 rounded-full w-1/2" />
-            <div className="h-8 bg-gray-100 dark:bg-slate-800 rounded-full w-1/3" />
+      <StoreLayout>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 animate-pulse">
+            <div className="lg:col-span-6 aspect-[4/3] bg-neutral-200 dark:bg-zinc-800 rounded-3xl" />
+            <div className="lg:col-span-6 space-y-4">
+              <div className="h-6 bg-neutral-200 dark:bg-zinc-800 rounded-lg w-1/3" />
+              <div className="h-10 bg-neutral-200 dark:bg-zinc-800 rounded-lg w-3/4" />
+              <div className="h-8 bg-neutral-200 dark:bg-zinc-800 rounded-lg w-1/4" />
+              <div className="h-24 bg-neutral-200 dark:bg-zinc-800 rounded-lg w-full" />
+            </div>
           </div>
         </div>
       </StoreLayout>
@@ -78,24 +65,50 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <StoreLayout hideBottomNav>
-        <div className="p-20 text-center font-semibold text-lg text-gray-400 flex flex-col items-center gap-4">
-          <Package className="w-12 h-12 text-gray-300" />
-          المنتج غير موجود
+      <StoreLayout>
+        <div className="max-w-7xl mx-auto px-4 py-24 text-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-neutral-100 dark:bg-zinc-800 flex items-center justify-center mx-auto text-neutral-400">
+            <Package className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-bold text-neutral-900 dark:text-white">
+            {isRTL ? "المنتج غير موجود" : "Product not found"}
+          </h2>
+          <Link href="/store/products">
+            <button
+              className="px-6 py-2.5 rounded-xl font-bold text-xs text-white"
+              style={{ background: primaryColor }}
+            >
+              {isRTL ? "العودة للكتالوج" : "Back to catalog"}
+            </button>
+          </Link>
         </div>
       </StoreLayout>
     );
   }
 
+  const images =
+    Array.isArray(product.images) && product.images.length > 0
+      ? product.images
+      : typeof product.images === "string" && product.images
+      ? [product.images]
+      : ["/images/product_luxury_thobe_1790631673826.jpg"];
+
   const handleAddToCart = () => {
     if (product.variants?.sizes?.length && !selectedSize) {
-      toast({ title: "الرجاء اختيار المقاس", variant: "destructive" });
+      toast({
+        title: isRTL ? "يرجى تحديد المقاس أولاً" : "Please select a size",
+        variant: "destructive",
+      });
       return;
     }
     if (product.variants?.colors?.length && !selectedColor) {
-      toast({ title: "الرجاء اختيار اللون", variant: "destructive" });
+      toast({
+        title: isRTL ? "يرجى تحديد اللون أولاً" : "Please select a color",
+        variant: "destructive",
+      });
       return;
     }
+
     addItem({
       productId: product.id,
       productName: product.name,
@@ -103,12 +116,14 @@ export default function ProductDetail() {
       quantity,
       selectedSize,
       selectedColor,
-      imageUrl: product.images?.[0] ?? undefined,
+      imageUrl: images[0],
     });
+
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
+    openMiniCart();
     toast({
-      title: "تمت الإضافة للسلة ✓",
+      title: isRTL ? "تمت الإضافة بنجاح" : "Successfully added",
       description: `${quantity} × ${product.name}`,
     });
   };
@@ -121,306 +136,290 @@ export default function ProductDetail() {
       }).catch(() => {});
     } else {
       navigator.clipboard.writeText(window.location.href);
-      toast({ title: "تم نسخ رابط المنتج بنجاح" });
+      toast({ title: isRTL ? "تم نسخ رابط المنتج إلى الحافظة" : "Product link copied" });
     }
   };
 
-  const images = product.images?.length ? product.images : [""];
-  const BackIcon = isRTL ? ChevronRight : ChevronLeft;
-
   return (
-    <StoreLayout hideBottomNav>
-      <div className="min-h-screen pb-[120px]" dir={isRTL ? "rtl" : "ltr"}>
-
-        {/* Top Floating Actions */}
-        <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
-          <Link href="/store/products" className="pointer-events-auto">
-            <button className="w-10 h-10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-md text-gray-700 dark:text-gray-200 hover:bg-white transition-all hover:scale-105 active:scale-95 border border-white/40">
-              <BackIcon className="w-5 h-5" />
-            </button>
+    <StoreLayout>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Breadcrumb Navigation */}
+        <nav className="flex items-center gap-2 text-xs text-neutral-400">
+          <Link href="/store" className="hover:text-neutral-700 dark:hover:text-zinc-200">
+            {isRTL ? "الرئيسية" : "Home"}
           </Link>
+          <span>/</span>
+          <Link href="/store/products" className="hover:text-neutral-700 dark:hover:text-zinc-200">
+            {isRTL ? "المنتجات" : "Products"}
+          </Link>
+          <span>/</span>
+          <span className="text-neutral-900 dark:text-white font-medium truncate max-w-xs">
+            {product.name}
+          </span>
+        </nav>
 
-          <button
-            onClick={handleShare}
-            className="pointer-events-auto w-10 h-10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-md text-gray-700 dark:text-gray-200 hover:bg-white transition-all hover:scale-105 active:scale-95 border border-white/40"
-            aria-label="Share product"
-          >
-            <Share2 className="w-4 h-4" />
-          </button>
-        </div>
+        {/* ── 2-Column Responsive PDP Architecture ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-start">
+          {/* Left Column: Visual Gallery Stage */}
+          <div className="lg:col-span-6 space-y-4">
+            <div className="relative aspect-[4/3] rounded-3xl overflow-hidden bg-neutral-100 dark:bg-zinc-800 border border-neutral-200/80 dark:border-zinc-800/80 shadow-sm">
+              <img
+                src={images[selectedImageIndex] || images[0]}
+                alt={product.name}
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
 
-        {/* Image Carousel */}
-        <div className="relative bg-gray-50 dark:bg-slate-900 w-full aspect-[4/5] overflow-hidden">
-          <div className="overflow-hidden h-full" ref={emblaRef}>
-            <div className="flex h-full">
-              {images.map((img, idx) => (
-                <div className="flex-[0_0_100%] min-w-0 h-full relative" key={idx}>
-                  {img ? (
-                    <img
-                      src={img}
-                      alt={`${product.name} ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div
-                      className="w-full h-full flex flex-col items-center justify-center gap-3"
-                      style={{ background: `linear-gradient(135deg, ${primaryColor}10, ${primaryColor}20)` }}
-                    >
-                      <Package className="w-12 h-12 opacity-20" style={{ color: primaryColor }} />
-                      <span className="text-sm text-gray-400 font-medium">لا توجد صورة</span>
-                    </div>
+              {!product.inStock && (
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-4">
+                  <span className="bg-white text-neutral-900 text-sm font-bold px-4 py-2 rounded-full uppercase tracking-wider shadow-lg">
+                    {isRTL ? "نفد المخزون حالياً" : "Out of Stock"}
+                  </span>
+                </div>
+              )}
+
+              <button
+                onClick={handleShare}
+                className="absolute top-4 right-4 rtl:right-auto rtl:left-4 w-9 h-9 rounded-full bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md flex items-center justify-center text-neutral-700 dark:text-zinc-300 shadow-sm hover:scale-105 transition-transform"
+                aria-label="Share product"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Thumbnail Strip */}
+            {images.length > 1 && (
+              <div className="flex items-center gap-3 overflow-x-auto pb-2">
+                {images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImageIndex(idx)}
+                    className={`w-18 h-18 rounded-xl overflow-hidden border-2 transition-all shrink-0 ${
+                      selectedImageIndex === idx
+                        ? "border-red-600 scale-105 shadow-sm"
+                        : "border-transparent opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Contiguous Purchase Module */}
+          <div className="lg:col-span-6 space-y-6">
+            <div className="space-y-3 pb-6 border-b border-neutral-200/80 dark:border-zinc-800/80">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                  {product.categoryName || (isRTL ? "تشكيلة مختارة" : "Curated Selection")}
+                </span>
+                {product.inStock ? (
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-green-600 bg-green-50 dark:bg-green-950/40 px-3 py-1 rounded-full">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                    <span>{isRTL ? "متوفر للشحن الفوري" : "In Stock"}</span>
+                  </span>
+                ) : (
+                  <span className="text-xs font-bold text-neutral-400 bg-neutral-100 dark:bg-zinc-800 px-3 py-1 rounded-full">
+                    {isRTL ? "غير متوفر" : "Sold Out"}
+                  </span>
+                )}
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white tracking-tight leading-tight">
+                {product.name}
+              </h1>
+
+              {/* Price Block */}
+              <div className="flex items-baseline gap-3 pt-2">
+                <span className="text-3xl font-black font-mono tabular-nums text-neutral-900 dark:text-white">
+                  {format(product.price)}
+                </span>
+                <span className="text-sm font-mono text-neutral-400 line-through">
+                  {format(product.price * 1.25)}
+                </span>
+                <span className="text-[11px] font-bold text-green-700 bg-green-50 dark:bg-green-950/50 px-2 py-0.5 rounded-md">
+                  {isRTL ? "وفر 20%" : "20% Off"}
+                </span>
+              </div>
+            </div>
+
+            {/* Sizes Selection */}
+            {product.variants?.sizes?.length > 0 && (
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-neutral-900 dark:text-white">
+                    {isRTL ? "اختر المقاس:" : "Select Size:"}
+                  </span>
+                  {selectedSize && (
+                    <span className="font-mono text-neutral-500">{selectedSize}</span>
                   )}
                 </div>
-              ))}
-            </div>
-          </div>
+                <div className="flex flex-wrap gap-2">
+                  {product.variants.sizes.map((size: string) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`h-11 px-4 rounded-xl text-xs font-bold transition-all border ${
+                        selectedSize === size
+                          ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 border-neutral-900 dark:border-white shadow-sm"
+                          : "bg-white dark:bg-zinc-900 text-neutral-700 dark:text-zinc-300 border-neutral-200 dark:border-zinc-800 hover:border-neutral-400"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
-          {/* Dots Indicator */}
-          {images.length > 1 && (
-            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 z-10">
-              {images.map((_, idx) => (
+            {/* Colors Selection */}
+            {product.variants?.colors?.length > 0 && (
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-neutral-900 dark:text-white">
+                    {isRTL ? "اختر اللون:" : "Select Color:"}
+                  </span>
+                  {selectedColor && (
+                    <span className="font-mono text-neutral-500">{selectedColor}</span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {product.variants.colors.map((color: string) => (
+                    <button
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      className={`h-11 px-4 rounded-xl text-xs font-bold transition-all border ${
+                        selectedColor === color
+                          ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 border-neutral-900 dark:border-white shadow-sm"
+                          : "bg-white dark:bg-zinc-900 text-neutral-700 dark:text-zinc-300 border-neutral-200 dark:border-zinc-800 hover:border-neutral-400"
+                      }`}
+                    >
+                      {color}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Quantity Stepper & CTA Row */}
+            <div className="pt-2 space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center border border-neutral-200 dark:border-zinc-800 rounded-xl bg-neutral-50 dark:bg-zinc-900 p-1">
+                  <button
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-zinc-800 text-neutral-600 transition-colors"
+                    aria-label="Decrease quantity"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="w-10 text-center font-mono font-bold text-sm text-neutral-900 dark:text-white">
+                    {quantity}
+                  </span>
+                  <button
+                    onClick={() => setQuantity((q) => q + 1)}
+                    className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-zinc-800 text-neutral-600 transition-colors"
+                    aria-label="Increase quantity"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+
                 <button
-                  key={idx}
-                  onClick={() => emblaApi?.scrollTo(idx)}
-                  className={`h-1.5 rounded-full transition-all duration-300 shadow-sm ${idx === selectedIndex ? "w-6 bg-white" : "w-1.5 bg-white/60"}`}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Stock badge overlay */}
-          {!product.inStock && (
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-10">
-              <span className="bg-white text-gray-900 text-sm font-black px-6 py-2 rounded-full tracking-wide shadow-xl">
-                نفد المخزون
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Thumbnail Navigation */}
-        {images.length > 1 && (
-          <div className="flex gap-2 px-5 py-3 overflow-x-auto scrollbar-hide border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-            {images.map((img, idx) => (
-              <button
-                key={idx}
-                onClick={() => emblaApi?.scrollTo(idx)}
-                className={`w-14 h-14 rounded-xl overflow-hidden shrink-0 border-2 transition-all duration-200 ${
-                  idx === selectedIndex ? "scale-105 shadow-md" : "opacity-60 hover:opacity-100"
-                }`}
-                style={{ borderColor: idx === selectedIndex ? primaryColor : "transparent" }}
-              >
-                <img src={img} alt="thumb" className="w-full h-full object-cover" />
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Content */}
-        <div className="p-5 space-y-6">
-
-          {/* Header */}
-          <div className="space-y-2.5">
-            {/* Badges */}
-            <div className="flex items-center gap-2 flex-wrap">
-              {product.inStock ? (
-                <>
-                  <span
-                    className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
-                    style={{ background: "#dcfce7", color: "#16a34a" }}
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                    متوفر للشحن الفوري
-                  </span>
-                  <span className="text-[11px] font-bold text-amber-700 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-300 px-2.5 py-1 rounded-full">
-                    مخزون محدود
-                  </span>
-                </>
-              ) : (
-                <span className="px-3 py-1 bg-red-50 text-red-600 text-xs font-bold rounded-full">
-                  غير متوفر حالياً
-                </span>
-              )}
+                  onClick={handleAddToCart}
+                  disabled={!product.inStock}
+                  className="flex-1 h-12 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 transition-transform active:scale-[0.98] shadow-md disabled:opacity-40"
+                  style={{
+                    background: added
+                      ? "#16a34a"
+                      : product.inStock
+                      ? `linear-gradient(135deg, ${primaryColor}, #DC2626)`
+                      : "#737373",
+                  }}
+                >
+                  {added ? (
+                    <>
+                      <Check className="w-4 h-4 text-white" />
+                      <span>{isRTL ? "تمت الإضافة بنجاح ✓" : "Added to Bag"}</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingBag className="w-4 h-4" />
+                      <span>
+                        {product.inStock
+                          ? isRTL
+                            ? `إضافة إلى السلة (${format(product.price * quantity)})`
+                            : `Add to Bag · ${format(product.price * quantity)}`
+                          : isRTL
+                          ? "المنتج غير متوفر"
+                          : "Sold Out"}
+                      </span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
-            <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-gray-100 leading-tight">
-              {product.name}
-            </h1>
-
-
-            <div className="flex items-baseline gap-2 pt-1">
-              <p className="text-2xl sm:text-3xl font-black" style={{ color: primaryColor }}>
-                {format(product.price)}
-              </p>
-              <span className="text-xs text-gray-400 font-semibold line-through">
-                {format(product.price * 1.2)}
-              </span>
-              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-red-50 text-red-600">
-                وفر 20%
-              </span>
-            </div>
-          </div>
-
-          {/* Description */}
-          {product.description && (
-            <div
-              className="rounded-2xl p-4 bg-gray-50/80 dark:bg-slate-800/80 border border-gray-100 dark:border-slate-700"
-            >
-              <h3 className="text-xs font-black text-gray-900 dark:text-gray-100 mb-1.5">وصف المنتج</h3>
-              <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm leading-relaxed whitespace-pre-line">
-                {product.description}
-              </p>
-            </div>
-          )}
-
-          {/* Size Selector */}
-          {product.variants?.sizes?.length > 0 && (
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-gray-100">
-                  {t.selectSize}
+            {/* Description Tab/Card */}
+            {product.description && (
+              <div className="pt-4 border-t border-neutral-200/80 dark:border-zinc-800/80 space-y-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-white">
+                  {isRTL ? "تفاصيل ومواصفات المنتج" : "Product Specifications"}
                 </h3>
-                {selectedSize && <span className="text-xs font-bold" style={{ color: primaryColor }}>{selectedSize}</span>}
+                <p className="text-xs sm:text-sm text-neutral-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
+                  {product.description}
+                </p>
               </div>
-              <div className="flex gap-2 flex-wrap">
-                {product.variants.sizes.map((size: string) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`h-10 px-4 rounded-xl text-xs font-bold transition-all border relative ${
-                      selectedSize === size
-                        ? ""
-                        : "bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600"
-                    }`}
-                    style={
-                      selectedSize === size
-                        ? { background: primaryColor, color: "#fff", borderColor: primaryColor, boxShadow: `0 4px 14px ${primaryColor}40` }
-                        : undefined
-                    }
-                  >
-                    {selectedSize === size && <Check className="w-3 h-3 absolute top-1 right-1" />}
-                    {size}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+            )}
 
-          {/* Color Selector */}
-          {product.variants?.colors?.length > 0 && (
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-gray-100">
-                  {t.selectColor}
-                </h3>
-                {selectedColor && <span className="text-xs font-bold" style={{ color: primaryColor }}>{selectedColor}</span>}
+            {/* Trust Assurances */}
+            <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-zinc-900 border border-neutral-200/70 dark:border-zinc-800/80 space-y-3">
+              <div className="flex items-center gap-3 text-xs text-neutral-700 dark:text-zinc-300">
+                <Truck className="w-4 h-4 text-green-600 shrink-0" />
+                <span>{isRTL ? "شحن سريع لكافة المدن مع إمكانية التتبع" : "Express door-to-door delivery with tracking"}</span>
               </div>
-              <div className="flex gap-2 flex-wrap">
-                {product.variants.colors.map((color: string) => (
-                  <button
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
-                    className={`h-10 px-4 rounded-xl text-xs font-bold transition-all border ${
-                      selectedColor === color
-                        ? ""
-                        : "bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600"
-                    }`}
-                    style={
-                      selectedColor === color
-                        ? { background: primaryColor, color: "#fff", borderColor: primaryColor, boxShadow: `0 4px 14px ${primaryColor}40` }
-                        : undefined
-                    }
-                  >
-                    {color}
-                  </button>
-                ))}
+              <div className="flex items-center gap-3 text-xs text-neutral-700 dark:text-zinc-300">
+                <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
+                <span>{isRTL ? "منتج أصلي 100% ومضمون من المتجر" : "100% Guaranteed authentic item"}</span>
               </div>
-            </div>
-          )}
-
-          {/* Quantity Stepper */}
-          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-gray-50 dark:bg-slate-800/80 border border-gray-100 dark:border-slate-700">
-            <div>
-              <p className="text-xs font-black text-gray-900 dark:text-gray-100">الكمية المطلوبة</p>
-              <p className="text-[10px] text-gray-400">حدد عدد القطع</p>
-            </div>
-            <div className="flex items-center gap-3 bg-white dark:bg-slate-900 px-2 py-1 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
-              <button
-                onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 active:scale-95 transition-all"
-                aria-label="Decrease quantity"
-              >
-                <Minus className="w-3.5 h-3.5" />
-              </button>
-              <span className="w-6 text-center text-sm font-black text-gray-900 dark:text-gray-100">{quantity}</span>
-              <button
-                onClick={() => setQuantity(q => q + 1)}
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 active:scale-95 transition-all"
-                aria-label="Increase quantity"
-              >
-                <Plus className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Store Assurance / Trust Features */}
-          <div className="rounded-2xl p-4 bg-gray-50/80 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-700 space-y-3">
-            <div className="flex items-center gap-3">
-              <Truck className="w-4 h-4 text-green-600 shrink-0" />
-              <p className="text-xs font-bold text-gray-700 dark:text-gray-300">شحن سريع مع إمكانية التتبع المباشر</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <RotateCcw className="w-4 h-4 text-blue-600 shrink-0" />
-              <p className="text-xs font-bold text-gray-700 dark:text-gray-300">إمكانية الاستبدال والاسترجاع خلال 14 يوم</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0" />
-              <p className="text-xs font-bold text-gray-700 dark:text-gray-300">منتج مضمون وأصلي 100%</p>
+              <div className="flex items-center gap-3 text-xs text-neutral-700 dark:text-zinc-300">
+                <RotateCcw className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>{isRTL ? "استبدال واسترجاع ميسر خلال 14 يوماً" : "14-Day flexible exchange & return policy"}</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Sticky Add to Cart — Glassmorphism Bottom Bar */}
-        <div
-          className="fixed left-1/2 -translate-x-1/2 w-full max-w-md md:max-w-3xl lg:max-w-6xl bottom-0 z-50 p-4"
-        >
-          <div
-            className="rounded-3xl p-3 px-4 flex items-center gap-4 border bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border-black/8 dark:border-white/10 shadow-[0_10px_35px_-5px_rgba(0,0,0,0.18)]"
+        {/* Mobile Sticky Add to Cart (Only visible on mobile screens) */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-t border-neutral-200 dark:border-zinc-800 p-3 flex items-center gap-3 safe-area-pb">
+          <div>
+            <span className="text-[10px] text-neutral-400 block leading-none">
+              {isRTL ? "الإجمالي" : "Total"}
+            </span>
+            <span className="text-base font-black font-mono tabular-nums text-neutral-900 dark:text-white">
+              {format(product.price * quantity)}
+            </span>
+          </div>
+
+          <button
+            onClick={handleAddToCart}
+            disabled={!product.inStock}
+            className="flex-1 h-11 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md active:scale-95 transition-transform"
+            style={{
+              background: added
+                ? "#16a34a"
+                : product.inStock
+                ? primaryColor
+                : "#737373",
+            }}
           >
-            <div className="shrink-0">
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{t.totalPrice}</p>
-              <p className="text-lg font-black" style={{ color: primaryColor }}>
-                {format(product.price * quantity)}
-              </p>
-            </div>
-
-            <motion.button
-              whileTap={{ scale: 0.96 }}
-              onClick={handleAddToCart}
-              disabled={!product.inStock}
-              className="flex-1 h-12 rounded-2xl text-sm font-black text-white flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-              style={{
-                background: added
-                  ? "linear-gradient(135deg, #22c55e, #16a34a)"
-                  : product.inStock
-                  ? `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`
-                  : "#9ca3af",
-                boxShadow: product.inStock && !added ? `0 4px 18px ${primaryColor}45` : added ? "0 4px 18px rgba(34,197,94,0.4)" : "none",
-              }}
-            >
-              {added ? (
-                <>
-                  <Check className="w-4 h-4 animate-bounce" />
-                  <span>تمت الإضافة للسلة</span>
-                </>
-              ) : (
-                <>
-                  <ShoppingBag className="w-4 h-4" />
-                  <span>{product.inStock ? t.addToCart : t.soldOut}</span>
-                </>
-              )}
-            </motion.button>
-          </div>
+            {added ? (
+              <Check className="w-4 h-4 text-white" />
+            ) : (
+              <ShoppingBag className="w-4 h-4" />
+            )}
+            <span>{added ? (isRTL ? "تمت الإضافة" : "Added") : (isRTL ? "أضف للسلة" : "Add to Bag")}</span>
+          </button>
         </div>
       </div>
     </StoreLayout>

@@ -2,20 +2,46 @@ import { Link, useLocation } from "wouter";
 import { useCart } from "@/hooks/use-cart";
 import { useLanguage } from "@/context/language-context";
 import { useCurrency, CURRENCIES, CurrencyCode } from "@/context/currency-context";
-import { ShoppingBag, Home, Search, ChevronDown, X, Sparkles, User, BadgePercent, Globe, Moon, Sun, Check, Laptop } from "lucide-react";
-import { useGetStore, getGetStoreQueryKey } from "@/services/api";
+import {
+  ShoppingBag,
+  Home,
+  Search,
+  X,
+  Sparkles,
+  User,
+  BadgePercent,
+  Globe,
+  Moon,
+  Sun,
+  Check,
+  Laptop,
+  Truck,
+  ShieldCheck,
+  Phone,
+  RotateCcw,
+  ArrowRight,
+  ArrowLeft,
+  Store,
+} from "lucide-react";
+import { useGetStore } from "@/services/api";
 import { MiniCart } from "@/components/store/MiniCart";
 import { useEffect, useRef, useState } from "react";
 import { ThemeContext, parseThemeConfig } from "@/context/theme-context";
 import { StoreUIContext, ThemeMode } from "@/context/store-ui-context";
 import DukkaniLogo from "@/components/ui/DukkaniLogo";
 
-export function StoreLayout({ children, hideBottomNav = false }: { children: React.ReactNode; hideBottomNav?: boolean }) {
-  const { totalItems } = useCart();
+export function StoreLayout({
+  children,
+  hideBottomNav = false,
+}: {
+  children: React.ReactNode;
+  hideBottomNav?: boolean;
+}) {
+  const { totalItems, totalPrice, openMiniCart } = useCart();
   const { data: store, isLoading, isError, error } = useGetStore();
   const [location] = useLocation();
   const { language, setLanguage, t, isRTL } = useLanguage();
-  const { activeCurrency, setActiveCurrency, availableCurrencies, setAvailableCurrencies } = useCurrency();
+  const { activeCurrency, setActiveCurrency, availableCurrencies, setAvailableCurrencies, format } = useCurrency();
   const [prefModalOpen, setPrefModalOpen] = useState(false);
   const [announcementVisible, setAnnouncementVisible] = useState(true);
   const prefRef = useRef<HTMLDivElement>(null);
@@ -79,7 +105,7 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
     if (store.currencies) {
       try {
         const codes: CurrencyCode[] = JSON.parse(store.currencies);
-        const filtered = codes.map(c => CURRENCIES[c]).filter(Boolean);
+        const filtered = codes.map((c) => CURRENCIES[c]).filter(Boolean);
         if (filtered.length > 0) {
           setAvailableCurrencies(filtered);
           if (store.defaultCurrency && CURRENCIES[store.defaultCurrency as CurrencyCode]) {
@@ -93,7 +119,10 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
       link.rel = "stylesheet";
       link.href = `https://fonts.googleapis.com/css2?family=${store.fontFamily.replace(/ /g, "+")}:wght@300;400;500;600;700;800;900&display=swap`;
       document.head.appendChild(link);
-      document.documentElement.style.setProperty("--app-font-sans", `'${store.fontFamily}', 'Tajawal', sans-serif`);
+      document.documentElement.style.setProperty(
+        "--app-font-sans",
+        `'${store.fontFamily}', 'Tajawal', sans-serif`,
+      );
     }
     if (store.primaryColor) document.documentElement.style.setProperty("--store-primary", store.primaryColor);
     if (store.secondaryColor) document.documentElement.style.setProperty("--store-surface", store.secondaryColor);
@@ -111,11 +140,13 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
 
   if (isLoading) {
     return (
-      <div className="min-h-[100dvh] w-full max-w-md mx-auto bg-white flex items-center justify-center">
+      <div className="min-h-screen w-full bg-neutral-50 dark:bg-zinc-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gray-100 animate-pulse" />
-          <div className="w-24 h-3 bg-gray-100 rounded-full animate-pulse" />
-          <div className="w-16 h-2 bg-gray-50 rounded-full animate-pulse" />
+          <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-950/40 animate-pulse flex items-center justify-center text-red-600">
+            <ShoppingBag className="w-6 h-6 animate-bounce" />
+          </div>
+          <div className="w-32 h-3 bg-neutral-200 dark:bg-zinc-800 rounded-full animate-pulse" />
+          <div className="w-20 h-2 bg-neutral-100 dark:bg-zinc-900 rounded-full animate-pulse" />
         </div>
       </div>
     );
@@ -123,39 +154,35 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
 
   if (isError) {
     const rawErrorMessage = (error as Error)?.message || "";
-    const isPoolLimitError =
-      rawErrorMessage.includes("EMAXCONNSESSION") ||
-      rawErrorMessage.includes("max clients reached") ||
-      rawErrorMessage.includes("pool_size");
-
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-white dark:bg-slate-900 max-w-md mx-auto border-x border-gray-100 dark:border-slate-800">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-white dark:bg-zinc-950">
         <div className="w-16 h-16 bg-red-50 dark:bg-red-950/50 rounded-2xl flex items-center justify-center mb-4 text-[#991B1B]">
-          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
+          <ShieldCheck className="w-8 h-8" />
         </div>
-        <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">حدث خطأ أثناء الاتصال بالخادم</h2>
+        <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
+          حدث خطأ أثناء تحميل بيانات المتجر
+        </h2>
         <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mb-4 leading-relaxed">
-          {isPoolLimitError
-            ? "تم الوصول للحد الأقصى لجلسات الاتصال في قاعدة البيانات (Session Pool). جاري معالجة الاتصال التلقائي، اضغط على إعادة المحاولة."
-            : rawErrorMessage || "يرجى التحقق من اتصال قاعدة البيانات"}
+          {rawErrorMessage || "يرجى التحقق من اتصال الخادم وإعادة المحاولة"}
         </p>
-        <button 
-          onClick={() => window.location.reload()} 
-          className="px-6 py-2.5 bg-[#991B1B] hover:bg-[#7F1D1D] text-white rounded-xl font-bold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5"
+        <button
+          onClick={() => window.location.reload()}
+          className="px-6 py-2.5 bg-[#991B1B] hover:bg-[#7F1D1D] text-white rounded-xl font-bold text-xs shadow-md transition-all active:scale-95"
         >
-          <span>إعادة المحاولة</span>
+          إعادة المحاولة
         </button>
       </div>
     );
   }
 
   if (!store) {
-    return <div className="min-h-screen flex items-center justify-center font-bold text-lg">Store not found</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center font-bold text-lg text-gray-500">
+        المتجر غير متاح حالياً
+      </div>
+    );
   }
 
-  const navbarStyle = theme.navbarStyle;
   const primaryColor =
     store.primaryColor &&
     store.primaryColor !== "#7C3AED" &&
@@ -163,12 +190,6 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
     store.primaryColor?.toLowerCase() !== "#7c3aed"
       ? store.primaryColor
       : "#991B1B";
-
-  const isOldBastahLogo =
-    !store.logoImage ||
-    (typeof store.logoImage === "string" && store.logoImage.toLowerCase().includes("bastah")) ||
-    store.name?.includes("بسطة") ||
-    store.name?.includes("بَسطة");
 
   const storeDisplayName =
     store.name &&
@@ -178,231 +199,236 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
       ? store.name
       : "دكاني - Dukkani";
 
-  const isColored = navbarStyle === "colored";
-  const isTransparent = navbarStyle === "transparent";
-  const isWhite = !isColored && !isTransparent;
-  const navbarTextColor = (isColored || isTransparent || isDark) ? "#ffffff" : "#111827";
-  const navbarBg = isColored ? primaryColor : isTransparent ? "transparent" : isDark ? "rgba(16,16,20,0.92)" : "rgba(255,255,255,0.94)";
+  const isOldBastahLogo =
+    !store.logoImage ||
+    (typeof store.logoImage === "string" && store.logoImage.toLowerCase().includes("bastah")) ||
+    store.name?.includes("بسطة") ||
+    store.name?.includes("بَسطة");
 
-  const dm = {
-    bg: isDark ? "#09090b" : "#f8f8f8",
-    surface: isDark ? "#111114" : "#ffffff",
-    surfaceMid: isDark ? "#17171c" : "#f8f8f8",
-    card: isDark ? "#1a1a20" : "#ffffff",
-    border: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
-    navbarBorder: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
-    bottomNavBg: isDark ? "rgba(18,18,22,0.88)" : "rgba(255,255,255,0.82)",
-    bottomNavBorder: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)",
-    iconColor: isDark ? "#a1a1aa" : "#4b5563",
-    text: isDark ? "#f4f4f5" : "#111827",
-    textMuted: isDark ? "#a1a1aa" : "#6b7280",
-  };
-
-  const cartActive = location.includes("/cart") || location.includes("/checkout");
+  const Arrow = isRTL ? ArrowLeft : ArrowRight;
 
   return (
-    <StoreUIContext.Provider value={{ themeMode, setThemeMode, isDark, darkMode: isDark, toggleDarkMode }}>
+    <StoreUIContext.Provider
+      value={{ themeMode, setThemeMode, isDark, darkMode: isDark, toggleDarkMode }}
+    >
       <ThemeContext.Provider value={theme}>
-        <div className="min-h-screen bg-neutral-100/90 dark:bg-[#070709] flex justify-center sm:py-4 transition-colors duration-300">
-          <div
-            dir={isRTL ? "rtl" : "ltr"}
-            className="min-h-[100dvh] sm:min-h-[92vh] w-full max-w-md md:max-w-3xl lg:max-w-6xl flex flex-col relative shadow-[0_12px_45px_-10px_rgba(0,0,0,0.15)] overflow-hidden sm:rounded-[32px] lg:rounded-3xl border sm:border-neutral-200/80 dark:sm:border-neutral-800/80"
-            style={{ background: dm.bg, borderColor: dm.border, transition: "background 0.35s ease" }}
-          >
-            {/* Announcement Bar */}
-            {theme.announcementBar && announcementVisible && (
-              <div
-                className="relative flex items-center justify-center px-8 py-2.5 text-xs font-bold text-center tracking-wide"
-                style={{ background: theme.announcementBarBg || primaryColor, color: theme.announcementBarText || "#fff" }}
-              >
-                <Sparkles className="w-3.5 h-3.5 mr-1.5 opacity-90 animate-pulse" />
-                <span>{theme.announcementBar}</span>
-                <button
-                  onClick={() => setAnnouncementVisible(false)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 opacity-70 hover:opacity-100 transition-opacity p-1"
-                  style={{ color: theme.announcementBarText || "#fff" }}
-                  aria-label="Close announcement"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            )}
-
-            {/* Navbar */}
-            <header
-              className="sticky top-0 z-50 px-4 py-2.5 flex items-center justify-between transition-all duration-300 border-b relative"
+        <div
+          dir={isRTL ? "rtl" : "ltr"}
+          className="min-h-screen flex flex-col bg-neutral-50/60 dark:bg-zinc-950 text-neutral-900 dark:text-zinc-100 transition-colors duration-300"
+        >
+          {/* Top Promotional Announcement Bar */}
+          {theme.announcementBar && announcementVisible && (
+            <div
+              className="relative flex items-center justify-center px-6 py-2 text-xs font-semibold tracking-wide text-white"
               style={{
-                background: navbarBg,
-                backdropFilter: "blur(24px) saturate(190%)",
-                WebkitBackdropFilter: "blur(24px) saturate(190%)",
-                boxShadow: (isWhite && !isDark) ? "0 2px 14px rgba(0,0,0,0.03)" : "none",
-                borderColor: dm.navbarBorder,
-                transition: "background 0.35s ease",
+                background: theme.announcementBarBg || primaryColor,
+                color: theme.announcementBarText || "#ffffff",
               }}
             >
-              {/* Brand Logo & Name */}
-              <Link href="/store" className="flex items-center gap-2 group select-none">
-                {!isOldBastahLogo && store.logoImage ? (
-                  <img
-                    src={store.logoImage}
-                    alt={storeDisplayName}
-                    className="w-8 h-8 rounded-xl object-cover shadow-2xs group-hover:scale-105 transition-transform"
-                  />
-                ) : (
-                  <DukkaniLogo iconOnly size="xs" />
-                )}
-                <span className="font-sans text-[17px] font-black tracking-tight" style={{ color: navbarTextColor }}>
-                  {storeDisplayName}
-                </span>
-              </Link>
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 opacity-90 animate-pulse" />
+                <span>{theme.announcementBar}</span>
+              </div>
+              <button
+                onClick={() => setAnnouncementVisible(false)}
+                className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 opacity-75 hover:opacity-100 p-1"
+                aria-label="Close announcement"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
 
-              {/* Action Controls - Ultra-clean, uncrowded */}
-              <div className="flex items-center gap-2" style={{ color: navbarTextColor }}>
-                {/* Search Button */}
+          {/* ── Top Bar Contract (Strict 3-Zone Architecture) ── */}
+          <header className="sticky top-0 z-50 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md border-b border-neutral-200/80 dark:border-zinc-800/80 transition-colors duration-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+              {/* Zone 1: Single element Brand Wordmark & Icon */}
+              <div className="flex items-center gap-4 shrink-0">
+                <Link href="/store" className="flex items-center gap-2.5 group select-none">
+                  {!isOldBastahLogo && store.logoImage ? (
+                    <img
+                      src={store.logoImage}
+                      alt={storeDisplayName}
+                      className="w-9 h-9 rounded-xl object-cover shadow-xs group-hover:scale-105 transition-transform"
+                    />
+                  ) : (
+                    <DukkaniLogo iconOnly size="sm" />
+                  )}
+                  <span className="font-sans text-lg sm:text-xl font-black tracking-tight text-neutral-900 dark:text-white">
+                    {storeDisplayName}
+                  </span>
+                </Link>
+              </div>
+
+              {/* Zone 2: 4-5 Clean Desktop Navigation Links */}
+              <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-neutral-600 dark:text-zinc-300">
+                <Link
+                  href="/store"
+                  className={`transition-colors hover:text-neutral-900 dark:hover:text-white ${
+                    location === "/store" ? "font-bold text-neutral-900 dark:text-white" : ""
+                  }`}
+                >
+                  {isRTL ? "الرئيسية" : "Home"}
+                </Link>
+                <Link
+                  href="/store/products"
+                  className={`transition-colors hover:text-neutral-900 dark:hover:text-white ${
+                    location.startsWith("/store/products")
+                      ? "font-bold text-neutral-900 dark:text-white"
+                      : ""
+                  }`}
+                >
+                  {isRTL ? "جميع المنتجات" : "All Products"}
+                </Link>
+                <Link
+                  href="/store/cart"
+                  className={`transition-colors hover:text-neutral-900 dark:hover:text-white ${
+                    location.startsWith("/store/cart")
+                      ? "font-bold text-neutral-900 dark:text-white"
+                      : ""
+                  }`}
+                >
+                  {isRTL ? "سلة الشراء" : "Shopping Bag"}
+                </Link>
+                <Link
+                  href="/store/profile"
+                  className={`transition-colors hover:text-neutral-900 dark:hover:text-white ${
+                    location.startsWith("/store/profile")
+                      ? "font-bold text-neutral-900 dark:text-white"
+                      : ""
+                  }`}
+                >
+                  {isRTL ? "عن المتجر" : "About Store"}
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className="text-xs text-neutral-400 dark:text-zinc-500 hover:text-neutral-700 dark:hover:text-zinc-300 transition-colors flex items-center gap-1 border border-neutral-200 dark:border-zinc-800 rounded-lg px-2.5 py-1"
+                >
+                  <Store className="w-3 h-3" />
+                  <span>{isRTL ? "لوحة التاجر" : "Merchant"}</span>
+                </Link>
+              </nav>
+
+              {/* Zone 3: Primary Action Controls */}
+              <div className="flex items-center gap-2.5">
+                {/* Search Shortcut */}
                 <Link href="/store/products">
                   <button
-                    className="w-8 h-8 flex items-center justify-center rounded-full transition-all active:scale-95 border hover:opacity-85"
-                    style={{
-                      background: isWhite && !isDark ? "#f4f4f7" : "rgba(255,255,255,0.12)",
-                      borderColor: isWhite && !isDark ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.1)",
-                      color: navbarTextColor,
-                    }}
-                    aria-label="Search products"
+                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-neutral-700 dark:text-zinc-300 transition-colors"
+                    aria-label="Search catalog"
                   >
-                    <Search className="w-3.5 h-3.5" />
+                    <Search className="w-4 h-4" />
                   </button>
                 </Link>
 
-                {/* Unified Regional Pill */}
+                {/* Unified Regional & Theme Popover Trigger */}
                 <div className="relative" ref={prefRef}>
                   <button
-                    onClick={() => setPrefModalOpen(v => !v)}
-                    className="flex items-center gap-1.5 text-[11px] font-black px-2.5 py-1.5 rounded-full transition-all active:scale-95 border"
-                    style={{
-                      background: isWhite && !isDark ? "#f4f4f7" : "rgba(255,255,255,0.12)",
-                      borderColor: isWhite && !isDark ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.1)",
-                      color: navbarTextColor,
-                    }}
+                    onClick={() => setPrefModalOpen((v) => !v)}
+                    className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-neutral-800 dark:text-zinc-200 text-xs font-semibold transition-colors"
+                    aria-label="Language, currency and theme settings"
                   >
-                    <Globe className="w-3.5 h-3.5 opacity-80" />
+                    <Globe className="w-3.5 h-3.5 text-neutral-500" />
                     <span>{activeCurrency.symbol}</span>
                     <span className="opacity-40">·</span>
                     <span>{language === "ar" ? "عربي" : "EN"}</span>
                   </button>
 
-                  {/* Regional Preferences Popover Modal */}
+                  {/* Popover Panel */}
                   {prefModalOpen && (
                     <div
-                      className={`absolute top-full mt-2.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-100 dark:border-slate-800 shadow-2xl rounded-2xl p-4 z-[90] w-72 text-start transition-all animate-in fade-in zoom-in-95 ${
+                      className={`absolute top-full mt-2.5 bg-white dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-800 shadow-xl rounded-2xl p-4 z-50 w-72 text-start transition-all animate-in fade-in zoom-in-95 ${
                         isRTL ? "left-0" : "right-0"
                       }`}
                     >
-                      <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-slate-800 mb-3">
-                        <div className="flex items-center gap-1.5">
-                          <Globe className="w-4 h-4 text-red-600 dark:text-red-400" />
-                          <h3 className="text-xs font-black text-gray-900 dark:text-white">
-                            {isRTL ? "التفضيلات واللغة" : "Preferences"}
+                      <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-zinc-800 mb-3">
+                        <div className="flex items-center gap-2">
+                          <Globe className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
+                          <h3 className="text-xs font-bold text-neutral-900 dark:text-white">
+                            {isRTL ? "التفضيلات الإقليمية" : "Preferences"}
                           </h3>
                         </div>
                         <button
                           onClick={() => setPrefModalOpen(false)}
-                          className="w-6 h-6 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                          className="w-6 h-6 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 dark:hover:text-white transition-colors"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
                       </div>
 
-                      {/* Language Section */}
-                      <div className="mb-3.5">
-                        <label className="text-[10px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-wider block mb-1.5">
+                      {/* Language Selection */}
+                      <div className="mb-4">
+                        <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1.5">
                           {isRTL ? "اللغة" : "Language"}
-                        </label>
-                        <div className="grid grid-cols-2 gap-1.5 bg-gray-100 dark:bg-slate-800 p-1 rounded-xl">
+                        </span>
+                        <div className="grid grid-cols-2 gap-1.5 bg-neutral-100 dark:bg-zinc-800 p-1 rounded-xl">
                           <button
                             onClick={() => setLanguage("ar")}
                             className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                               language === "ar"
-                                ? "bg-white dark:bg-slate-700 text-red-700 dark:text-red-300 shadow-xs font-black"
-                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900"
+                                ? "bg-white dark:bg-zinc-700 text-neutral-900 dark:text-white shadow-xs font-bold"
+                                : "text-neutral-600 dark:text-zinc-400 hover:text-neutral-900"
                             }`}
                           >
-                            {language === "ar" && <Check className="w-3 h-3" />}
+                            {language === "ar" && <Check className="w-3 h-3 text-red-600" />}
                             <span>العربية</span>
                           </button>
                           <button
                             onClick={() => setLanguage("en")}
                             className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                               language === "en"
-                                ? "bg-white dark:bg-slate-700 text-red-700 dark:text-red-300 shadow-xs font-black"
-                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900"
+                                ? "bg-white dark:bg-zinc-700 text-neutral-900 dark:text-white shadow-xs font-bold"
+                                : "text-neutral-600 dark:text-zinc-400 hover:text-neutral-900"
                             }`}
                           >
-                            {language === "en" && <Check className="w-3 h-3" />}
+                            {language === "en" && <Check className="w-3 h-3 text-red-600" />}
                             <span>English</span>
                           </button>
                         </div>
                       </div>
 
-                      {/* Currency Section */}
-                      <div className="mb-3.5">
-                        <label className="text-[10px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-wider block mb-1.5">
+                      {/* Currency Selection */}
+                      <div className="mb-4">
+                        <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1.5">
                           {isRTL ? "العملة" : "Currency"}
-                        </label>
-                        <div className="space-y-1">
-                          {availableCurrencies.map(c => {
+                        </span>
+                        <div className="space-y-1 max-h-36 overflow-y-auto">
+                          {availableCurrencies.map((c) => {
                             const isSelected = activeCurrency.code === c.code;
                             return (
                               <button
                                 key={c.code}
-                                onClick={() => {
-                                  setActiveCurrency(c.code);
-                                }}
-                                className={`w-full py-1.5 px-2.5 rounded-lg text-xs flex items-center justify-between transition-all ${
+                                onClick={() => setActiveCurrency(c.code)}
+                                className={`w-full py-1.5 px-2.5 rounded-lg text-xs flex items-center justify-between transition-colors ${
                                   isSelected
-                                    ? "bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 font-black border border-red-200 dark:border-red-800"
-                                    : "hover:bg-gray-50 dark:hover:bg-slate-800/60 text-gray-700 dark:text-gray-300 font-medium"
+                                    ? "bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 font-bold"
+                                    : "hover:bg-neutral-50 dark:hover:bg-zinc-800/60 text-neutral-700 dark:text-zinc-300"
                                 }`}
                               >
                                 <div className="flex items-center gap-2">
-                                  <span className="w-6 text-center font-black text-[11px] opacity-75">{c.symbol}</span>
+                                  <span className="font-mono text-xs opacity-75">{c.symbol}</span>
                                   <span>{isRTL ? c.nameAr : c.name}</span>
                                 </div>
-                                {isSelected && <Check className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />}
+                                {isSelected && <Check className="w-3.5 h-3.5 text-red-600" />}
                               </button>
                             );
                           })}
                         </div>
                       </div>
 
-                      {/* Theme Selector: Light / Dark / System */}
-                      <div className="pt-3 border-t border-gray-100 dark:border-zinc-800">
-                        <div className="flex items-center justify-between mb-2">
-                          <label className="text-[10px] font-bold text-gray-400 dark:text-zinc-400 uppercase tracking-wider block">
-                            {isRTL ? "مظهر المتجر" : "Theme"}
-                          </label>
-                          <span className="text-[10px] font-semibold text-gray-500 dark:text-zinc-400 flex items-center gap-1">
-                            {isDark ? (
-                              <Moon className="w-3 h-3 text-indigo-400" />
-                            ) : (
-                              <Sun className="w-3 h-3 text-amber-500" />
-                            )}
-                            <span>
-                              {themeMode === "light"
-                                ? (isRTL ? "فاتح" : "Light")
-                                : themeMode === "dark"
-                                ? (isRTL ? "داكن" : "Dark")
-                                : (isRTL ? "تلقائي" : "System")}
-                            </span>
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-1.5 bg-gray-100 dark:bg-zinc-800/90 p-1 rounded-xl">
+                      {/* Theme Selection: Light / Dark / System */}
+                      <div className="pt-3 border-t border-neutral-100 dark:border-zinc-800">
+                        <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1.5">
+                          {isRTL ? "المظهر" : "Appearance"}
+                        </span>
+                        <div className="grid grid-cols-3 gap-1 bg-neutral-100 dark:bg-zinc-800 p-1 rounded-xl">
                           <button
                             type="button"
                             onClick={() => setThemeMode("light")}
-                            className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                            className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1 ${
                               themeMode === "light"
-                                ? "bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-xs font-black"
-                                : "text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+                                ? "bg-white dark:bg-zinc-700 text-neutral-900 dark:text-white shadow-xs font-bold"
+                                : "text-neutral-600 dark:text-zinc-400"
                             }`}
                           >
                             <Sun className="w-3.5 h-3.5 text-amber-500" />
@@ -411,10 +437,10 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
                           <button
                             type="button"
                             onClick={() => setThemeMode("dark")}
-                            className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                            className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1 ${
                               themeMode === "dark"
-                                ? "bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-xs font-black"
-                                : "text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+                                ? "bg-white dark:bg-zinc-700 text-neutral-900 dark:text-white shadow-xs font-bold"
+                                : "text-neutral-600 dark:text-zinc-400"
                             }`}
                           >
                             <Moon className="w-3.5 h-3.5 text-indigo-400" />
@@ -423,10 +449,10 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
                           <button
                             type="button"
                             onClick={() => setThemeMode("system")}
-                            className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                            className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1 ${
                               themeMode === "system"
-                                ? "bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-xs font-black"
-                                : "text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+                                ? "bg-white dark:bg-zinc-700 text-neutral-900 dark:text-white shadow-xs font-bold"
+                                : "text-neutral-600 dark:text-zinc-400"
                             }`}
                           >
                             <Laptop className="w-3.5 h-3.5 text-sky-500" />
@@ -438,163 +464,218 @@ export function StoreLayout({ children, hideBottomNav = false }: { children: Rea
                   )}
                 </div>
 
-                {/* Cart Button (Only shown if hideBottomNav is true OR if cart has items) */}
-                {(hideBottomNav || totalItems > 0) && (
-                  <Link href="/store/cart">
-                    <button
-                      className="relative w-8 h-8 flex items-center justify-center rounded-full transition-all active:scale-95 border"
-                      style={{
-                        background: `${primaryColor}14`,
-                        borderColor: `${primaryColor}30`,
-                        color: primaryColor,
-                      }}
-                      aria-label="Shopping Cart"
-                    >
-                      <ShoppingBag className="w-3.5 h-3.5" />
-                      <span
-                        className="absolute -top-1 -right-1 text-white text-[8.5px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs"
-                        style={{ background: "#ef4444" }}
-                      >
-                        {totalItems > 9 ? "9+" : totalItems}
-                      </span>
-                    </button>
-                  </Link>
-                )}
-              </div>
-            </header>
-
-            {/* Main Content */}
-            <main
-              className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide"
-              style={{ background: dm.surface, paddingBottom: hideBottomNav ? 20 : 105, transition: "background 0.35s ease" }}
-            >
-              {children}
-            </main>
-
-            {/* Bottom Navigation */}
-            {!hideBottomNav && (
-              <div
-                style={{
-                  position: "fixed",
-                  bottom: 0,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  maxWidth: 448,
-                  width: "100%",
-                  zIndex: 50,
-                  pointerEvents: "none",
-                  display: "flex",
-                  justifyContent: "center",
-                  paddingBottom: 16,
-                  paddingLeft: 16,
-                  paddingRight: 16,
-                }}
-              >
-                <nav
+                {/* Shopping Bag Button with Live Counter */}
+                <button
+                  onClick={openMiniCart}
+                  className="relative h-9 px-3.5 flex items-center gap-2 rounded-xl text-white font-bold text-xs transition-transform active:scale-95 shadow-sm"
                   style={{
-                    pointerEvents: "auto",
-                    background: dm.bottomNavBg,
-                    backdropFilter: "blur(32px) saturate(200%)",
-                    WebkitBackdropFilter: "blur(32px) saturate(200%)",
-                    borderRadius: 28,
-                    border: `1px solid ${dm.bottomNavBorder}`,
-                    boxShadow: isDark
-                      ? "0 10px 40px rgba(0,0,0,0.6), 0 2px 10px rgba(0,0,0,0.4)"
-                      : "0 10px 40px rgba(0,0,0,0.12), 0 2px 10px rgba(0,0,0,0.06)",
-                    padding: "6px 8px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-around",
-                    width: "100%",
-                    maxWidth: 360,
+                    background: `linear-gradient(135deg, ${primaryColor}, #DC2626)`,
                   }}
+                  aria-label="Shopping Cart Drawer"
                 >
-                  {[
-                    { href: "/store",          label: isRTL ? "الرئيسية" : "Home",     icon: Home,         active: location === "/store" },
-                    { href: "/store/products", label: isRTL ? "المنتجات" : "Catalog",  icon: BadgePercent, active: location.startsWith("/store/products") },
-                    { href: "/store/cart",     label: isRTL ? "السلة" : "Cart",        icon: ShoppingBag,  active: location.startsWith("/store/cart"), badge: totalItems > 0 ? totalItems : null },
-                    { href: "/store/profile",  label: isRTL ? "المتجر" : "Profile",    icon: User,         active: location.startsWith("/store/profile") },
-                  ].map(({ href, label, icon: Icon, active, badge }, i) => (
-                    <Link key={i} href={href} style={{ textDecoration: "none" }} className="flex-1">
-                      <div
-                        className="flex flex-col items-center justify-center py-1.5 px-2 rounded-2xl transition-all duration-200"
-                        style={{
-                          background: active ? `${primaryColor}14` : "transparent",
-                          color: active ? primaryColor : dm.iconColor,
-                        }}
-                      >
-                        <div className="relative">
-                          <Icon
-                            style={{
-                              width: 21,
-                              height: 21,
-                              strokeWidth: active ? 2.3 : 1.8,
-                              color: active ? primaryColor : undefined,
-                              transition: "transform 0.2s ease, color 0.2s ease",
-                              transform: active ? "scale(1.08)" : "scale(1)",
-                            }}
-                          />
+                  <ShoppingBag className="w-4 h-4" />
+                  <span className="hidden sm:inline font-mono tabular-nums">
+                    {totalItems > 0 ? format(totalPrice) : (isRTL ? "السلة" : "Bag")}
+                  </span>
+                  {totalItems > 0 && (
+                    <span className="w-5 h-5 rounded-full bg-white text-neutral-900 font-black text-[10px] flex items-center justify-center shadow-xs">
+                      {totalItems > 99 ? "99+" : totalItems}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </header>
 
-                          {badge && (
-                            <span
-                              className="absolute -top-1.5 -right-2 text-[8px] font-black text-white px-1 py-0.2 rounded-full min-w-[14px] h-[14px] flex items-center justify-center shadow-sm"
-                              style={{
-                                background: "#ef4444",
-                                border: "1.5px solid #fff",
-                              }}
-                            >
-                              {badge > 9 ? "9+" : badge}
-                            </span>
-                          )}
-                        </div>
-                        <span
-                          className="text-[10px] font-black mt-1 tracking-tight leading-none"
-                          style={{
-                            color: active ? primaryColor : undefined,
-                            opacity: active ? 1 : 0.65,
-                          }}
-                        >
-                          {label}
-                        </span>
-                        {active && (
-                          <div
-                            className="w-1 h-1 rounded-full mt-0.5"
-                            style={{ background: primaryColor }}
-                          />
+          {/* ── Main Content Container ── */}
+          <main className="flex-1 w-full pb-16 md:pb-8">{children}</main>
+
+          {/* ── Desktop & Tablet Full Store Footer ── */}
+          <footer className="border-t border-neutral-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950 text-neutral-600 dark:text-zinc-400">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12">
+                {/* Col 1: Store Brand & Story */}
+                <div className="md:col-span-1 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <DukkaniLogo iconOnly size="sm" />
+                    <span className="font-sans text-xl font-black text-neutral-900 dark:text-white">
+                      {storeDisplayName}
+                    </span>
+                  </div>
+                  <p className="text-xs leading-relaxed text-neutral-500 dark:text-zinc-400">
+                    {store.description ||
+                      (isRTL
+                        ? "منصة تسوق رقمية موثوقة تقدم منتجات منتقاة بعناية مع التزام تام بالجودة العالية وتوصيل فائق السرعة."
+                        : "A trusted digital retail destination offering carefully curated products with exceptional quality and fast delivery.")}
+                  </p>
+                  {store.whatsappNumber && (
+                    <a
+                      href={`https://wa.me/${store.whatsappNumber.replace(/\D/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-xs font-bold text-green-600 hover:text-green-700 transition-colors"
+                    >
+                      <Phone className="w-3.5 h-3.5" />
+                      <span>{isRTL ? "خدمة العملاء عبر واتساب" : "WhatsApp Customer Care"}</span>
+                    </a>
+                  )}
+                </div>
+
+                {/* Col 2: Navigation Links */}
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-white mb-4">
+                    {isRTL ? "روابط سريعة" : "Quick Links"}
+                  </h4>
+                  <ul className="space-y-2.5 text-xs font-medium">
+                    <li>
+                      <Link href="/store" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
+                        {isRTL ? "الصفحة الرئيسية" : "Storefront Home"}
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/store/products" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
+                        {isRTL ? "كتالوج المنتجات" : "Product Catalog"}
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/store/cart" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
+                        {isRTL ? "سلة المشتريات" : "Shopping Bag"}
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/store/profile" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
+                        {isRTL ? "عن المتجر والشروط" : "About & Terms"}
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Col 3: Customer Reassurance */}
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-white mb-4">
+                    {isRTL ? "سياسات وضمانات" : "Trust & Policies"}
+                  </h4>
+                  <ul className="space-y-2.5 text-xs font-medium">
+                    <li className="flex items-center gap-2">
+                      <Truck className="w-3.5 h-3.5 text-neutral-400" />
+                      <span>{isRTL ? "شحن سريع لكافة المدن" : "Fast Domestic Delivery"}</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <RotateCcw className="w-3.5 h-3.5 text-neutral-400" />
+                      <span>{isRTL ? "استرجاع واستبدال خلال 14 يوماً" : "14-Day Flexible Returns"}</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <ShieldCheck className="w-3.5 h-3.5 text-neutral-400" />
+                      <span>{isRTL ? "منتجات أصلية 100% ومضمونة" : "100% Genuine Guaranteed"}</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-neutral-400" />
+                      <span>{isRTL ? "دفع عند الاستلام متاح" : "Cash on Delivery Available"}</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Col 4: Merchant Portal */}
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-white mb-4">
+                    {isRTL ? "بوابة التاجر" : "Merchant Portal"}
+                  </h4>
+                  <p className="text-xs text-neutral-500 dark:text-zinc-400 leading-relaxed mb-3">
+                    {isRTL
+                      ? "هل أنت صاحب هذا المتجر؟ يمكنك تسجيل الدخول للوحة التحكم لإدارة المنتجات، الأقسام والطلبات فورياً."
+                      : "Store manager? Log in to manage products, inventory, categories and track customer orders in real-time."}
+                  </p>
+                  <Link
+                    href="/dashboard"
+                    className="inline-flex items-center gap-2 text-xs font-bold px-3.5 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-neutral-900 dark:text-white transition-colors"
+                  >
+                    <Store className="w-3.5 h-3.5" />
+                    <span>{isRTL ? "دخول لوحة التحكم" : "Open Dashboard"}</span>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Bottom Copyright & Security note */}
+              <div className="mt-12 pt-6 border-t border-neutral-200/60 dark:border-zinc-800/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-400">
+                <p>
+                  © {new Date().getFullYear()} {storeDisplayName}. {isRTL ? "جميع الحقوق محفوظة." : "All rights reserved."}
+                </p>
+                <div className="flex items-center gap-4 text-[11px]">
+                  <span>{isRTL ? "تسوق آمن ومحمي" : "Secure Checkout"}</span>
+                  <span>·</span>
+                  <span>{isRTL ? "دعم الدفع عند الاستلام والتحويلات" : "Cash on Delivery & Wire"}</span>
+                </div>
+              </div>
+            </div>
+          </footer>
+
+          {/* ── Native Mobile Bottom Navigation Bar (Hidden on Desktop md:hidden) ── */}
+          {!hideBottomNav && (
+            <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white/95 dark:bg-zinc-950/95 backdrop-blur-lg border-t border-neutral-200/80 dark:border-zinc-800/80 px-2 py-1 safe-area-pb">
+              <nav className="flex items-center justify-around h-14">
+                {[
+                  {
+                    href: "/store",
+                    label: isRTL ? "الرئيسية" : "Home",
+                    icon: Home,
+                    active: location === "/store",
+                  },
+                  {
+                    href: "/store/products",
+                    label: isRTL ? "المنتجات" : "Catalog",
+                    icon: BadgePercent,
+                    active: location.startsWith("/store/products"),
+                  },
+                  {
+                    href: "/store/cart",
+                    label: isRTL ? "السلة" : "Bag",
+                    icon: ShoppingBag,
+                    active: location.startsWith("/store/cart") || location.startsWith("/store/checkout"),
+                    badge: totalItems > 0 ? totalItems : null,
+                  },
+                  {
+                    href: "/store/profile",
+                    label: isRTL ? "المتجر" : "About",
+                    icon: User,
+                    active: location.startsWith("/store/profile"),
+                  },
+                ].map(({ href, label, icon: Icon, active, badge }, i) => (
+                  <Link key={i} href={href} className="flex-1 py-1 text-center">
+                    <div className="flex flex-col items-center justify-center gap-0.5">
+                      <div className="relative">
+                        <Icon
+                          className={`w-5 h-5 transition-transform ${
+                            active
+                              ? "text-red-600 scale-110"
+                              : "text-neutral-500 dark:text-zinc-400"
+                          }`}
+                          style={active ? { color: primaryColor } : {}}
+                        />
+                        {badge && (
+                          <span className="absolute -top-1 -right-2 text-[9px] font-black text-white px-1.5 py-0.2 rounded-full min-w-[16px] h-4 flex items-center justify-center bg-red-600 shadow-xs">
+                            {badge > 99 ? "99+" : badge}
+                          </span>
                         )}
                       </div>
-                    </Link>
-                  ))}
-                </nav>
-              </div>
-            )}
+                      <span
+                        className={`text-[10px] font-bold tracking-tight ${
+                          active
+                            ? "text-red-600 font-extrabold"
+                            : "text-neutral-500 dark:text-zinc-400"
+                        }`}
+                        style={active ? { color: primaryColor } : {}}
+                      >
+                        {label}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </nav>
+            </div>
+          )}
 
-            {/* Social Footer */}
-            {(theme.instagram || theme.tiktok || theme.footerText) && (
-              <div className="px-5 py-4 flex flex-col items-center gap-2 border-t"
-                style={{ background: dm.surfaceMid, borderColor: dm.border }}>
-                {(theme.instagram || theme.tiktok) && (
-                  <div className="flex gap-4">
-                    {theme.instagram && (
-                      <a href={theme.instagram} target="_blank" rel="noopener noreferrer"
-                        className="text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1">
-                        📷 Instagram
-                      </a>
-                    )}
-                    {theme.tiktok && (
-                      <a href={theme.tiktok} target="_blank" rel="noopener noreferrer"
-                        className="text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1">
-                        🎵 TikTok
-                      </a>
-                    )}
-                  </div>
-                )}
-                {theme.footerText && <p className="text-[10px] text-gray-400 text-center">{theme.footerText}</p>}
-              </div>
-            )}
-
-            <MiniCart />
-          </div>
+          {/* MiniCart Slide-Over Drawer */}
+          <MiniCart />
         </div>
       </ThemeContext.Provider>
     </StoreUIContext.Provider>

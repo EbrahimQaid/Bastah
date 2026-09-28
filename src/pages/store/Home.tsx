@@ -3,18 +3,33 @@ import { StoreLayout } from "@/components/layout/StoreLayout";
 import { useListStoreProducts, useListStoreCategories, useGetStore } from "@/services/api";
 import { motion } from "framer-motion";
 import { useCurrency } from "@/context/currency-context";
-import { useTheme, getCardClass, getHeroHeight, getBtnRadius } from "@/context/theme-context";
-import { ShoppingBag, Sparkles, ArrowLeft, ArrowRight, Tag, Flame, Star, Check, Truck, ShieldCheck, CreditCard, Headphones, Copy } from "lucide-react";
+import { useTheme } from "@/context/theme-context";
+import {
+  ShoppingBag,
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Truck,
+  ShieldCheck,
+  CreditCard,
+  RotateCcw,
+  Sparkles,
+} from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 
-function ProductCard({ product, primaryColor }: { product: any; primaryColor: string }) {
+function ProductCard({
+  product,
+  primaryColor,
+}: {
+  product: any;
+  primaryColor: string;
+}) {
   const { format } = useCurrency();
-  const theme = useTheme();
   const { isRTL } = useLanguage();
-  const { addItem } = useCart();
+  const { addItem, openMiniCart } = useCart();
   const { toast } = useToast();
   const [justAdded, setJustAdded] = useState(false);
 
@@ -22,7 +37,6 @@ function ProductCard({ product, primaryColor }: { product: any; primaryColor: st
     e.preventDefault();
     e.stopPropagation();
 
-    // If product has variants, guide them to product page
     if (product.variants?.sizes?.length || product.variants?.colors?.length) {
       window.location.href = `/store/products/${product.id}`;
       return;
@@ -39,105 +53,102 @@ function ProductCard({ product, primaryColor }: { product: any; primaryColor: st
     });
 
     setJustAdded(true);
-    setTimeout(() => setJustAdded(false), 1800);
+    setTimeout(() => setJustAdded(false), 1600);
+    openMiniCart();
     toast({
-      title: "تمت الإضافة للسلة ✓",
+      title: isRTL ? "تمت الإضافة إلى السلة" : "Added to shopping bag",
       description: product.name,
     });
   };
 
+  const imageSrc =
+    Array.isArray(product.images) && product.images.length > 0
+      ? product.images[0]
+      : typeof product.images === "string" && product.images
+      ? product.images
+      : "/images/product_luxury_thobe_1790631673826.jpg";
+
   return (
     <Link href={`/store/products/${product.id}`}>
-      <div className="group cursor-pointer relative h-full">
-        {/* Card */}
-        <div
-          className="bg-white dark:bg-slate-900/90 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 flex flex-col h-full border border-gray-100 dark:border-slate-800"
-          style={{ boxShadow: "0 2px 14px rgba(0,0,0,0.05)" }}
-        >
-          {/* Image Container */}
-          <div className={`relative overflow-hidden bg-gray-50 dark:bg-slate-800 ${theme.gridCols === 3 ? "h-[135px]" : "h-[160px]"}`}>
-            {product.images?.[0] ? (
-              <img
-                src={product.images[0]}
-                alt={product.name}
-                loading="lazy"
-                className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
-              />
-            ) : (
-              <div
-                className="w-full h-full flex items-center justify-center"
-                style={{ background: `linear-gradient(135deg, ${primaryColor}10, ${primaryColor}20)` }}
-              >
-                <ShoppingBag className="w-8 h-8 opacity-30" style={{ color: primaryColor }} />
-              </div>
-            )}
+      <div className="group cursor-pointer flex flex-col h-full bg-white dark:bg-zinc-900 rounded-2xl border border-neutral-200/70 dark:border-zinc-800/80 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+        {/* Product Image Stage */}
+        <div className="relative aspect-[4/3] bg-neutral-100 dark:bg-zinc-800/70 overflow-hidden">
+          <img
+            src={imageSrc}
+            alt={product.name}
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
 
-            {/* Badges */}
-            <div className="absolute top-2.5 right-2.5 flex flex-col gap-1 items-end">
-              {product.featured && (
-                <div
-                  className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-white text-[9px] font-black uppercase tracking-wider shadow-sm"
-                  style={{ background: primaryColor }}
-                >
-                  <Sparkles className="w-2.5 h-2.5" />
-                  <span>{isRTL ? "مميز" : "Featured"}</span>
-                </div>
-              )}
+          {/* Availability Status */}
+          {!product.inStock && (
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-3 text-center">
+              <span className="bg-white text-neutral-900 text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-md">
+                {isRTL ? "نفد المخزون" : "Sold Out"}
+              </span>
             </div>
+          )}
 
+          {/* Featured Subtle Marker */}
+          {product.featured && product.inStock && (
+            <div className="absolute top-3 right-3 rtl:right-auto rtl:left-3">
+              <span
+                className="text-[10px] font-bold text-white px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-sm flex items-center gap-1"
+                style={{ background: primaryColor }}
+              >
+                <Sparkles className="w-2.5 h-2.5" />
+                <span>{isRTL ? "مختار" : "Curated"}</span>
+              </span>
+            </div>
+          )}
+        </div>
 
-            {/* Sold Out Overlay */}
-            {!product.inStock && (
-              <div className="absolute inset-0 bg-black/55 backdrop-blur-[2px] flex items-center justify-center">
-                <span className="bg-white text-gray-900 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg">
-                  {isRTL ? "نفد المخزون" : "Sold Out"}
-                </span>
-              </div>
-            )}
+        {/* Content & Metadata */}
+        <div className="p-4 flex flex-col justify-between flex-1 gap-3">
+          <div>
+            <span className="text-[11px] font-medium text-neutral-400 dark:text-zinc-500 uppercase tracking-wider block mb-1">
+              {product.categoryName || (isRTL ? "منتج مميز" : "Signature")}
+            </span>
+            <h3 className="font-bold text-sm text-neutral-900 dark:text-zinc-100 leading-snug line-clamp-2 group-hover:text-red-600 transition-colors">
+              {product.name}
+            </h3>
           </div>
 
-          {/* Info */}
-          <div className={`flex flex-col justify-between flex-1 ${theme.gridCols === 3 ? "p-2.5" : "p-3.5"}`}>
+          <div className="pt-2 border-t border-neutral-100 dark:border-zinc-800 flex items-center justify-between">
             <div>
-              <h3 className={`font-bold text-gray-900 dark:text-gray-100 leading-snug line-clamp-2 mb-1.5 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors ${theme.gridCols === 3 ? "text-[11px]" : "text-[13px]"}`}>
-                {product.name}
-              </h3>
+              <span className="text-[10px] text-neutral-400 block leading-tight">
+                {isRTL ? "السعر" : "Price"}
+              </span>
+              <p className="text-base font-black font-mono tabular-nums text-neutral-900 dark:text-white">
+                {format(product.price)}
+              </p>
             </div>
 
-            <div className="flex items-center justify-between mt-2 pt-1 border-t border-gray-50 dark:border-slate-800">
-              <div>
-                <span className="text-[10px] text-gray-400 font-semibold block leading-none mb-0.5">السعر</span>
-                <p className={`font-black ${theme.gridCols === 3 ? "text-xs" : "text-sm sm:text-base"}`} style={{ color: primaryColor }}>
-                  {format(product.price)}
-                </p>
-              </div>
-
-              {/* Quick Add Button */}
-              <button
-                onClick={handleQuickAdd}
-                disabled={!product.inStock}
-                aria-label="Add to cart"
-                className="w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-105 shadow-xs disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-zinc-800 disabled:text-gray-400"
-                style={{
-                  background: justAdded
-                    ? "#22c55e"
-                    : product.inStock
-                    ? `${primaryColor}15`
-                    : undefined,
-                  color: justAdded
-                    ? "#ffffff"
-                    : product.inStock
-                    ? primaryColor
-                    : undefined,
-                }}
-              >
-                {justAdded ? (
-                  <Check className="w-4 h-4 animate-bounce" />
-                ) : (
-                  <ShoppingBag className="w-3.5 h-3.5" />
-                )}
-              </button>
-            </div>
+            <button
+              onClick={handleQuickAdd}
+              disabled={!product.inStock}
+              className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
+              style={{
+                background: justAdded
+                  ? "#16a34a"
+                  : product.inStock
+                  ? `${primaryColor}15`
+                  : undefined,
+                color: justAdded
+                  ? "#ffffff"
+                  : product.inStock
+                  ? primaryColor
+                  : undefined,
+              }}
+              aria-label={isRTL ? "إضافة سريعة إلى السلة" : "Quick add to bag"}
+            >
+              {justAdded ? (
+                <Check className="w-4 h-4 text-white" />
+              ) : (
+                <ShoppingBag className="w-4 h-4" />
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -149,15 +160,8 @@ export default function Home() {
   const { data: store } = useGetStore();
   const { data: products } = useListStoreProducts();
   const { data: categories } = useListStoreCategories();
-  const { toast } = useToast();
-
-  const theme = useTheme();
-  const heroHeightClass = getHeroHeight(theme.heroHeight);
-  const btnRadius = getBtnRadius(theme.buttonRadius);
   const { isRTL } = useLanguage();
-
-  const queryParams = new URLSearchParams(window.location.search);
-  const categoryId = queryParams.get("categoryId");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const primaryColor =
     store?.primaryColor &&
@@ -166,297 +170,288 @@ export default function Home() {
     store.primaryColor?.toLowerCase() !== "#7c3aed"
       ? store.primaryColor
       : "#991B1B";
-  const overlayOpacity = (theme.heroOverlayOpacity ?? 35) / 100;
-
-  const featuredProducts = products?.filter(p => p.featured).slice(0, theme.gridCols === 3 ? 6 : 4) || [];
-  const allProducts = products?.filter(p => !p.featured).slice(0, theme.gridCols === 3 ? 9 : 6) || [];
-
-  const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.07 } } };
-  const itemVar: any = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
   const Arrow = isRTL ? ArrowLeft : ArrowRight;
 
-  const localizedFeaturedTitle = isRTL
-    ? (!theme.featuredTitle || theme.featuredTitle.toLowerCase() === "featured" ? "المنتجات المميزة" : theme.featuredTitle)
-    : (theme.featuredTitle || "Featured Products");
+  const heroImage =
+    store?.coverImage || "/images/hero_storefront_campaign_1790631662971.jpg";
 
-  const localizedLatestTitle = isRTL
-    ? (!theme.latestTitle || theme.latestTitle.toLowerCase().includes("latest") ? "أحدث الإضافات" : theme.latestTitle)
-    : (theme.latestTitle || "Latest Arrivals");
+  // Filter products by selected category
+  const filteredProducts =
+    selectedCategory === "all"
+      ? products || []
+      : (products || []).filter(
+          (p) => String(p.categoryId) === selectedCategory,
+        );
 
-  const localizedHeroCta = isRTL
-    ? (!theme.heroCtaText || theme.heroCtaText.toLowerCase().includes("shop") ? "تسوق الآن" : theme.heroCtaText)
-    : (theme.heroCtaText || "Shop Now");
-
-  const localizedCategoriesTitle = isRTL ? "الأقسام المميزة" : "Featured Categories";
-  const localizedViewAll = isRTL ? "عرض الكل" : "View All";
-  const localizedAllCount = isRTL ? "الكل" : "All";
-  const localizedExploreAll = isRTL ? "استعراض جميع المنتجات" : "Explore All Products";
-
-  const handleCopyCoupon = (code: string) => {
-    navigator.clipboard?.writeText(code);
-    toast({
-      title: "تم نسخ كود الخصم! 🎁",
-      description: `استخدم الكود ${code} عند إتمام الشراء`,
-    });
-  };
-
-  const sections = {
-    categories: theme.showCategories && categories && categories.length > 0 && (
-      <div key="categories" className="px-5 pt-3 pb-1">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-xs sm:text-sm font-black text-gray-900 dark:text-gray-100 tracking-tight">
-            {localizedCategoriesTitle}
-          </h2>
-          <Link href="/store/products" className="text-[11px] font-bold transition-opacity hover:opacity-80" style={{ color: primaryColor }}>
-            {localizedAllCount} ({categories.length})
-          </Link>
-        </div>
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-5 px-5">
-          <Link href={`/store/products`}>
-            <button
-              className={`px-3.5 py-1.5 text-[11px] font-black whitespace-nowrap transition-all border shadow-xs ${!categoryId ? "text-white border-transparent shadow-sm scale-102" : "bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 border-gray-100 dark:border-slate-700 hover:border-gray-200"} ${btnRadius}`}
-              style={!categoryId ? { background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`, borderColor: primaryColor } : {}}
-            >
-              {localizedAllCount} ({products?.length || 0})
-            </button>
-          </Link>
-          {categories.map(cat => (
-            <Link key={cat.id} href={`/store/products?categoryId=${cat.id}`}>
-              <button
-                className={`px-3.5 py-1.5 text-[11px] font-black whitespace-nowrap transition-all border shadow-xs ${categoryId === cat.id.toString() ? "text-white border-transparent shadow-sm scale-102" : "bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 border-gray-100 dark:border-slate-700 hover:border-gray-200"} ${btnRadius}`}
-                style={categoryId === cat.id.toString() ? { background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`, borderColor: primaryColor } : {}}
-              >
-                {cat.name}
-              </button>
-            </Link>
-          ))}
-        </div>
-      </div>
-    ),
-
-    featured: theme.showFeatured && featuredProducts.length > 0 && (
-      <div key="featured" className="px-5 mb-5 mt-2">
-        {/* Section Header */}
-        <div className="flex justify-between items-center mb-2.5">
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-4 rounded-full" style={{ background: primaryColor }} />
-            <h2 className="text-sm sm:text-base font-black tracking-tight text-gray-900 dark:text-gray-100">
-              {localizedFeaturedTitle}
-            </h2>
-            <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-300">
-              {featuredProducts.length}
-            </span>
-          </div>
-          <Link href={`/store/products`}>
-            <span className="flex items-center gap-1 text-[11px] font-bold transition-all hover:opacity-70"
-              style={{ color: primaryColor }}>
-              {localizedViewAll}
-              <Arrow className="w-3 h-3" />
-            </span>
-          </Link>
-        </div>
-
-        <motion.div variants={container} initial="hidden" animate="show"
-          className={`grid gap-3 ${theme.gridCols === 3 ? "grid-cols-3 lg:grid-cols-4" : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"}`}>
-          {featuredProducts.map(product => (
-            <motion.div variants={itemVar} key={product.id}>
-              <ProductCard product={product} primaryColor={primaryColor} />
-            </motion.div>
-          ))}
-        </motion.div>
-      </div>
-    ),
-
-    allProducts: theme.showAllProducts && (
-      <div key="allProducts" className="px-5 mb-6">
-        {allProducts.length > 0 && (
-          <>
-            {/* Section Header */}
-            <div className="flex justify-between items-center mb-2.5">
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-4 rounded-full bg-gray-400" />
-                <h2 className="text-sm sm:text-base font-black tracking-tight text-gray-900 dark:text-gray-100">
-                  {localizedLatestTitle}
-                </h2>
-              </div>
-            </div>
-
-            <motion.div variants={container} initial="hidden" animate="show"
-              className={`grid gap-3 ${theme.gridCols === 3 ? "grid-cols-3 lg:grid-cols-4" : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"}`}>
-              {allProducts.map(product => (
-                <motion.div variants={itemVar} key={product.id}>
-                  <ProductCard product={product} primaryColor={primaryColor} />
-                </motion.div>
-              ))}
-            </motion.div>
-          </>
-        )}
-
-        <div className="mt-5 flex justify-center pb-2">
-          <Link href={`/store/products`}>
-            <button
-              className={`px-6 py-2.5 border-2 font-black text-xs transition-all hover:shadow-md active:scale-95 ${btnRadius}`}
-              style={{ borderColor: primaryColor, color: primaryColor, background: `${primaryColor}0a` }}
-            >
-              {localizedExploreAll} ({products?.length || 0})
-            </button>
-          </Link>
-        </div>
-      </div>
-    )
-  };
-
-  const order = theme.sectionOrder || ["categories", "featured", "allProducts"];
+  const featuredList = (products || []).filter((p) => p.featured).slice(0, 4);
+  const catalogList = filteredProducts.slice(0, 8);
 
   return (
     <StoreLayout>
-      <div className="flex flex-col pb-28">
+      <div className="space-y-12 lg:space-y-16">
+        {/* ── 1. Hero Campaign Banner (Split Screen on Desktop) ── */}
+        <section className="relative overflow-hidden bg-white dark:bg-zinc-900 border-b border-neutral-200/80 dark:border-zinc-800/80">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+              {/* Text & Primary Route */}
+              <div className="lg:col-span-6 space-y-6 text-start">
+                <div className="inline-flex items-center gap-2 text-xs font-semibold text-neutral-500 dark:text-zinc-400">
+                  <span
+                    className="w-2 h-2 rounded-full"
+                    style={{ background: primaryColor }}
+                  />
+                  <span>
+                    {isRTL
+                      ? "المتجر الإلكتروني المعتمد 2026"
+                      : "Official Online Flagship 2026"}
+                  </span>
+                </div>
 
-        {/* ── HERO SECTION ─────────────────────────────────── */}
-        <div
-          className="relative w-full flex items-center justify-center overflow-hidden min-h-[145px] py-4"
-          style={{ background: "#180303" }}
-        >
-          {/* Background image */}
-          {store?.coverImage ? (
-            <img src={store.coverImage} alt="Cover" className="absolute inset-0 w-full h-full object-cover opacity-40" />
-          ) : (
-            <div
-              className="absolute inset-0"
-              style={{ background: `linear-gradient(140deg, #3d0707 0%, #1a0303 60%, #0d0101 100%)` }}
-            />
-          )}
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-neutral-900 dark:text-white tracking-tight leading-[1.15] text-balance">
+                  {store?.description ||
+                    (isRTL
+                      ? "نخبة المنتجات الفاخرة بجودة استثنائية وأسرع توصيل"
+                      : "Curated Luxury Goods Crafted with Exceptional Quality")}
+                </h1>
 
-          {/* Clean dark gradient overlay for optimal text contrast */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#140202]/95 via-[#140202]/70 to-[#140202]/40" />
+                <p className="text-sm sm:text-base text-neutral-600 dark:text-zinc-400 max-w-xl leading-relaxed">
+                  {isRTL
+                    ? "تسوق أرقى الملابس التقليدية، العطور الشرقية الملكية، والتحف التراثية المتقنة مع ضمان الأصالة والدفع عند الاستلام."
+                    : "Discover artisanal tailoring, royal oriental fragrances, and handcrafted heritage pieces with guaranteed authenticity and flexible payment on delivery."}
+                </p>
 
-          {/* Subtle glow accent */}
-          <div
-            className="absolute -top-10 -right-10 w-44 h-44 rounded-full opacity-25 blur-3xl pointer-events-none"
-            style={{ background: primaryColor }}
-          />
+                <div className="flex flex-wrap items-center gap-3 pt-2">
+                  <Link href="/store/products">
+                    <button
+                      className="px-6 py-3.5 rounded-xl font-bold text-sm text-white flex items-center gap-2 transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-md"
+                      style={{
+                        background: `linear-gradient(135deg, ${primaryColor}, #DC2626)`,
+                      }}
+                    >
+                      <span>{isRTL ? "استعراض الكتالوج الكامل" : "Explore Full Catalog"}</span>
+                      <Arrow className="w-4 h-4" />
+                    </button>
+                  </Link>
 
-          {/* Hero Content - Crisp, focused, no clutter */}
-          <div className="relative z-10 flex flex-col items-center text-center px-4 max-w-sm mx-auto">
-            {/* Tag */}
-            <motion.div
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-1.5 px-2.5 py-0.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-bold flex items-center gap-1 shadow-2xs"
-            >
-              <Sparkles className="w-2.5 h-2.5 text-amber-300" />
-              <span>{isRTL ? "✨ تشكيلة مختارة 2026" : "✨ Curated Collection 2026"}</span>
-            </motion.div>
+                  <Link href="/store/profile">
+                    <button className="px-5 py-3.5 rounded-xl font-bold text-sm bg-neutral-100 hover:bg-neutral-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-neutral-800 dark:text-zinc-200 transition-colors">
+                      {isRTL ? "معلومات المتجر" : "About Us"}
+                    </button>
+                  </Link>
+                </div>
+              </div>
 
-            {/* Campaign Title */}
-            <motion.h1
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.05 }}
-              className="text-lg sm:text-xl font-black text-white tracking-tight mb-1 leading-snug drop-shadow-md"
-            >
-              {theme.heroTitle && theme.heroTitle !== store?.name && !theme.heroTitle.includes("صيحات")
-                ? theme.heroTitle
-                : (store?.name && !store.name.includes("بسطة") && !store.name.includes("بَسطة") && !store.name.toLowerCase().includes("bastah")
-                    ? store.name
-                    : (isRTL ? "دكاني - متجرك الذكي" : "Dukkani - Smart Store"))}
-            </motion.h1>
+              {/* Visual Showcase (16:9 or 4:3 Stage) */}
+              <div className="lg:col-span-6">
+                <div className="relative aspect-[16/10] sm:aspect-[16/9] lg:aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl border border-neutral-200/60 dark:border-zinc-800/60 bg-neutral-100 dark:bg-zinc-800">
+                  <img
+                    src={heroImage}
+                    alt="Storefront Campaign"
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4 text-white text-xs font-medium backdrop-blur-md bg-black/40 px-4 py-2.5 rounded-xl border border-white/20 flex items-center justify-between">
+                    <span>{isRTL ? "مجموعة الموسم الحصرية" : "Seasonal Exclusive Batch"}</span>
+                    <span className="font-bold opacity-90">{isRTL ? "شحن مجاني متوفر" : "Free Delivery Available"}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-            {/* Short punchy subtitle */}
-            <motion.p
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.35 }}
-              className="text-white/85 text-[11px] mb-3 max-w-[280px] leading-tight line-clamp-1"
-            >
-              {store?.description && !store.description.includes("صيحات")
-                ? store.description
-                : (isRTL ? "تسوق أفضل المنتجات المختارة بأعلى جودة وأسرع توصيل" : "Shop the best curated products with fast delivery")}
-            </motion.p>
+        {/* ── 2. Reassurance & Trust Pillars (4 Clean Blocks) ── */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-neutral-200/70 dark:border-zinc-800/80 space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 flex items-center justify-center">
+                <Truck className="w-5 h-5" />
+              </div>
+              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
+                {isRTL ? "شحن سريع ومجاني" : "Fast & Free Shipping"}
+              </h3>
+              <p className="text-xs text-neutral-500 dark:text-zinc-400 leading-relaxed">
+                {isRTL ? "توصيل مباشر لباب منزلك مع إمكانية التتبع الفوري" : "Direct doorstep delivery with real-time tracking"}
+              </p>
+            </div>
 
-            {/* CTA Button */}
-            <motion.div
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15, duration: 0.35 }}
-            >
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-neutral-200/70 dark:border-zinc-800/80 space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                <CreditCard className="w-5 h-5" />
+              </div>
+              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
+                {isRTL ? "الدفع عند الاستلام" : "Cash on Delivery"}
+              </h3>
+              <p className="text-xs text-neutral-500 dark:text-zinc-400 leading-relaxed">
+                {isRTL ? "ادفع نقداً أو عبر البطاقة بعد فحص واستلام مشترياتك" : "Pay securely upon inspecting your delivery"}
+              </p>
+            </div>
+
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-neutral-200/70 dark:border-zinc-800/80 space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
+                {isRTL ? "أصالة وجودة 100%" : "100% Genuine Guaranteed"}
+              </h3>
+              <p className="text-xs text-neutral-500 dark:text-zinc-400 leading-relaxed">
+                {isRTL ? "جميع المنتجات مفحوصة ومضمونة ومطابقة لأعلى المواصفات" : "Rigorous inspection ensuring authentic craftsmanship"}
+              </p>
+            </div>
+
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-neutral-200/70 dark:border-zinc-800/80 space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-green-50 dark:bg-green-950/40 text-green-600 dark:text-green-400 flex items-center justify-center">
+                <RotateCcw className="w-5 h-5" />
+              </div>
+              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
+                {isRTL ? "استبدال واسترجاع مرن" : "14-Day Returns"}
+              </h3>
+              <p className="text-xs text-neutral-500 dark:text-zinc-400 leading-relaxed">
+                {isRTL ? "إمكانية الاستبدال أو الاسترجاع بكل سهولة خلال 14 يوماً" : "Hassle-free exchanges within 14 business days"}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 3. Featured Collection Grid ── */}
+        {featuredList.length > 0 && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-end justify-between mb-6">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 dark:text-zinc-500 block mb-1">
+                  {isRTL ? "مختارات حصرية" : "Selected Highlights"}
+                </span>
+                <h2 className="text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+                  {isRTL ? "أبرز المنتجات المميزة" : "Featured Collection"}
+                </h2>
+              </div>
               <Link href="/store/products">
-                <button
-                  className={`group flex items-center gap-1.5 px-4 py-1.5 text-[11px] font-black text-white transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm ${btnRadius}`}
-                  style={{
-                    background: `linear-gradient(135deg, ${primaryColor}, #DC2626)`,
-                    boxShadow: `0 3px 14px ${primaryColor}50`,
-                  }}
+                <span
+                  className="inline-flex items-center gap-1.5 text-xs font-bold hover:underline"
+                  style={{ color: primaryColor }}
                 >
-                  <ShoppingBag className="w-3 h-3" />
-                  <span>{localizedHeroCta}</span>
-                </button>
+                  <span>{isRTL ? "عرض جميع المنتجات" : "View All"}</span>
+                  <Arrow className="w-3.5 h-3.5" />
+                </span>
               </Link>
-            </motion.div>
-          </div>
-        </div>
+            </div>
 
-        {/* ── STREAMLINED TRUST STRIP (Compact & Clean) ─────────── */}
-        <div className="px-5 -mt-2.5 relative z-10">
-          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xs border border-gray-100 dark:border-slate-800 p-2">
-            <div className="flex items-center justify-between gap-1 overflow-x-auto scrollbar-hide text-center divide-x divide-gray-100 dark:divide-slate-800 rtl:divide-x-reverse">
-              <div className="flex items-center justify-center gap-1 flex-1 min-w-[70px] py-0.5 px-0.5">
-                <Truck className="w-3 h-3 text-green-600 shrink-0" />
-                <span className="text-[9.5px] font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">{isRTL ? "شحن سريع" : "Fast Delivery"}</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredList.map((product) => (
+                <ProductCard key={product.id} product={product} primaryColor={primaryColor} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── 4. Interactive Category Filter & Catalog ── */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 dark:text-zinc-500 block mb-1">
+                {isRTL ? "تسوق حسب القسم" : "Browse by Category"}
+              </span>
+              <h2 className="text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+                {isRTL ? "قائمة المنتجات المتاحة" : "Available Products"}
+              </h2>
+            </div>
+
+            {/* Segmented Category Buttons */}
+            <div className="flex items-center gap-1.5 p-1 bg-neutral-100 dark:bg-zinc-800/80 rounded-xl overflow-x-auto scrollbar-hide max-w-full">
+              <button
+                onClick={() => setSelectedCategory("all")}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-colors ${
+                  selectedCategory === "all"
+                    ? "bg-white dark:bg-zinc-700 text-neutral-900 dark:text-white shadow-xs"
+                    : "text-neutral-600 dark:text-zinc-400 hover:text-neutral-900"
+                }`}
+              >
+                {isRTL ? "جميع الأقسام" : "All Categories"} ({products?.length || 0})
+              </button>
+
+              {categories?.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(String(cat.id))}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-colors ${
+                    selectedCategory === String(cat.id)
+                      ? "bg-white dark:bg-zinc-700 text-neutral-900 dark:text-white shadow-xs"
+                      : "text-neutral-600 dark:text-zinc-400 hover:text-neutral-900"
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {catalogList.map((product) => (
+              <ProductCard key={product.id} product={product} primaryColor={primaryColor} />
+            ))}
+          </div>
+
+          <div className="mt-10 flex justify-center">
+            <Link href="/store/products">
+              <button
+                className="px-8 py-3.5 rounded-xl font-bold text-sm border-2 transition-all hover:shadow-md active:scale-95"
+                style={{
+                  borderColor: primaryColor,
+                  color: primaryColor,
+                  background: `${primaryColor}08`,
+                }}
+              >
+                {isRTL
+                  ? `استعراض كافة المنتجات (${products?.length || 0})`
+                  : `Browse All Products (${products?.length || 0})`}
+              </button>
+            </Link>
+          </div>
+        </section>
+
+        {/* ── 5. Brand Heritage & Story Spotlight ── */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="rounded-3xl bg-neutral-900 text-white overflow-hidden p-8 sm:p-12 lg:p-16 relative">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+              <div className="lg:col-span-7 space-y-4 text-start">
+                <span className="text-xs font-mono uppercase tracking-widest text-red-400">
+                  {isRTL ? "حرفية وأصالة لا تضاهى" : "Craftsmanship & Authenticity"}
+                </span>
+                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight">
+                  {isRTL
+                    ? "منتجات متقنة صُممت لتدوم وتعكس ذوقك الرفيع"
+                    : "Enduring Quality Designed to Complement Your Lifestyle"}
+                </h3>
+                <p className="text-sm text-neutral-300 leading-relaxed max-w-xl">
+                  {isRTL
+                    ? "نحرص في دكاني على اختيار الموردين والصناع الأكثر كفاءة، لنضمن لك تجربة تسوق استثنائية تبدأ من التصفح السهل وحتى استلام طلبك بأمان وسرعة."
+                    : "Every piece in our catalog is hand-selected and inspected to meet international standards. From intuitive browsing to swift delivery, we prioritize trust."}
+                </p>
+                <div className="pt-2">
+                  <Link href="/store/products">
+                    <button className="px-6 py-3 bg-white text-neutral-900 hover:bg-neutral-100 rounded-xl font-bold text-xs transition-transform active:scale-95">
+                      {isRTL ? "تسوق المجموعة الآن" : "Shop Collection"}
+                    </button>
+                  </Link>
+                </div>
               </div>
-              <div className="flex items-center justify-center gap-1 flex-1 min-w-[70px] py-0.5 px-0.5">
-                <ShieldCheck className="w-3 h-3 text-blue-600 shrink-0" />
-                <span className="text-[9.5px] font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">{isRTL ? "أصلي 100%" : "100% Genuine"}</span>
-              </div>
-              <div className="flex items-center justify-center gap-1 flex-1 min-w-[70px] py-0.5 px-0.5">
-                <CreditCard className="w-3 h-3 text-amber-600 shrink-0" />
-                <span className="text-[9.5px] font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">{isRTL ? "دفع عند الاستلام" : "Cash on Delivery"}</span>
-              </div>
-              <div className="flex items-center justify-center gap-1 flex-1 min-w-[70px] py-0.5 px-0.5">
-                <Headphones className="w-3 h-3 text-red-600 shrink-0" />
-                <span className="text-[9.5px] font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">{isRTL ? "دعم فوري" : "24/7 Support"}</span>
+
+              <div className="lg:col-span-5">
+                <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+                  <img
+                    src="/images/product_royal_oud_1790631684386.jpg"
+                    alt="Craftsmanship"
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* ── SLIM COUPON CALLOUT ───────────────────────────── */}
-        <div className="px-5 mt-2">
-          <div
-            className="rounded-lg px-2.5 py-1.5 flex items-center justify-between border"
-            style={{
-              background: `linear-gradient(135deg, ${primaryColor}0c, ${primaryColor}03)`,
-              borderColor: `${primaryColor}20`,
-            }}
-          >
-            <div className="flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded-md flex items-center justify-center text-white font-black text-[10px] shrink-0" style={{ background: primaryColor }}>
-                %
-              </span>
-              <span className="text-[10.5px] font-black text-gray-900 dark:text-gray-100">
-                {isRTL ? "خصم 10% لطلبك الأول" : "10% Off Your First Order"}
-              </span>
-            </div>
-
-            <button
-              onClick={() => handleCopyCoupon("DUKKANI10")}
-              className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[9.5px] font-black border border-dashed transition-all active:scale-95 bg-white/90 dark:bg-slate-800/90 shadow-2xs"
-              style={{ borderColor: primaryColor, color: primaryColor }}
-            >
-              <span>DUKKANI10</span>
-              <Copy className="w-2 h-2" />
-            </button>
-          </div>
-        </div>
-
-        {/* ── DYNAMIC SECTIONS ─────────────────────────────── */}
-        <div className="mt-2">
-          {order.map(key => sections[key as keyof typeof sections])}
-        </div>
-
+        </section>
       </div>
     </StoreLayout>
   );
 }
-
