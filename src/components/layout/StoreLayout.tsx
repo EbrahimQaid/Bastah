@@ -79,6 +79,17 @@ export function StoreLayout({
 
   const isDark = themeMode === "dark" || (themeMode === "system" && systemDark);
 
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 15);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const setThemeMode = (mode: ThemeMode) => {
     setThemeModeState(mode);
     try {
@@ -240,7 +251,18 @@ export function StoreLayout({
           )}
 
           {/* ── Top Bar Contract (Strict 3-Zone Architecture) ── */}
-          <header className="sticky top-0 z-50 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md border-b border-neutral-200/80 dark:border-zinc-800/80 transition-colors duration-200">
+          <header
+            className={
+              !theme.navbarStyle || theme.navbarStyle === "transparent"
+                ? isScrolled
+                  ? "sticky top-0 z-50 bg-white/75 dark:bg-zinc-950/75 backdrop-blur-xl border-b border-neutral-200/60 dark:border-zinc-800/60 shadow-xs transition-all duration-300"
+                  : "sticky top-0 z-50 bg-white/30 dark:bg-zinc-950/30 backdrop-blur-md border-b border-white/25 dark:border-white/10 transition-all duration-300"
+                : theme.navbarStyle === "colored"
+                ? "sticky top-0 z-50 text-white border-b border-white/10 shadow-xs transition-all duration-200"
+                : "sticky top-0 z-50 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md border-b border-neutral-200/80 dark:border-zinc-800/80 transition-colors duration-200"
+            }
+            style={theme.navbarStyle === "colored" ? { background: primaryColor } : undefined}
+          >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
               {/* Zone 1: Single element Brand Wordmark & Icon */}
               <div className="flex items-center gap-4 shrink-0">
@@ -291,9 +313,9 @@ export function StoreLayout({
                   {isRTL ? "سلة الشراء" : "Shopping Bag"}
                 </Link>
                 <Link
-                  href="/store/profile"
+                  href="/store/about"
                   className={`transition-colors hover:text-neutral-900 dark:hover:text-white ${
-                    location.startsWith("/store/profile")
+                    location.startsWith("/store/about") || location.startsWith("/store/profile")
                       ? "font-bold text-neutral-900 dark:text-white"
                       : ""
                   }`}
@@ -305,9 +327,9 @@ export function StoreLayout({
               {/* Zone 3: Primary Action Controls */}
               <div className="flex items-center gap-2.5">
                 {/* Search Shortcut */}
-                <Link href="/store/products">
+                <Link href="/store/products?focus=search">
                   <button
-                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-neutral-700 dark:text-zinc-300 transition-colors"
+                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/60 hover:bg-white/90 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md text-neutral-700 dark:text-zinc-200 border border-neutral-200/50 dark:border-white/10 shadow-xs transition-colors"
                     aria-label="Search catalog"
                   >
                     <Search className="w-4 h-4" />
@@ -318,7 +340,7 @@ export function StoreLayout({
                 <div className="relative" ref={prefRef}>
                   <button
                     onClick={() => setPrefModalOpen((v) => !v)}
-                    className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-neutral-800 dark:text-zinc-200 text-xs font-semibold transition-colors"
+                    className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-white/60 hover:bg-white/90 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md text-neutral-800 dark:text-zinc-200 text-xs font-semibold border border-neutral-200/50 dark:border-white/10 shadow-xs transition-colors"
                     aria-label="Language, currency and theme settings"
                   >
                     <Globe className="w-3.5 h-3.5 text-neutral-500" />
@@ -536,7 +558,7 @@ export function StoreLayout({
                       </Link>
                     </li>
                     <li>
-                      <Link href="/store/profile" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
+                      <Link href="/store/about" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
                         {isRTL ? "عن المتجر والشروط" : "About & Terms"}
                       </Link>
                     </li>
@@ -614,7 +636,7 @@ export function StoreLayout({
 
           {/* ── Native Mobile Bottom Navigation Bar (Hidden on Desktop md:hidden) ── */}
           {!hideBottomNav && (
-            <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white/95 dark:bg-zinc-950/95 backdrop-blur-lg border-t border-neutral-200/80 dark:border-zinc-800/80 px-2 py-1 safe-area-pb">
+            <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-t border-neutral-200/60 dark:border-zinc-800/60 px-2 py-1 safe-area-pb shadow-lg">
               <nav className="flex items-center justify-around h-14">
                 {[
                   {
@@ -637,10 +659,10 @@ export function StoreLayout({
                     badge: totalItems > 0 ? totalItems : null,
                   },
                   {
-                    href: "/store/profile",
+                    href: "/store/about",
                     label: isRTL ? "المتجر" : "About",
                     icon: User,
-                    active: location.startsWith("/store/profile"),
+                    active: location.startsWith("/store/about") || location.startsWith("/store/profile"),
                   },
                 ].map(({ href, label, icon: Icon, active, badge }, i) => (
                   <Link key={i} href={href} className="flex-1 py-1 text-center">

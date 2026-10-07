@@ -18,7 +18,9 @@ export default function Setup() {
   const [form, setForm] = useState({
     name: "",
     slug: "",
+    description: "",
     whatsappNumber: "",
+    defaultCurrency: "SAR",
     primaryColor: "#991B1B",
   });
 
@@ -95,6 +97,30 @@ export default function Setup() {
               placeholder="+967771234567"
               className="h-10 text-xs font-mono bg-neutral-50 dark:bg-zinc-800/60 border-neutral-200 dark:border-zinc-700 rounded-xl"
             />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold text-neutral-700 dark:text-zinc-300">وصف مختصر للمتجر</Label>
+            <Input
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder="مثال: أرقى العطور والأزياء التقليدية الفاخرة"
+              className="h-10 text-xs bg-neutral-50 dark:bg-zinc-800/60 border-neutral-200 dark:border-zinc-700 rounded-xl"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold text-neutral-700 dark:text-zinc-300">العملة الافتراضية</Label>
+            <select
+              value={form.defaultCurrency}
+              onChange={(e) => setForm({ ...form, defaultCurrency: e.target.value })}
+              className="w-full px-3 h-10 text-xs bg-neutral-50 dark:bg-zinc-800/60 border border-neutral-200 dark:border-zinc-700 rounded-xl font-bold text-neutral-800 dark:text-zinc-200 focus:outline-hidden"
+            >
+              <option value="SAR">ريال سعودي (SAR - ر.س)</option>
+              <option value="YER">ريال يمني (YER - ﷼)</option>
+              <option value="USD">دولار أمريكي (USD - $)</option>
+              <option value="AED">درهم إماراتي (AED - د.إ)</option>
+            </select>
           </div>
 
           <div className="space-y-1.5 pb-2">

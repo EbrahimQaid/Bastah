@@ -44,10 +44,11 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [validationError, setValidationError] = useState<"size" | "color" | null>(null);
 
   if (isLoading) {
     return (
-      <StoreLayout>
+      <StoreLayout hideBottomNav={true}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 animate-pulse">
             <div className="lg:col-span-6 aspect-[4/3] bg-neutral-200 dark:bg-zinc-800 rounded-3xl" />
@@ -65,7 +66,7 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <StoreLayout>
+      <StoreLayout hideBottomNav={true}>
         <div className="max-w-7xl mx-auto px-4 py-24 text-center space-y-4">
           <div className="w-16 h-16 rounded-2xl bg-neutral-100 dark:bg-zinc-800 flex items-center justify-center mx-auto text-neutral-400">
             <Package className="w-8 h-8" />
@@ -95,6 +96,7 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     if (product.variants?.sizes?.length && !selectedSize) {
+      setValidationError("size");
       toast({
         title: isRTL ? "يرجى تحديد المقاس أولاً" : "Please select a size",
         variant: "destructive",
@@ -102,6 +104,7 @@ export default function ProductDetail() {
       return;
     }
     if (product.variants?.colors?.length && !selectedColor) {
+      setValidationError("color");
       toast({
         title: isRTL ? "يرجى تحديد اللون أولاً" : "Please select a color",
         variant: "destructive",
@@ -109,6 +112,7 @@ export default function ProductDetail() {
       return;
     }
 
+    setValidationError(null);
     addItem({
       productId: product.id,
       productName: product.name,
@@ -141,7 +145,7 @@ export default function ProductDetail() {
   };
 
   return (
-    <StoreLayout>
+    <StoreLayout hideBottomNav={true}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center gap-2 text-xs text-neutral-400">
@@ -246,11 +250,24 @@ export default function ProductDetail() {
 
             {/* Sizes Selection */}
             {product.variants?.sizes?.length > 0 && (
-              <div className="space-y-2.5">
+              <div
+                className={`space-y-2.5 p-3 rounded-2xl transition-all ${
+                  validationError === "size"
+                    ? "bg-red-50/70 dark:bg-red-950/30 border border-red-200 dark:border-red-900"
+                    : ""
+                }`}
+              >
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-neutral-900 dark:text-white">
-                    {isRTL ? "اختر المقاس:" : "Select Size:"}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-neutral-900 dark:text-white">
+                      {isRTL ? "اختر المقاس:" : "Select Size:"}
+                    </span>
+                    {validationError === "size" && (
+                      <span className="text-[11px] font-bold text-red-600 animate-pulse">
+                        {isRTL ? "يرجى تحديد المقاس للمتابعة" : "Please select a size"}
+                      </span>
+                    )}
+                  </div>
                   {selectedSize && (
                     <span className="font-mono text-neutral-500">{selectedSize}</span>
                   )}
@@ -259,7 +276,10 @@ export default function ProductDetail() {
                   {product.variants.sizes.map((size: string) => (
                     <button
                       key={size}
-                      onClick={() => setSelectedSize(size)}
+                      onClick={() => {
+                        setSelectedSize(size);
+                        if (validationError === "size") setValidationError(null);
+                      }}
                       className={`h-11 px-4 rounded-xl text-xs font-bold transition-all border ${
                         selectedSize === size
                           ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 border-neutral-900 dark:border-white shadow-sm"
@@ -275,11 +295,24 @@ export default function ProductDetail() {
 
             {/* Colors Selection */}
             {product.variants?.colors?.length > 0 && (
-              <div className="space-y-2.5">
+              <div
+                className={`space-y-2.5 p-3 rounded-2xl transition-all ${
+                  validationError === "color"
+                    ? "bg-red-50/70 dark:bg-red-950/30 border border-red-200 dark:border-red-900"
+                    : ""
+                }`}
+              >
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-neutral-900 dark:text-white">
-                    {isRTL ? "اختر اللون:" : "Select Color:"}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-neutral-900 dark:text-white">
+                      {isRTL ? "اختر اللون:" : "Select Color:"}
+                    </span>
+                    {validationError === "color" && (
+                      <span className="text-[11px] font-bold text-red-600 animate-pulse">
+                        {isRTL ? "يرجى تحديد اللون للمتابعة" : "Please select a color"}
+                      </span>
+                    )}
+                  </div>
                   {selectedColor && (
                     <span className="font-mono text-neutral-500">{selectedColor}</span>
                   )}
@@ -288,7 +321,10 @@ export default function ProductDetail() {
                   {product.variants.colors.map((color: string) => (
                     <button
                       key={color}
-                      onClick={() => setSelectedColor(color)}
+                      onClick={() => {
+                        setSelectedColor(color);
+                        if (validationError === "color") setValidationError(null);
+                      }}
                       className={`h-11 px-4 rounded-xl text-xs font-bold transition-all border ${
                         selectedColor === color
                           ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 border-neutral-900 dark:border-white shadow-sm"

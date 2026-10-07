@@ -5,6 +5,12 @@ export interface CartItem extends OrderItem {
   imageUrl?: string;
 }
 
+export interface AppliedCoupon {
+  code: string;
+  percent: number;
+  description?: string;
+}
+
 interface CartContextType {
   items: CartItem[];
   addItem: (item: CartItem) => void;
@@ -13,6 +19,11 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
+  appliedCoupon: AppliedCoupon | null;
+  applyCoupon: (coupon: AppliedCoupon) => void;
+  removeCoupon: () => void;
+  discountAmount: number;
+  finalTotal: number;
   miniCartOpen: boolean;
   openMiniCart: () => void;
   closeMiniCart: () => void;
@@ -30,11 +41,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   });
 
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(() => {
+    try {
+      const saved = localStorage.getItem("cart_coupon");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
   const [miniCartOpen, setMiniCartOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(items));
   }, [items]);
+
+  useEffect(() => {
+    if (appliedCoupon) {
+      localStorage.setItem("cart_coupon", JSON.stringify(appliedCoupon));
+    } else {
+      localStorage.removeItem("cart_coupon");
+    }
+  }, [appliedCoupon]);
 
   const addItem = (newItem: CartItem) => {
     setItems(current => {
@@ -73,15 +101,39 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const clearCart = () => setItems([]);
+  const applyCoupon = (coupon: AppliedCoupon) => setAppliedCoupon(coupon);
+  const removeCoupon = () => setAppliedCoupon(null);
+
+  const clearCart = () => {
+    setItems([]);
+    setAppliedCoupon(null);
+  };
   const openMiniCart = () => setMiniCartOpen(true);
   const closeMiniCart = () => setMiniCartOpen(false);
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const discountAmount = appliedCoupon ? Math.round(totalPrice * (appliedCoupon.percent / 100) * 100) / 100 : 0;
+  const finalTotal = Math.max(0, totalPrice - discountAmount);
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice, miniCartOpen, openMiniCart, closeMiniCart }}>
+    <CartContext.Provider value={{
+      items,
+      addItem,
+      removeItem,
+      updateQuantity,
+      clearCart,
+      totalItems,
+      totalPrice,
+      appliedCoupon,
+      applyCoupon,
+      removeCoupon,
+      discountAmount,
+      finalTotal,
+      miniCartOpen,
+      openMiniCart,
+      closeMiniCart
+    }}>
       {children}
     </CartContext.Provider>
   );

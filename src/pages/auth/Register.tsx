@@ -67,7 +67,7 @@ export default function Register() {
       localStorage.setItem("bastah_user", JSON.stringify(data.user));
 
       toast({ title: "تم إنشاء حسابك بنجاح" });
-      setLocation("/onboarding");
+      setLocation("/dashboard/setup");
     } catch (err: any) {
       toast({ title: err.message, variant: "destructive" });
     } finally {

@@ -112,6 +112,13 @@ async function initializeDatabase() {
           );
         }
 
+        // Ensure orders table columns exist for coupons, discounts & currency
+        await client.query(`
+          ALTER TABLE orders ADD COLUMN IF NOT EXISTS discount_amount NUMERIC(10,2) DEFAULT 0;
+          ALTER TABLE orders ADD COLUMN IF NOT EXISTS coupon_code TEXT;
+          ALTER TABLE orders ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'SAR';
+        `);
+
         // Migrate any legacy Bastah store branding in PostgreSQL to Dukkani
         await client.query(`
           UPDATE stores 
@@ -137,6 +144,8 @@ const fallbackState = {
   stores: [
     {
       id: 1,
+      owner_id: 1,
+      is_active: true,
       slug: "dukkani",
       name: "دكاني - Dukkani",
       description: "دكانك الرقمي بين يديك | نخبة المنتجات الفاخرة بجودة استثنائية وأسرع توصيل",
@@ -275,6 +284,7 @@ function handleFallbackQuery(text, params = []) {
 
   // Orders queries
   if (normalized.startsWith("INSERT INTO ORDERS")) {
+    const isExtended = params.length >= 12;
     const newOrder = {
       id: fallbackState.orders.length + 1001,
       store_id: params[0] || 1,
@@ -285,9 +295,12 @@ function handleFallbackQuery(text, params = []) {
       items: typeof params[5] === "string" ? JSON.parse(params[5]) : params[5] || [],
       subtotal: Number(params[6] || 0),
       shipping_amount: Number(params[7] || 0),
-      total: Number(params[8] || 0),
+      discount_amount: isExtended ? Number(params[8] || 0) : 0,
+      total: isExtended ? Number(params[9] || 0) : Number(params[8] || 0),
       status: "new",
-      whatsapp_message: params[9] || "",
+      whatsapp_message: isExtended ? (params[10] || "") : (params[9] || ""),
+      coupon_code: isExtended ? (params[11] || null) : null,
+      currency: params.length >= 13 ? (params[12] || "SAR") : "SAR",
       created_at: new Date().toISOString(),
       order_number: `ORD-${Date.now().toString().slice(-6)}`,
     };
@@ -303,17 +316,45 @@ function handleFallbackQuery(text, params = []) {
 
   // Products queries
   if (normalized.includes("FROM PRODUCTS")) {
-    let prods = [...fallbackState.products];
+    let prods = fallbackState.products.map((p) => {
+      const cat = fallbackState.categories.find((c) => c.id === p.category_id);
+      return { ...p, category_name: cat ? cat.name : "" };
+    });
     // Check if query is looking for id = ANY($2)
-    const arrayParam = params.find(p => Array.isArray(p));
+    const arrayParam = params.find((p) => Array.isArray(p));
+    const isSingleProductQuery =
+      /\b(p\.)?id\s*=\s*\$/i.test(text.replace(/store_id/gi, "").replace(/category_id/gi, "")) ||
+      text.includes("id = ANY");
+
     if (arrayParam) {
       const ids = arrayParam.map(Number);
-      prods = prods.filter(p => ids.includes(Number(p.id)));
-    } else if (text.includes("id = $") || text.includes("id = ANY")) {
-      // Find numeric id param that isn't store_id
-      const idParam = params.length > 1 ? params[1] : params[0];
-      if (idParam !== undefined && typeof idParam !== "object") {
-        prods = prods.filter(p => Number(p.id) === Number(idParam));
+      prods = prods.filter((p) => ids.includes(Number(p.id)));
+    } else if (isSingleProductQuery) {
+      // Find numeric id param that corresponds to product ID
+      const idParam = params[0] !== undefined && typeof params[0] !== "object" ? params[0] : params[1];
+      if (idParam !== undefined && !isNaN(Number(idParam))) {
+        prods = prods.filter((p) => Number(p.id) === Number(idParam));
+      }
+    } else {
+      if (text.includes("category_id = $")) {
+        const catParam = params.find((param, idx) => idx > 0 && typeof param === "number");
+        if (catParam) {
+          prods = prods.filter((p) => Number(p.category_id) === Number(catParam));
+        }
+      }
+      if (text.includes("ILIKE")) {
+        const searchParam = params.find(
+          (param) => typeof param === "string" && param.startsWith("%") && param.endsWith("%"),
+        );
+        if (searchParam) {
+          const term = searchParam.slice(1, -1).toLowerCase().trim();
+          prods = prods.filter(
+            (p) =>
+              p.name.toLowerCase().includes(term) ||
+              (p.description && p.description.toLowerCase().includes(term)) ||
+              (p.category_name && p.category_name.toLowerCase().includes(term)),
+          );
+        }
       }
     }
     return { rows: prods };
@@ -365,7 +406,7 @@ function handleFallbackQuery(text, params = []) {
     return { rows: [newUser] };
   }
 
-  if (normalized.includes("SELECT ID, EMAIL, ROLE, S.ID AS STORE_ID FROM USERS")) {
+  if (normalized.includes("STORE_ID") && normalized.includes("FROM USERS")) {
     const targetId = params[0] ? Number(params[0]) : 1;
     const user = fallbackState.users.find(u => u.id === targetId) || fallbackState.users[0];
     return { rows: [{ id: user.id, email: user.email, role: user.role, store_id: 1 }] };

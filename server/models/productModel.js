@@ -75,8 +75,9 @@ export class ProductModel {
       params.push(filters.featured === "true" || filters.featured === true);
     }
     if (filters.search) {
-      conditions.push(`p.name ILIKE $${idx++}`);
+      conditions.push(`(p.name ILIKE $${idx} OR p.description ILIKE $${idx} OR c.name ILIKE $${idx})`);
       params.push(`%${filters.search}%`);
+      idx++;
     }
 
     const sql = `

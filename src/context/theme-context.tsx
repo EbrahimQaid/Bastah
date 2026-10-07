@@ -37,7 +37,7 @@ export const DEFAULT_THEME: ThemeConfig = {
   showAllProducts: true,
   featuredTitle: "Featured",
   latestTitle: "Latest Arrivals",
-  navbarStyle: "white",
+  navbarStyle: "transparent",
   announcementBar: "",
   announcementBarBg: "#C1121F",
   announcementBarText: "#ffffff",

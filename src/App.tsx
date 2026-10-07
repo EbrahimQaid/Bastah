@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -8,7 +9,6 @@ import { CurrencyProvider } from "@/context/currency-context";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
-import Onboarding from "@/pages/auth/Onboarding";
 
 // Store Pages
 import StoreHome from "@/pages/store/Home";
@@ -16,17 +16,18 @@ import StoreProductList from "@/pages/store/ProductList";
 import StoreProductDetail from "@/pages/store/ProductDetail";
 import StoreCart from "@/pages/store/Cart";
 import StoreCheckout from "@/pages/store/Checkout";
-import StoreProfile from "@/pages/store/Profile";
+import StoreOrderSuccess from "@/pages/store/OrderSuccess";
+import StoreAbout from "@/pages/store/About";
 
-// Dashboard Pages
-import DashboardOverview from "@/pages/dashboard/Overview";
-import DashboardProducts from "@/pages/dashboard/Products";
-import DashboardProductForm from "@/pages/dashboard/ProductForm";
-import DashboardCategories from "@/pages/dashboard/Categories";
-import DashboardOrders from "@/pages/dashboard/Orders";
-import DashboardOrderDetail from "@/pages/dashboard/OrderDetail";
-import DashboardSettings from "@/pages/dashboard/Settings";
-import DashboardSetup from "@/pages/dashboard/Setup";
+// Dashboard Pages (Code-split to isolate bundle size from shopper storefront)
+const DashboardOverview = lazy(() => import("@/pages/dashboard/Overview"));
+const DashboardProducts = lazy(() => import("@/pages/dashboard/Products"));
+const DashboardProductForm = lazy(() => import("@/pages/dashboard/ProductForm"));
+const DashboardCategories = lazy(() => import("@/pages/dashboard/Categories"));
+const DashboardOrders = lazy(() => import("@/pages/dashboard/Orders"));
+const DashboardOrderDetail = lazy(() => import("@/pages/dashboard/OrderDetail"));
+const DashboardSettings = lazy(() => import("@/pages/dashboard/Settings"));
+const DashboardSetup = lazy(() => import("@/pages/dashboard/Setup"));
 
 const queryClient = new QueryClient();
 
@@ -36,7 +37,17 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
     ? (localStorage.getItem("dukkani_token") || localStorage.getItem("bastah_token"))
     : null;
   if (!token) return <Redirect to="/login" />;
-  return <Component />;
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-zinc-950">
+          <div className="w-8 h-8 border-2 border-red-600/20 border-t-red-600 rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <Component />
+    </Suspense>
+  );
 }
 
 function Router() {
@@ -50,7 +61,7 @@ function Router() {
       {/* Auth */}
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
-      <Route path="/onboarding" component={Onboarding} />
+      <Route path="/onboarding">{() => <Redirect to="/dashboard/setup" />}</Route>
 
       {/* Customer Store Routes — single store, no slug */}
       <Route path="/store" component={StoreHome} />
@@ -58,7 +69,9 @@ function Router() {
       <Route path="/store/products/:productId" component={StoreProductDetail} />
       <Route path="/store/cart" component={StoreCart} />
       <Route path="/store/checkout" component={StoreCheckout} />
-      <Route path="/store/profile" component={StoreProfile} />
+      <Route path="/store/order-success/:orderId" component={StoreOrderSuccess} />
+      <Route path="/store/about" component={StoreAbout} />
+      <Route path="/store/profile">{() => <Redirect to="/store/about" />}</Route>
 
       {/* Seller Dashboard Routes — محمية بالمصادقة */}
       <Route path="/dashboard">{() => <ProtectedRoute component={DashboardOverview} />}</Route>

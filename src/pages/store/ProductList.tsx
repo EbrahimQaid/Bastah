@@ -1,15 +1,13 @@
 import { Link } from "wouter";
 import { StoreLayout } from "@/components/layout/StoreLayout";
 import { useListStoreProducts, useListStoreCategories, useGetStore } from "@/services/api";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import {
   Search,
   X,
   SlidersHorizontal,
   PackageX,
-  ShoppingBag,
   Sparkles,
-  Check,
   RotateCcw,
 } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -17,146 +15,23 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/language-context";
 import { useCurrency } from "@/context/currency-context";
-import { useCart } from "@/hooks/use-cart";
-import { useToast } from "@/hooks/use-toast";
-
-function ProductCard({
-  product,
-  primaryColor,
-}: {
-  product: any;
-  primaryColor: string;
-}) {
-  const { format } = useCurrency();
-  const { isRTL } = useLanguage();
-  const { addItem, openMiniCart } = useCart();
-  const { toast } = useToast();
-  const [justAdded, setJustAdded] = useState(false);
-
-  const handleQuickAdd = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (product.variants?.sizes?.length || product.variants?.colors?.length) {
-      window.location.href = `/store/products/${product.id}`;
-      return;
-    }
-
-    if (!product.inStock) return;
-
-    addItem({
-      productId: product.id,
-      productName: product.name,
-      price: product.price,
-      quantity: 1,
-      imageUrl: product.images?.[0] ?? undefined,
-    });
-
-    setJustAdded(true);
-    setTimeout(() => setJustAdded(false), 1600);
-    openMiniCart();
-    toast({
-      title: isRTL ? "تمت الإضافة إلى السلة" : "Added to shopping bag",
-      description: product.name,
-    });
-  };
-
-  const imageSrc =
-    Array.isArray(product.images) && product.images.length > 0
-      ? product.images[0]
-      : typeof product.images === "string" && product.images
-      ? product.images
-      : "/images/product_luxury_thobe_1790631673826.jpg";
-
-  return (
-    <Link href={`/store/products/${product.id}`}>
-      <div className="group cursor-pointer flex flex-col h-full bg-white dark:bg-zinc-900 rounded-2xl border border-neutral-200/70 dark:border-zinc-800/80 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-        {/* Image */}
-        <div className="relative aspect-[4/3] bg-neutral-100 dark:bg-zinc-800/70 overflow-hidden">
-          <img
-            src={imageSrc}
-            alt={product.name}
-            loading="lazy"
-            referrerPolicy="no-referrer"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-
-          {!product.inStock && (
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-3 text-center">
-              <span className="bg-white text-neutral-900 text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-md">
-                {isRTL ? "نفد المخزون" : "Sold Out"}
-              </span>
-            </div>
-          )}
-
-          {product.featured && product.inStock && (
-            <div className="absolute top-3 right-3 rtl:right-auto rtl:left-3">
-              <span
-                className="text-[10px] font-bold text-white px-2 py-0.5 rounded-md uppercase tracking-wider shadow-xs flex items-center gap-1"
-                style={{ background: primaryColor }}
-              >
-                <Sparkles className="w-2.5 h-2.5" />
-                <span>{isRTL ? "مختار" : "Curated"}</span>
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="p-4 flex flex-col justify-between flex-1 gap-3">
-          <div>
-            <span className="text-[11px] font-medium text-neutral-400 dark:text-zinc-500 uppercase tracking-wider block mb-1">
-              {product.categoryName || (isRTL ? "منتج مميز" : "Signature")}
-            </span>
-            <h3 className="font-bold text-sm text-neutral-900 dark:text-zinc-100 leading-snug line-clamp-2 group-hover:text-red-600 transition-colors">
-              {product.name}
-            </h3>
-          </div>
-
-          <div className="pt-2 border-t border-neutral-100 dark:border-zinc-800 flex items-center justify-between">
-            <div>
-              <span className="text-[10px] text-neutral-400 block leading-tight">
-                {isRTL ? "السعر" : "Price"}
-              </span>
-              <p className="text-base font-black font-mono tabular-nums text-neutral-900 dark:text-white">
-                {format(product.price)}
-              </p>
-            </div>
-
-            <button
-              onClick={handleQuickAdd}
-              disabled={!product.inStock}
-              className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
-              style={{
-                background: justAdded
-                  ? "#16a34a"
-                  : product.inStock
-                  ? `${primaryColor}15`
-                  : undefined,
-                color: justAdded
-                  ? "#ffffff"
-                  : product.inStock
-                  ? primaryColor
-                  : undefined,
-              }}
-              aria-label={isRTL ? "إضافة سريعة إلى السلة" : "Quick add to bag"}
-            >
-              {justAdded ? (
-                <Check className="w-4 h-4 text-white" />
-              ) : (
-                <ShoppingBag className="w-4 h-4" />
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-}
+import { ProductCard } from "@/components/store/ProductCard";
+import { SmartSearchBar } from "@/components/store/SmartSearchBar";
 
 export default function ProductList() {
-  const searchParams = new URLSearchParams(window.location.search);
-  const initialCategoryId = searchParams.get("categoryId") || "";
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const getInitialParams = () => {
+    if (typeof window === "undefined") return { category: "", q: "", focus: false };
+    const params = new URLSearchParams(window.location.search);
+    return {
+      category: params.get("categoryId") || params.get("category") || "",
+      q: params.get("q") || "",
+      focus: params.get("focus") === "search",
+    };
+  };
+
+  const initialParams = getInitialParams();
 
   const { t, isRTL } = useLanguage();
   const { format, activeCurrency } = useCurrency();
@@ -170,16 +45,85 @@ export default function ProductList() {
       ? store.primaryColor
       : "#991B1B";
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState<string>(initialParams.q);
   const debouncedSearch = useDebounce(search, 300);
-  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategoryId);
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialParams.category);
   const [minPrice, setMinPrice] = useState<string>("");
   const [maxPrice, setMaxPrice] = useState<string>("");
   const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">("default");
   const [filterOpen, setFilterOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState({ minPrice: "", maxPrice: "" });
 
+  // Autofocus search input when focus=search is in URL
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("focus") === "search" && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, []);
+
+  // Synchronize debounced search with URL ?q=... (using replaceState to avoid history stack explosion)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const currentParams = new URLSearchParams(window.location.search);
+    const urlQ = currentParams.get("q") || "";
+
+    if (debouncedSearch) {
+      if (urlQ !== debouncedSearch) {
+        currentParams.set("q", debouncedSearch);
+        currentParams.delete("focus");
+        const newUrl = `${window.location.pathname}?${currentParams.toString()}`;
+        window.history.replaceState(null, "", newUrl);
+      }
+    } else {
+      if (currentParams.has("q") || currentParams.has("focus")) {
+        currentParams.delete("q");
+        currentParams.delete("focus");
+        const newQuery = currentParams.toString();
+        const newUrl = newQuery ? `${window.location.pathname}?${newQuery}` : window.location.pathname;
+        window.history.replaceState(null, "", newUrl);
+      }
+    }
+  }, [debouncedSearch]);
+
+  // Synchronize category selection with URL ?categoryId=...
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const currentParams = new URLSearchParams(window.location.search);
+    const urlCat = currentParams.get("categoryId") || currentParams.get("category") || "";
+
+    if (selectedCategory) {
+      if (urlCat !== selectedCategory) {
+        currentParams.set("categoryId", selectedCategory);
+        currentParams.delete("category");
+        const newUrl = `${window.location.pathname}?${currentParams.toString()}`;
+        window.history.replaceState(null, "", newUrl);
+      }
+    } else {
+      if (currentParams.has("categoryId") || currentParams.has("category")) {
+        currentParams.delete("categoryId");
+        currentParams.delete("category");
+        const newQuery = currentParams.toString();
+        const newUrl = newQuery ? `${window.location.pathname}?${newQuery}` : window.location.pathname;
+        window.history.replaceState(null, "", newUrl);
+      }
+    }
+  }, [selectedCategory]);
+
+  // Restore search and category state on browser Back/Forward (popstate)
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      setSearch(params.get("q") || "");
+      setSelectedCategory(params.get("categoryId") || params.get("category") || "");
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   const { data: categories } = useListStoreCategories();
+  const { data: allProducts } = useListStoreProducts();
   const { data: products, isLoading } = useListStoreProducts(undefined, {
     search: debouncedSearch || undefined,
     categoryId: selectedCategory ? Number(selectedCategory) : undefined,
@@ -187,9 +131,20 @@ export default function ProductList() {
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
+    const query = search.trim().toLowerCase();
+
     let list = products.filter((p) => {
       if (appliedFilters.minPrice && p.price < Number(appliedFilters.minPrice)) return false;
       if (appliedFilters.maxPrice && p.price > Number(appliedFilters.maxPrice)) return false;
+
+      // Real-time instant search across product titles, category names, and descriptions
+      if (query) {
+        const nameMatch = p.name?.toLowerCase().includes(query);
+        const catMatch = p.categoryName?.toLowerCase().includes(query);
+        const descMatch = p.description?.toLowerCase().includes(query);
+        if (!nameMatch && !catMatch && !descMatch) return false;
+      }
+
       return true;
     });
 
@@ -200,7 +155,7 @@ export default function ProductList() {
     }
 
     return list;
-  }, [products, appliedFilters, sortBy]);
+  }, [products, appliedFilters, sortBy, search]);
 
   const hasActiveFilters =
     appliedFilters.minPrice ||
@@ -228,64 +183,44 @@ export default function ProductList() {
     <StoreLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Header Title & Breadcrumb */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-neutral-200/80 dark:border-zinc-800/80">
-          <div>
-            <div className="flex items-center gap-2 text-xs text-neutral-400 mb-1">
-              <Link href="/store" className="hover:text-neutral-700 dark:hover:text-zinc-200">
-                {isRTL ? "الرئيسية" : "Home"}
-              </Link>
-              <span>/</span>
-              <span className="text-neutral-900 dark:text-white font-semibold">
-                {isRTL ? "جميع المنتجات" : "All Products"}
-              </span>
-            </div>
+        <div className="pb-4 border-b border-neutral-200/80 dark:border-zinc-800/80">
+          <div className="flex items-center gap-2 text-xs text-neutral-400 mb-1">
+            <Link href="/store" className="hover:text-neutral-700 dark:hover:text-zinc-200">
+              {isRTL ? "الرئيسية" : "Home"}
+            </Link>
+            <span>/</span>
+            <span className="text-neutral-900 dark:text-white font-semibold">
+              {isRTL ? "جميع المنتجات" : "All Products"}
+            </span>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <h1 className="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">
               {isRTL ? "كتالوج المنتجات" : "Product Catalog"}
             </h1>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Search Input */}
-            <div className="relative w-full sm:w-64">
-              <Search
-                className={`absolute ${
-                  isRTL ? "right-3" : "left-3"
-                } top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400`}
-              />
-              <input
-                type="text"
-                className={`w-full h-10 ${
-                  isRTL ? "pr-9 pl-8" : "pl-9 pr-8"
-                } rounded-xl bg-white dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-800 text-xs font-medium text-neutral-800 dark:text-zinc-200 placeholder:text-neutral-400 outline-none focus:border-red-500 transition-colors`}
-                placeholder={isRTL ? "ابحث باسم المنتج..." : "Search products..."}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              {search && (
-                <button
-                  onClick={() => setSearch("")}
-                  className={`absolute ${
-                    isRTL ? "left-2.5" : "right-2.5"
-                  } top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700`}
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-
-            {/* Mobile Filter Toggle */}
-            <button
-              onClick={() => setFilterOpen(true)}
-              className="lg:hidden h-10 px-3.5 rounded-xl bg-white dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-800 flex items-center gap-1.5 text-xs font-bold shrink-0"
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
-              <span>{isRTL ? "تصفية" : "Filter"}</span>
-              {hasActiveFilters && (
-                <span className="w-2 h-2 rounded-full" style={{ background: primaryColor }} />
-              )}
-            </button>
+            <p className="text-xs text-neutral-500 dark:text-zinc-400">
+              {isRTL
+                ? "ابحث وتصفح أرقى المنتجات بحسب الاسم والتصنيف والمواصفات"
+                : "Discover authentic products by title, category, and tags"}
+            </p>
           </div>
         </div>
+
+        {/* ── Smart Real-Time Search & Category Discovery Bar ── */}
+        <SmartSearchBar
+          search={search}
+          onSearchChange={setSearch}
+          categories={categories}
+          products={allProducts || products || []}
+          selectedCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
+          onClearSearch={() => setSearch("")}
+          primaryColor={primaryColor}
+          formatCurrency={format}
+          isRTL={isRTL}
+          totalResultsCount={filteredProducts.length}
+          onOpenMobileFilters={() => setFilterOpen(true)}
+          hasActiveFilters={Boolean(hasActiveFilters)}
+        />
 
         {/* ── Main Layout: Sidebar Filters + Products Grid ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -439,27 +374,71 @@ export default function ProductList() {
                 ))}
               </div>
             ) : filteredProducts?.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 bg-white dark:bg-zinc-900 rounded-3xl border border-neutral-200/80 dark:border-zinc-800/80 p-8">
+              <div className="flex flex-col items-center justify-center py-16 text-center space-y-4 bg-white dark:bg-zinc-900 rounded-3xl border border-neutral-200/80 dark:border-zinc-800/80 p-8">
                 <div className="w-16 h-16 rounded-2xl bg-neutral-100 dark:bg-zinc-800 flex items-center justify-center text-neutral-400">
                   <PackageX className="w-8 h-8" />
                 </div>
                 <div className="space-y-1">
                   <h3 className="text-base font-bold text-neutral-900 dark:text-white">
-                    {isRTL ? "لم نعثر على أي منتجات مطابقة" : "No products found"}
+                    {search
+                      ? isRTL
+                        ? `لم نعثر على نتائج مطابقة لـ "${search}"`
+                        : `No products matching "${search}"`
+                      : isRTL
+                      ? "لم نعثر على أي منتجات مطابقة"
+                      : "No products found"}
                   </h3>
-                  <p className="text-xs text-neutral-500 dark:text-zinc-400 max-w-xs mx-auto">
-                    {isRTL
-                      ? "جرب إزالة بعض الفلاتر أو استخدام كلمات بحث مختلفة."
-                      : "Try clearing selected filters or searching for different keywords."}
+                  <p className="text-xs text-neutral-500 dark:text-zinc-400 max-w-sm mx-auto">
+                    {search
+                      ? isRTL
+                        ? "جرب البحث باسم منتج أو تصنيف آخر، أو استكشف الأقسام المقترحة أدناه."
+                        : "Try searching by another title or category, or browse suggestions below."
+                      : isRTL
+                      ? "جرب إزالة بعض الفلاتر أو استخدام نطاق سعري مختلف."
+                      : "Try clearing selected filters or expanding your price range."}
                   </p>
                 </div>
-                <button
-                  onClick={handleClearFilters}
-                  className="px-6 py-2.5 rounded-xl text-xs font-bold text-white transition-opacity shadow-sm"
-                  style={{ background: primaryColor }}
-                >
-                  {isRTL ? "إعادة تعيين الفلاتر" : "Clear All Filters"}
-                </button>
+
+                {categories && categories.length > 0 && search && (
+                  <div className="pt-2 flex flex-wrap items-center justify-center gap-1.5 max-w-md">
+                    <span className="text-[11px] text-neutral-400 block w-full mb-1">
+                      {isRTL ? "أقسام مقترحة للتصفح:" : "Suggested categories:"}
+                    </span>
+                    {categories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCategory(String(cat.id));
+                          setSearch("");
+                        }}
+                        className="px-3 py-1 rounded-xl text-xs bg-neutral-100 hover:bg-neutral-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-neutral-800 dark:text-zinc-200 transition-colors font-medium"
+                      >
+                        {cat.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                  {search && (
+                    <button
+                      type="button"
+                      onClick={() => setSearch("")}
+                      className="px-5 py-2.5 rounded-xl text-xs font-bold bg-neutral-100 hover:bg-neutral-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-neutral-800 dark:text-zinc-200 transition-colors"
+                    >
+                      {isRTL ? "مسح نص البحث" : "Clear Search"}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleClearFilters}
+                    className="px-6 py-2.5 rounded-xl text-xs font-bold text-white transition-opacity shadow-sm"
+                    style={{ background: primaryColor }}
+                  >
+                    {isRTL ? "إعادة تعيين كافة الفلاتر" : "Reset All Filters"}
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

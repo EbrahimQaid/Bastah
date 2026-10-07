@@ -34,8 +34,53 @@ export const updateDashboardStore = async (req, res) => {
   }
 };
 
-export const initDashboardStore = (_req, res) => {
-  return res.status(201).json({ success: true });
+export const initDashboardStore = async (req, res) => {
+  if (req.storeId) {
+    return res.status(409).json({ error: "لديك متجر مسجل بالفعل" });
+  }
+
+  const {
+    name,
+    slug,
+    description,
+    whatsappNumber,
+    primaryColor,
+    secondaryColor,
+    fontFamily,
+    shippingRate,
+    defaultCurrency,
+  } = req.body || {};
+
+  if (!name?.trim()) {
+    return res.status(400).json({ error: "اسم المتجر مطلوب" });
+  }
+
+  const generatedSlug = (slug || name || "store")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .slice(0, 50) || `store-${Date.now().toString(36)}`;
+
+  try {
+    const createdStore = await StoreModel.create({
+      ownerId: req.userId,
+      name: name.trim(),
+      slug: generatedSlug,
+      description: description || "",
+      whatsappNumber: whatsappNumber || "",
+      primaryColor: primaryColor || "#991B1B",
+      secondaryColor: secondaryColor || "#DC2626",
+      fontFamily: fontFamily || "Tajawal",
+      shippingRate: Number(shippingRate) || 0,
+      defaultCurrency: defaultCurrency || "SAR",
+    });
+
+    return res.status(201).json(StoreModel.mapStore(createdStore));
+  } catch (error) {
+    console.error("[dashboardController.initDashboardStore]", error);
+    return res.status(500).json({ error: "تعذر إنشاء المتجر، يرجى المحاولة لاحقاً" });
+  }
 };
 
 /* ── PRODUCTS ── */

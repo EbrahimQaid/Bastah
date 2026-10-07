@@ -9,6 +9,7 @@ router.get('/products', storeController.listProducts);
 router.get('/products/:id', storeController.getProduct);
 router.get('/categories', storeController.listCategories);
 router.post('/orders', storeController.createOrder);
+router.post('/coupons/validate', storeController.validateCoupon);
 
 export default router;
 

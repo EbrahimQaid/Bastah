@@ -22,7 +22,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Cart() {
-  const { items, updateQuantity, removeItem, totalPrice } = useCart();
+  const { items, updateQuantity, removeItem, totalPrice, appliedCoupon, applyCoupon, removeCoupon, discountAmount, finalTotal } = useCart();
   const { format } = useCurrency();
   const { t, isRTL } = useLanguage();
   const { toast } = useToast();
@@ -36,36 +36,53 @@ export default function Cart() {
       : "#991B1B";
 
   const [couponCode, setCouponCode] = useState("");
-  const [appliedDiscount, setAppliedDiscount] = useState<number | null>(null);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   const Arrow = isRTL ? ArrowLeft : ArrowRight;
   const itemCount = items.reduce((s, i) => s + i.quantity, 0);
 
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!couponCode.trim()) return;
     const cleanCode = couponCode.trim().toUpperCase();
-    if (
-      cleanCode === "SAVE10" ||
-      cleanCode === "WELCOME" ||
-      cleanCode === "DUKKANI10" ||
-      cleanCode === "DUKKANI"
-    ) {
-      setAppliedDiscount(totalPrice * 0.1);
-      toast({
-        title: isRTL ? "تم تطبيق كود الخصم! 🎉" : "Promo code applied!",
-        description: isRTL ? "حصلت على خصم 10% على إجمالي مشترياتك" : "You received 10% off your entire order",
+    setValidatingCoupon(true);
+    try {
+      const res = await fetch("/api/store/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: cleanCode }),
       });
-    } else {
+      const data = await res.json();
+      if (!res.ok || !data.valid) {
+        removeCoupon();
+        toast({
+          title: isRTL ? "كود الخصم غير صالح" : "Invalid promo code",
+          description: data.error || (isRTL ? "يرجى التحقق من صحة الكود والمحاولة مجدداً" : "Please check the code and try again"),
+          variant: "destructive",
+        });
+      } else {
+        applyCoupon({
+          code: data.code,
+          percent: data.discountPercent,
+          description: data.description,
+        });
+        setCouponCode("");
+        toast({
+          title: isRTL ? "تم تطبيق كود الخصم! 🎉" : "Promo code applied!",
+          description: isRTL
+            ? `حصلت على خصم ${data.discountPercent}% على إجمالي مشترياتك`
+            : `You received ${data.discountPercent}% off your entire order`,
+        });
+      }
+    } catch {
       toast({
-        title: isRTL ? "كود الخصم غير صالح" : "Invalid promo code",
-        description: isRTL ? "جرب استخدام الكود DUKKANI10" : "Try using coupon DUKKANI10",
+        title: isRTL ? "تعذر التحقق من كود الخصم" : "Could not validate promo code",
         variant: "destructive",
       });
+    } finally {
+      setValidatingCoupon(false);
     }
   };
-
-  const finalTotal = appliedDiscount ? Math.max(0, totalPrice - appliedDiscount) : totalPrice;
 
   return (
     <StoreLayout>
@@ -232,7 +249,7 @@ export default function Cart() {
               </div>
 
               {/* Promo Code Box */}
-              <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-neutral-200/80 dark:border-zinc-800/80">
+              <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-neutral-200/80 dark:border-zinc-800/80 space-y-3">
                 <form onSubmit={handleApplyCoupon} className="flex gap-2">
                   <div className="relative flex-1">
                     <Tag className="w-4 h-4 text-neutral-400 absolute right-3 rtl:right-3 rtl:left-auto left-3 top-1/2 -translate-y-1/2" />
@@ -241,25 +258,49 @@ export default function Cart() {
                       placeholder={isRTL ? "أدخل كود الخصم (مثال: DUKKANI10)" : "Enter promo code"}
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value)}
-                      className="w-full h-10 px-9 rounded-xl bg-neutral-50 dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 text-xs font-mono uppercase outline-none focus:border-red-500"
+                      disabled={validatingCoupon}
+                      className="w-full h-10 px-9 rounded-xl bg-neutral-50 dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 text-xs font-mono uppercase outline-none focus:border-red-500 disabled:opacity-50"
                     />
                   </div>
                   <button
                     type="submit"
-                    className="px-5 h-10 rounded-xl text-xs font-bold text-white transition-opacity shadow-xs"
+                    disabled={validatingCoupon || !couponCode.trim()}
+                    className="px-5 h-10 rounded-xl text-xs font-bold text-white transition-opacity shadow-xs disabled:opacity-50 flex items-center justify-center min-w-[70px]"
                     style={{ background: primaryColor }}
                   >
-                    {isRTL ? "تطبيق" : "Apply"}
+                    {validatingCoupon ? (
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      isRTL ? "تطبيق" : "Apply"
+                    )}
                   </button>
                 </form>
 
-                {appliedDiscount && (
-                  <div className="flex items-center justify-between mt-3 pt-2 border-t border-neutral-100 dark:border-zinc-800 text-xs text-green-600 font-bold">
-                    <span className="flex items-center gap-1.5">
-                      <Check className="w-4 h-4" />
-                      <span>{isRTL ? "تم تفعيل خصم 10% بنجاح" : "10% Discount Applied"}</span>
-                    </span>
-                    <span className="font-mono">-{format(appliedDiscount)}</span>
+                {appliedCoupon && (
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs">
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <div>
+                        <span className="font-bold text-emerald-800 dark:text-emerald-300 font-mono">
+                          {appliedCoupon.code}
+                        </span>
+                        <span className="text-emerald-600 dark:text-emerald-400 block text-[11px]">
+                          {isRTL ? `خصم ${appliedCoupon.percent}% مفعل بنجاح` : `${appliedCoupon.percent}% discount active`}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono font-bold text-emerald-700 dark:text-emerald-300">
+                        -{format(discountAmount)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={removeCoupon}
+                        className="text-xs font-bold text-neutral-400 hover:text-red-600 transition-colors"
+                      >
+                        {isRTL ? "إلغاء" : "Remove"}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -280,10 +321,13 @@ export default function Cart() {
                     </span>
                   </div>
 
-                  {appliedDiscount && (
-                    <div className="flex justify-between text-green-600 font-bold">
-                      <span>{isRTL ? "قيمة الخصم (10%)" : "Promo Discount"}</span>
-                      <span className="font-mono">-{format(appliedDiscount)}</span>
+                  {appliedCoupon && discountAmount > 0 && (
+                    <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-bold">
+                      <span className="flex items-center gap-1">
+                        <Tag className="w-3.5 h-3.5" />
+                        <span>{isRTL ? "قيمة الخصم" : "Promo Discount"} ({appliedCoupon.code})</span>
+                      </span>
+                      <span className="font-mono">-{format(discountAmount)}</span>
                     </div>
                   )}
 

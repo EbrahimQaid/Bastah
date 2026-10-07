@@ -174,7 +174,7 @@ export default function Orders() {
                           maximumFractionDigits: 2,
                         })}{" "}
                         <span className="text-[10px] font-sans font-normal text-neutral-400">
-                          {currency}
+                          {order.currency === "SAR" ? "ر.س" : order.currency === "YER" ? "ر.ي" : order.currency === "USD" ? "$" : (order.currency || currency)}
                         </span>
                       </td>
                       <td className="px-4 py-3.5">

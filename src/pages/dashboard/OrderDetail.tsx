@@ -39,7 +39,15 @@ export default function OrderDetail() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const currency = store?.defaultCurrency || "ر.س";
+  const formatCurrency = (code?: string) => {
+    if (!code) return store?.defaultCurrency || "ر.س";
+    if (code === "SAR") return "ر.س";
+    if (code === "YER") return "ر.ي";
+    if (code === "USD") return "$";
+    return code;
+  };
+
+  const currency = formatCurrency(order?.currency);
 
   const handleStatusChange = (status: UpdateOrderStatusBodyStatus) => {
     updateStatus.mutate(
@@ -206,15 +214,57 @@ export default function OrderDetail() {
             </div>
 
             {/* Total Summary */}
-            <div className="pt-4 border-t border-neutral-200/80 dark:border-zinc-800 flex items-center justify-between text-xs">
-              <span className="font-bold text-neutral-500">إجمالي قيمة الطلب</span>
-              <span className="text-base font-black font-mono text-neutral-900 dark:text-white">
-                {order.total.toLocaleString("ar-SA", {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 2,
-                })}{" "}
-                <span className="text-xs font-sans font-normal text-neutral-400">{currency}</span>
-              </span>
+            <div className="pt-4 border-t border-neutral-200/80 dark:border-zinc-800 space-y-2 text-xs">
+              <div className="flex items-center justify-between text-neutral-500">
+                <span>المجموع الفرعي</span>
+                <span className="font-mono font-bold text-neutral-900 dark:text-white">
+                  {(order.subtotal || order.total).toLocaleString("ar-SA", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2,
+                  })}{" "}
+                  <span className="text-[10px] font-sans font-normal text-neutral-400">{currency}</span>
+                </span>
+              </div>
+
+              {Number(order.discountAmount) > 0 && (
+                <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400 font-bold">
+                  <span className="flex items-center gap-1.5">
+                    <span>الخصم المطبق</span>
+                    {order.couponCode && (
+                      <span className="px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950 font-mono text-[10px] border border-emerald-300 dark:border-emerald-800">
+                        {order.couponCode}
+                      </span>
+                    )}
+                  </span>
+                  <span className="font-mono">
+                    -{Number(order.discountAmount).toLocaleString("ar-SA", {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    <span className="text-[10px] font-sans font-normal text-emerald-600/80">{currency}</span>
+                  </span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between text-neutral-500">
+                <span>رسوم الشحن</span>
+                <span className="font-mono">
+                  {order.shippingAmount && Number(order.shippingAmount) > 0
+                    ? `${Number(order.shippingAmount).toLocaleString("ar-SA")} ${currency}`
+                    : "مجاني"}
+                </span>
+              </div>
+
+              <div className="pt-2 border-t border-neutral-100 dark:border-zinc-800 flex items-center justify-between">
+                <span className="font-bold text-neutral-900 dark:text-white">إجمالي قيمة الطلب</span>
+                <span className="text-base font-black font-mono text-neutral-900 dark:text-white">
+                  {order.total.toLocaleString("ar-SA", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2,
+                  })}{" "}
+                  <span className="text-xs font-sans font-normal text-neutral-400">{currency}</span>
+                </span>
+              </div>
             </div>
           </div>
 

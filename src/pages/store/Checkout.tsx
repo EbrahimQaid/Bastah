@@ -17,14 +17,15 @@ import {
   Banknote,
   ShieldCheck,
   Phone,
+  Tag,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Checkout() {
   const [, setLocation] = useLocation();
 
-  const { items, totalPrice, clearCart } = useCart();
-  const { format } = useCurrency();
+  const { items, totalPrice, clearCart, appliedCoupon, discountAmount, finalTotal } = useCart();
+  const { format, activeCurrency } = useCurrency();
   const { t, isRTL } = useLanguage();
   const { toast } = useToast();
   const createOrder = useCreateOrder();
@@ -59,12 +60,22 @@ export default function Checkout() {
     }
 
     createOrder.mutate(
-      { data: { ...form, items } },
+      {
+        data: {
+          ...form,
+          items,
+          couponCode: appliedCoupon?.code || undefined,
+          currency: activeCurrency,
+        },
+      },
       {
         onSuccess: (res: any) => {
-          setCreatedOrderId(res?.id || Math.floor(100000 + Math.random() * 900000));
-          setSuccess(true);
+          const orderId = res?.id || Math.floor(100000 + Math.random() * 900000);
+          try {
+            sessionStorage.setItem(`dukkani_receipt_${orderId}`, JSON.stringify(res));
+          } catch {}
           clearCart();
+          setLocation(`/store/order-success/${orderId}`);
         },
         onError: (err: any) => {
           toast({
@@ -80,7 +91,7 @@ export default function Checkout() {
   /* ── Order Confirmed Success Screen ── */
   if (success) {
     return (
-      <StoreLayout>
+      <StoreLayout hideBottomNav={true}>
         <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-6">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
@@ -136,7 +147,7 @@ export default function Checkout() {
   /* ── Empty Cart Guard ── */
   if (items.length === 0) {
     return (
-      <StoreLayout>
+      <StoreLayout hideBottomNav={true}>
         <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4">
           <div className="w-16 h-16 rounded-2xl bg-neutral-100 dark:bg-zinc-800 flex items-center justify-center mx-auto text-neutral-400">
             <ShoppingBag className="w-8 h-8" />
@@ -161,7 +172,7 @@ export default function Checkout() {
     "w-full h-11 px-4 text-xs sm:text-sm bg-neutral-50 dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 rounded-xl outline-none transition-colors font-medium text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-red-500";
 
   return (
-    <StoreLayout>
+    <StoreLayout hideBottomNav={true}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Header & Lock Seal */}
         <div className="flex items-center justify-between pb-4 border-b border-neutral-200/80 dark:border-zinc-800/80">
@@ -332,6 +343,19 @@ export default function Checkout() {
                     {format(totalPrice)}
                   </span>
                 </div>
+
+                {appliedCoupon && discountAmount > 0 && (
+                  <div className="flex justify-between items-center text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                    <span className="flex items-center gap-1.5">
+                      <Tag className="w-3.5 h-3.5" />
+                      <span>
+                        {isRTL ? "قيمة الخصم" : "Discount"} ({appliedCoupon.code})
+                      </span>
+                    </span>
+                    <span className="font-mono tabular-nums">-{format(discountAmount)}</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between text-neutral-600 dark:text-zinc-400">
                   <span>{isRTL ? "رسوم الشحن والتوصيل" : "Shipping"}</span>
                   {shippingRate === 0 ? (
@@ -347,7 +371,7 @@ export default function Checkout() {
                     {isRTL ? "المجموع النهائي" : "Total to Pay"}
                   </span>
                   <span className="font-black font-mono text-2xl" style={{ color: primaryColor }}>
-                    {format(totalPrice + shippingRate)}
+                    {format(finalTotal + shippingRate)}
                   </span>
                 </div>
               </div>

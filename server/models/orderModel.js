@@ -25,8 +25,11 @@ export class OrderModel {
       notes: row.notes || "",
       items,
       subtotal: Number(row.subtotal || 0),
+      discountAmount: Number(row.discount_amount || row.discountAmount || 0),
       shippingAmount: Number(row.shipping_amount || 0),
       total: Number(row.total || 0),
+      currency: row.currency || "SAR",
+      couponCode: row.coupon_code || row.couponCode || null,
       status: row.status || "new",
       whatsappMessage: row.whatsapp_message || row.whatsappMessage || "",
       createdAt: row.created_at || row.createdAt || new Date().toISOString(),
@@ -59,14 +62,17 @@ export class OrderModel {
         customerAddress,
         notes,
         subtotal,
+        discountAmount = 0,
         shippingAmount,
         total,
+        couponCode = null,
+        currency = "SAR",
         whatsappMessage,
       } = orderData;
 
       const orderResult = await client.query(
-        `INSERT INTO orders (store_id, customer_name, customer_phone, customer_address, notes, items, subtotal, shipping_amount, total, status, whatsapp_message)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'new', $10)
+        `INSERT INTO orders (store_id, customer_name, customer_phone, customer_address, notes, items, subtotal, shipping_amount, discount_amount, total, status, whatsapp_message, coupon_code, currency)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'new', $11, $12, $13)
          RETURNING *`,
         [
           storeId,
@@ -77,8 +83,11 @@ export class OrderModel {
           JSON.stringify(trustedItems),
           subtotal,
           shippingAmount,
+          discountAmount,
           total,
           whatsappMessage || `طلب جديد من ${customerName.trim()}`,
+          couponCode,
+          currency,
         ],
       );
 
@@ -91,8 +100,11 @@ export class OrderModel {
         notes: notes || "",
         items: trustedItems,
         subtotal,
+        discount_amount: discountAmount,
         shipping_amount: shippingAmount,
         total,
+        coupon_code: couponCode,
+        currency,
         status: "new",
         whatsapp_message: whatsappMessage || `طلب جديد من ${customerName.trim()}`,
         created_at: new Date().toISOString(),

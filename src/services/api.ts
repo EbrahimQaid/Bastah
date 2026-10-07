@@ -69,10 +69,16 @@ export interface Order {
   customerAddress: string;
   notes: string;
   items: OrderItem[];
+  subtotal?: number;
+  discountAmount?: number;
+  shippingAmount?: number;
   total: number;
+  currency?: string;
+  couponCode?: string | null;
   status: string;
   whatsappMessage: string;
   createdAt: string;
+  orderNumber?: string;
 }
 
 export interface DashboardStats {

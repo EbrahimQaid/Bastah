@@ -395,6 +395,41 @@ export default function Settings() {
                 </select>
               </div>
 
+              {/* Navbar Style Selection */}
+              <div className="space-y-1.5 pt-2">
+                <Label className="text-xs font-bold text-neutral-700 dark:text-zinc-300">
+                  تصميم شريط التنقل العلوي (Navbar Style)
+                </Label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {[
+                    { id: "transparent", label: "شفاف زجاجي (Transparent)", desc: "مظهر زجاجي شفاف ناعم مع تأثير ضبابي خفيف" },
+                    { id: "white", label: "أبيض كلاسيكي (Solid White)", desc: "شريط بخلفية صلبة غير شفافة" },
+                    { id: "colored", label: "بلون المتجر (Store Brand)", desc: "شريط ملون باللون الأساسي للهوية" },
+                  ].map((styleOption) => {
+                    const isSelected = (theme.navbarStyle || "transparent") === styleOption.id;
+                    return (
+                      <button
+                        key={styleOption.id}
+                        type="button"
+                        onClick={() => setT({ navbarStyle: styleOption.id as any })}
+                        className={`p-3 rounded-xl border text-start transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-neutral-50 dark:bg-zinc-800/80 border-neutral-400 dark:border-zinc-600 ring-2 ring-red-500/20"
+                            : "border-neutral-200 dark:border-zinc-800 hover:border-neutral-300 dark:hover:border-zinc-700"
+                        }`}
+                      >
+                        <div className="text-xs font-bold text-neutral-900 dark:text-white mb-0.5">
+                          {styleOption.label}
+                        </div>
+                        <div className="text-[10px] text-neutral-400">
+                          {styleOption.desc}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Promotional Announcement Bar */}
               <div className="pt-4 border-t border-neutral-100 dark:border-zinc-800 space-y-3">
                 <div className="flex items-center justify-between">

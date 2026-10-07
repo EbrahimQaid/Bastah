@@ -58,8 +58,54 @@ export const listCategories = async (req, res) => {
   }
 };
 
+export const validateCouponCode = (code, subtotal = 0) => {
+  if (!code || typeof code !== "string") {
+    return { valid: false, error: "كود الخصم غير صالح" };
+  }
+  const cleanCode = code.trim().toUpperCase();
+  const KNOWN_COUPONS = {
+    DUKKANI10: { type: "percent", value: 10, description: "خصم 10% على إجمالي المنتجات" },
+    SAVE10:    { type: "percent", value: 10, description: "خصم 10% على إجمالي المنتجات" },
+    WELCOME:   { type: "percent", value: 10, description: "خصم 10% على إجمالي المنتجات" },
+    DUKKANI:   { type: "percent", value: 10, description: "خصم 10% على إجمالي المنتجات" },
+  };
+
+  const coupon = KNOWN_COUPONS[cleanCode];
+  if (!coupon) {
+    return { valid: false, error: "كود الخصم غير صالح أو غير موجود" };
+  }
+
+  const discountAmount = Math.round(subtotal * (coupon.value / 100) * 100) / 100;
+  return {
+    valid: true,
+    code: cleanCode,
+    type: coupon.type,
+    value: coupon.value,
+    discountAmount,
+    description: coupon.description,
+  };
+};
+
+export const validateCoupon = async (req, res) => {
+  const { code } = req.body || {};
+  if (!code) {
+    return res.status(400).json({ valid: false, error: "يرجى إدخال كود الخصم" });
+  }
+  const result = validateCouponCode(code, 0);
+  if (!result.valid) {
+    return res.status(400).json(result);
+  }
+  return res.json({
+    valid: true,
+    code: result.code,
+    type: result.type,
+    discountPercent: result.value,
+    description: result.description,
+  });
+};
+
 export const createOrder = async (req, res) => {
-  const { customerName, customerPhone, customerAddress, notes, items } = req.body || {};
+  const { customerName, customerPhone, customerAddress, notes, items, couponCode, currency } = req.body || {};
 
   try {
     if (
@@ -141,12 +187,32 @@ export const createOrder = async (req, res) => {
       };
     });
 
-    const shippingRate = await StoreModel.getShippingRate(STORE_ID);
     const subtotal = trustedItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0,
     );
-    const total = subtotal + shippingRate;
+
+    // Authoritative Server-Side Coupon Validation
+    let verifiedDiscountAmount = 0;
+    let verifiedCouponCode = null;
+
+    if (couponCode && typeof couponCode === "string" && couponCode.trim()) {
+      const couponResult = validateCouponCode(couponCode, subtotal);
+      if (couponResult.valid) {
+        verifiedDiscountAmount = couponResult.discountAmount;
+        verifiedCouponCode = couponResult.code;
+      } else {
+        return res.status(400).json({ error: couponResult.error || "كود الخصم غير صالح" });
+      }
+    }
+
+    const shippingRate = await StoreModel.getShippingRate(STORE_ID);
+    const total = Math.max(0, subtotal - verifiedDiscountAmount) + shippingRate;
+
+    const normalizedCurrency =
+      currency && typeof currency === "string" && ["SAR", "YER", "USD"].includes(currency.trim().toUpperCase())
+        ? currency.trim().toUpperCase()
+        : "SAR";
 
     const createdOrder = await OrderModel.createOrderTransaction(
       STORE_ID,
@@ -156,9 +222,12 @@ export const createOrder = async (req, res) => {
         customerAddress,
         notes,
         subtotal,
+        discountAmount: verifiedDiscountAmount,
         shippingAmount: shippingRate,
         total,
-        whatsappMessage: `طلب جديد من ${customerName.trim()}`,
+        couponCode: verifiedCouponCode,
+        currency: normalizedCurrency,
+        whatsappMessage: `طلب جديد من ${customerName.trim()}${verifiedCouponCode ? ` (كود خصم: ${verifiedCouponCode})` : ""}`,
       },
       trustedItems,
     );
