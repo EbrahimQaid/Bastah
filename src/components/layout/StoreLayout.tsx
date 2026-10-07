@@ -250,104 +250,105 @@ export function StoreLayout({
             </div>
           )}
 
-          {/* ── Top Bar Contract (Strict 3-Zone Architecture) ── */}
-          <header
-            className={
-              !theme.navbarStyle || theme.navbarStyle === "transparent"
-                ? isScrolled
-                  ? "sticky top-0 z-50 bg-white/75 dark:bg-zinc-950/75 backdrop-blur-xl border-b border-neutral-200/60 dark:border-zinc-800/60 shadow-xs transition-all duration-300"
-                  : "sticky top-0 z-50 bg-white/30 dark:bg-zinc-950/30 backdrop-blur-md border-b border-white/25 dark:border-white/10 transition-all duration-300"
-                : theme.navbarStyle === "colored"
-                ? "sticky top-0 z-50 text-white border-b border-white/10 shadow-xs transition-all duration-200"
-                : "sticky top-0 z-50 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md border-b border-neutral-200/80 dark:border-zinc-800/80 transition-colors duration-200"
-            }
-            style={theme.navbarStyle === "colored" ? { background: primaryColor } : undefined}
-          >
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-              {/* Zone 1: Single element Brand Wordmark & Icon */}
-              <div className="flex items-center gap-4 shrink-0">
-                <Link href="/store" className="flex items-center gap-2.5 group select-none">
-                  {!isOldBastahLogo && store.logoImage ? (
-                    <img
-                      src={store.logoImage}
-                      alt={storeDisplayName}
-                      className="w-9 h-9 rounded-xl object-cover shadow-xs group-hover:scale-105 transition-transform"
-                    />
-                  ) : (
-                    <DukkaniLogo iconOnly size="sm" />
-                  )}
-                  <span className="font-sans text-lg sm:text-xl font-black tracking-tight text-neutral-900 dark:text-white">
-                    {storeDisplayName}
-                  </span>
-                </Link>
-              </div>
+          {/* ── Top Bar (Floating Capsule with Curved Edges / Telegram Style) ── */}
+          <header className="sticky top-2 sm:top-3.5 z-50 px-3 sm:px-6 pointer-events-none transition-all duration-300">
+            <div className="max-w-7xl mx-auto pointer-events-auto">
+              <div
+                className={`h-14 sm:h-16 px-4 sm:px-6 rounded-full flex items-center justify-between gap-4 transition-all duration-300 border ${
+                  !theme.navbarStyle || theme.navbarStyle === "transparent"
+                    ? isScrolled
+                      ? "bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl border-neutral-200/70 dark:border-zinc-800/80 shadow-[0_10px_35px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_35px_rgba(0,0,0,0.5)]"
+                      : "bg-white/60 dark:bg-zinc-950/60 backdrop-blur-xl border-white/50 dark:border-zinc-800/60 shadow-[0_4px_20px_rgba(0,0,0,0.04)]"
+                    : theme.navbarStyle === "colored"
+                    ? "text-white border-white/20 shadow-lg"
+                    : "bg-white dark:bg-zinc-900 border-neutral-200 dark:border-zinc-800 shadow-md"
+                }`}
+                style={theme.navbarStyle === "colored" ? { background: primaryColor } : undefined}
+              >
+                {/* Zone 1: Single element Brand Wordmark & Icon */}
+                <div className="flex items-center gap-4 shrink-0">
+                  <Link href="/store" className="flex items-center gap-2.5 group select-none">
+                    {!isOldBastahLogo && store.logoImage ? (
+                      <img
+                        src={store.logoImage}
+                        alt={storeDisplayName}
+                        className="w-9 h-9 rounded-full object-cover shadow-xs group-hover:scale-105 transition-transform"
+                      />
+                    ) : (
+                      <DukkaniLogo iconOnly size="sm" />
+                    )}
+                    <span className="font-sans text-lg sm:text-xl font-black tracking-tight text-neutral-900 dark:text-white">
+                      {storeDisplayName}
+                    </span>
+                  </Link>
+                </div>
 
-              {/* Zone 2: 4-5 Clean Desktop Navigation Links */}
-              <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-neutral-600 dark:text-zinc-300">
-                <Link
-                  href="/store"
-                  className={`transition-colors hover:text-neutral-900 dark:hover:text-white ${
-                    location === "/store" ? "font-bold text-neutral-900 dark:text-white" : ""
-                  }`}
-                >
-                  {isRTL ? "الرئيسية" : "Home"}
-                </Link>
-                <Link
-                  href="/store/products"
-                  className={`transition-colors hover:text-neutral-900 dark:hover:text-white ${
-                    location.startsWith("/store/products")
-                      ? "font-bold text-neutral-900 dark:text-white"
-                      : ""
-                  }`}
-                >
-                  {isRTL ? "جميع المنتجات" : "All Products"}
-                </Link>
-                <Link
-                  href="/store/cart"
-                  className={`transition-colors hover:text-neutral-900 dark:hover:text-white ${
-                    location.startsWith("/store/cart")
-                      ? "font-bold text-neutral-900 dark:text-white"
-                      : ""
-                  }`}
-                >
-                  {isRTL ? "سلة الشراء" : "Shopping Bag"}
-                </Link>
-                <Link
-                  href="/store/about"
-                  className={`transition-colors hover:text-neutral-900 dark:hover:text-white ${
-                    location.startsWith("/store/about") || location.startsWith("/store/profile")
-                      ? "font-bold text-neutral-900 dark:text-white"
-                      : ""
-                  }`}
-                >
-                  {isRTL ? "عن المتجر" : "About Store"}
-                </Link>
-              </nav>
-
-              {/* Zone 3: Primary Action Controls */}
-              <div className="flex items-center gap-2.5">
-                {/* Search Shortcut */}
-                <Link href="/store/products?focus=search">
-                  <button
-                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/60 hover:bg-white/90 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md text-neutral-700 dark:text-zinc-200 border border-neutral-200/50 dark:border-white/10 shadow-xs transition-colors"
-                    aria-label="Search catalog"
+                {/* Zone 2: 4-5 Clean Desktop Navigation Links */}
+                <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-neutral-600 dark:text-zinc-300">
+                  <Link
+                    href="/store"
+                    className={`transition-colors hover:text-neutral-900 dark:hover:text-white ${
+                      location === "/store" ? "font-bold text-neutral-900 dark:text-white" : ""
+                    }`}
                   >
-                    <Search className="w-4 h-4" />
-                  </button>
-                </Link>
-
-                {/* Unified Regional & Theme Popover Trigger */}
-                <div className="relative" ref={prefRef}>
-                  <button
-                    onClick={() => setPrefModalOpen((v) => !v)}
-                    className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-white/60 hover:bg-white/90 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md text-neutral-800 dark:text-zinc-200 text-xs font-semibold border border-neutral-200/50 dark:border-white/10 shadow-xs transition-colors"
-                    aria-label="Language, currency and theme settings"
+                    {isRTL ? "الرئيسية" : "Home"}
+                  </Link>
+                  <Link
+                    href="/store/products"
+                    className={`transition-colors hover:text-neutral-900 dark:hover:text-white ${
+                      location.startsWith("/store/products")
+                        ? "font-bold text-neutral-900 dark:text-white"
+                        : ""
+                    }`}
                   >
-                    <Globe className="w-3.5 h-3.5 text-neutral-500" />
-                    <span>{activeCurrency.symbol}</span>
-                    <span className="opacity-40">·</span>
-                    <span>{language === "ar" ? "عربي" : "EN"}</span>
-                  </button>
+                    {isRTL ? "جميع المنتجات" : "All Products"}
+                  </Link>
+                  <Link
+                    href="/store/cart"
+                    className={`transition-colors hover:text-neutral-900 dark:hover:text-white ${
+                      location.startsWith("/store/cart")
+                        ? "font-bold text-neutral-900 dark:text-white"
+                        : ""
+                    }`}
+                  >
+                    {isRTL ? "سلة الشراء" : "Shopping Bag"}
+                  </Link>
+                  <Link
+                    href="/store/about"
+                    className={`transition-colors hover:text-neutral-900 dark:hover:text-white ${
+                      location.startsWith("/store/about") || location.startsWith("/store/profile")
+                        ? "font-bold text-neutral-900 dark:text-white"
+                        : ""
+                    }`}
+                  >
+                    {isRTL ? "عن المتجر" : "About Store"}
+                  </Link>
+                </nav>
+
+                {/* Zone 3: Primary Action Controls */}
+                <div className="flex items-center gap-2">
+                  {/* Search Shortcut */}
+                  <Link href="/store/products?focus=search">
+                    <button
+                      className="w-9 h-9 flex items-center justify-center rounded-full bg-white/60 hover:bg-white/90 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md text-neutral-700 dark:text-zinc-200 border border-neutral-200/50 dark:border-white/10 shadow-xs transition-transform active:scale-95"
+                      aria-label="Search catalog"
+                    >
+                      <Search className="w-4 h-4" />
+                    </button>
+                  </Link>
+
+                  {/* Unified Regional & Theme Popover Trigger */}
+                  <div className="relative" ref={prefRef}>
+                    <button
+                      onClick={() => setPrefModalOpen((v) => !v)}
+                      className="flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-white/60 hover:bg-white/90 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md text-neutral-800 dark:text-zinc-200 text-xs font-semibold border border-neutral-200/50 dark:border-white/10 shadow-xs transition-transform active:scale-95"
+                      aria-label="Language, currency and theme settings"
+                    >
+                      <Globe className="w-3.5 h-3.5 text-neutral-500" />
+                      <span>{activeCurrency.symbol}</span>
+                      <span className="opacity-40">·</span>
+                      <span>{language === "ar" ? "عربي" : "EN"}</span>
+                    </button>
 
                   {/* Popover Panel */}
                   {prefModalOpen && (
@@ -482,7 +483,7 @@ export function StoreLayout({
                 {/* Shopping Bag Button with Live Counter */}
                 <button
                   onClick={openMiniCart}
-                  className="relative h-9 px-3.5 flex items-center gap-2 rounded-xl text-white font-bold text-xs transition-transform active:scale-95 shadow-sm"
+                  className="relative h-9 px-4 flex items-center gap-2 rounded-full text-white font-bold text-xs transition-transform active:scale-95 shadow-sm"
                   style={{
                     background: `linear-gradient(135deg, ${primaryColor}, #DC2626)`,
                   }}
@@ -500,7 +501,8 @@ export function StoreLayout({
                 </button>
               </div>
             </div>
-          </header>
+          </div>
+        </header>
 
           {/* ── Main Content Container ── */}
           <main className="flex-1 w-full pb-16 md:pb-8">{children}</main>
@@ -634,10 +636,10 @@ export function StoreLayout({
             </div>
           </footer>
 
-          {/* ── Native Mobile Bottom Navigation Bar (Hidden on Desktop md:hidden) ── */}
+          {/* ── Native Mobile Bottom Navigation Bar (Floating Curved Telegram Style) ── */}
           {!hideBottomNav && (
-            <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-t border-neutral-200/60 dark:border-zinc-800/60 px-2 py-1 safe-area-pb shadow-lg">
-              <nav className="flex items-center justify-around h-14">
+            <div className="fixed bottom-3 left-0 right-0 z-40 md:hidden flex justify-center px-4 pointer-events-none transition-all duration-300">
+              <nav className="pointer-events-auto flex items-center justify-around w-full max-w-[370px] py-2 px-3 rounded-full backdrop-blur-2xl bg-white/85 dark:bg-zinc-900/85 border border-neutral-200/80 dark:border-zinc-700/70 shadow-[0_12px_40px_rgba(0,0,0,0.15)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] transition-all duration-300">
                 {[
                   {
                     href: "/store",
@@ -665,30 +667,34 @@ export function StoreLayout({
                     active: location.startsWith("/store/about") || location.startsWith("/store/profile"),
                   },
                 ].map(({ href, label, icon: Icon, active, badge }, i) => (
-                  <Link key={i} href={href} className="flex-1 py-1 text-center">
+                  <Link key={i} href={href} className="flex-1 py-1 text-center group">
                     <div className="flex flex-col items-center justify-center gap-0.5">
                       <div className="relative">
-                        <Icon
-                          className={`w-5 h-5 transition-transform ${
-                            active
-                              ? "text-red-600 scale-110"
-                              : "text-neutral-500 dark:text-zinc-400"
+                        <div
+                          className={`p-1 rounded-full transition-all duration-300 ${
+                            active ? "bg-red-50 dark:bg-red-950/40" : ""
                           }`}
-                          style={active ? { color: primaryColor } : {}}
-                        />
+                        >
+                          <Icon
+                            className={`w-5 h-5 transition-transform duration-300 ${
+                              active ? "scale-110" : "group-hover:scale-105"
+                            }`}
+                            style={active ? { color: primaryColor } : undefined}
+                          />
+                        </div>
                         {badge && (
-                          <span className="absolute -top-1 -right-2 text-[9px] font-black text-white px-1.5 py-0.2 rounded-full min-w-[16px] h-4 flex items-center justify-center bg-red-600 shadow-xs">
+                          <span className="absolute -top-1 -right-1.5 text-[9px] font-black text-white px-1.5 py-0.2 rounded-full min-w-[16px] h-4 flex items-center justify-center bg-red-600 shadow-xs">
                             {badge > 99 ? "99+" : badge}
                           </span>
                         )}
                       </div>
                       <span
-                        className={`text-[10px] font-bold tracking-tight ${
+                        className={`text-[10px] font-bold tracking-tight transition-colors ${
                           active
-                            ? "text-red-600 font-extrabold"
-                            : "text-neutral-500 dark:text-zinc-400"
+                            ? "font-extrabold"
+                            : "text-neutral-400 group-hover:text-neutral-600 dark:group-hover:text-zinc-300"
                         }`}
-                        style={active ? { color: primaryColor } : {}}
+                        style={active ? { color: primaryColor } : undefined}
                       >
                         {label}
                       </span>
